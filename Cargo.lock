@@ -908,6 +908,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "leptos_meta"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "950533f057299e75f48471211dc9b46e0d00c640fd14bda92c34e2705add7b8d"
+dependencies = [
+ "cfg-if",
+ "leptos",
+ "tracing",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "leptos_reactive"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1676,6 +1689,7 @@ name = "sorrow-rs"
 version = "0.1.0"
 dependencies = [
  "leptos",
+ "leptos_meta",
 ]
 
 [[package]]

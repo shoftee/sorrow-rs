@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 leptos = "0.2.5"
+leptos_meta = { version = "0.2.5", features = ["csr"] }
