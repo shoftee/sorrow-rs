@@ -142,7 +142,32 @@ footer {
 
 .unscrollable {
   overflow-y: auto;
-  padding-top: 0.25rem;
+}
+
+.nav-container {
+  @include wh-100();
+  @include flex-column();
+  align-items: center;
+
+  & nav {
+    justify-content: center;
+  }
+}
+
+.main-container {
+  @include wh-100();
+  @include flex-row();
+  gap: 0.5rem;
+  padding: 0.5rem;
+  max-width: 1920px;
+
+  & > .unscrollable {
+    padding-top: 0.25rem;
+  }
+
+  & > .col {
+    flex: 1 0 0%;
+  }
 }
 
 .bg-success {
