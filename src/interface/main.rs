@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use leptos::{*, leptos_dom::helpers::IntervalHandle};
+use leptos::{leptos_dom::helpers::IntervalHandle, *};
+
+use super::keyboard_events::KeyboardEvents;
 
 #[component]
 pub(crate) fn Main(cx: Scope) -> impl IntoView {
@@ -18,29 +20,35 @@ pub(crate) fn Main(cx: Scope) -> impl IntoView {
         set_count_b.update(|c| *c = *c + 1);
     });
 
+    let keyboard_events =
+        use_context::<KeyboardEvents>(cx).expect("keyboard events not in context");
+    create_effect(cx, move |_| log!("Ctrl: {}", keyboard_events.ctrl.get()));
+    create_effect(cx, move |_| log!("Shift: {}", keyboard_events.shift.get()));
+    create_effect(cx, move |_| log!("Alt: {}", keyboard_events.alt.get()));
+
     view! { cx,
         <main class="unscrollable">
             <div class="nav-container">
-								<div>"navigation goes here"</div>
+                <div>"navigation goes here"</div>
                 <div class="main-container unscrollable">
-										<div class="col unscrollable">"Resources"</div>
-										<div class="col unscrollable">
-												<div>"Count A (fixed interval of 1000 ms)"</div>
-												<div>{count_a}</div>
-												<div>"Count B (dynamic interval, currently " {interval} " ms)"</div>
-												<div>{count_b}</div>
-												<input
-														type="number"
-														prop:value=interval
-														on:input=move |ev| {
-																if let Ok(value) = event_target_value(&ev).parse::<u64>() {
-																		set_interval(value);
-																}
-														}
-												/>
-										</div>
-										<div class="col env-container unscrollable">"Calendar and History"</div>
-								</div>
+                    <div class="col unscrollable">"Resources"</div>
+                    <div class="col unscrollable">
+                        <div>"Count A (fixed interval of 1000 ms)"</div>
+                        <div>{count_a}</div>
+                        <div>"Count B (dynamic interval, currently " {interval} " ms)"</div>
+                        <div>{count_b}</div>
+                        <input
+                            type="number"
+                            prop:value=interval
+                            on:input=move |ev| {
+                                if let Ok(value) = event_target_value(&ev).parse::<u64>() {
+                                    set_interval(value);
+                                }
+                            }
+                        />
+                    </div>
+                    <div class="col env-container unscrollable">"Calendar and History"</div>
+                </div>
             </div>
         </main>
     }
