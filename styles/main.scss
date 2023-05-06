@@ -63,6 +63,12 @@
   --bs-body-bg: #fff;
 }
 
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   @include h-100();
