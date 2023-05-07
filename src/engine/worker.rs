@@ -10,10 +10,8 @@ pub struct Engine {
 }
 
 impl Worker for Engine {
-    type Input = Command;
-
     type Message = ();
-
+    type Input = Command;
     type Output = Notification;
 
     fn create(_scope: &WorkerScope<Self>) -> Self {
@@ -29,9 +27,7 @@ impl Worker for Engine {
         self.root = Some(root);
     }
 
-    fn update(&mut self, _scope: &WorkerScope<Self>, _msg: Self::Message) {
-        leptos::warn!("Worker self-communication not supported!");
-    }
+    fn update(&mut self, _scope: &WorkerScope<Self>, _msg: Self::Message) {}
 
     fn received(&mut self, scope: &WorkerScope<Self>, msg: Self::Input, id: HandlerId) {
         if let Some(notification) = self.handler.handle(msg) {

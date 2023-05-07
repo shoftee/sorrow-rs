@@ -5,14 +5,14 @@ use crate::core::communication::{Command, Notification};
 use super::worker::Engine;
 
 #[derive(Clone)]
-pub struct EngineEndpoint(WorkerBridge<Engine>);
+pub struct Endpoint(WorkerBridge<Engine>);
 
-impl EngineEndpoint {
-    pub fn new<F>(cb: F) -> Self
+impl Endpoint {
+    pub fn new<F>(cb: F, path: &str) -> Self
     where
         F: 'static + Fn(Notification),
     {
-        Self(Engine::spawner().callback(cb).spawn("./engine.js"))
+        Self(Engine::spawner().callback(cb).spawn(path))
     }
 
     pub fn send(&self, command: Command) {
