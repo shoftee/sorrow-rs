@@ -1,11 +1,41 @@
 use std::time::Duration;
 
 use leptos::{leptos_dom::helpers::IntervalHandle, *};
+use leptos_reactive::{MaybeSignal, Scope};
 
 use super::keyboard_events::KeyboardEvents;
 
 #[component]
-pub(crate) fn Main(cx: Scope) -> impl IntoView {
+pub fn Header(cx: Scope) -> impl IntoView {
+    view! { cx,
+        <header class="row">
+            <div class="col">
+                <div class="header-start">
+                    <div>"Observable Sorrow"</div>
+                    <div class="badge bg-success">
+                        <i class="bi bi-droplet"></i>
+                        " β "
+                    </div>
+                </div>
+            </div>
+        </header>
+    }
+}
+
+#[component]
+pub fn Footer(cx: Scope) -> impl IntoView {
+    view! { cx,
+        <footer>
+            <div>
+                "Observable Sorrow is a clone of "
+                <a href="https://kittensgame.com/web/">"Kittens Game"</a> "."
+            </div>
+        </footer>
+    }
+}
+
+#[component]
+pub fn Center(cx: Scope) -> impl IntoView {
     // count_a updates with a fixed interval of 1000 ms, whereas count_b has a dynamic
     // update interval.
     let (count_a, set_count_a) = create_signal(cx, 0_i32);
@@ -20,8 +50,7 @@ pub(crate) fn Main(cx: Scope) -> impl IntoView {
         set_count_b.update(|c| *c = *c + 1);
     });
 
-    let keyboard_events =
-        use_context::<KeyboardEvents>(cx).expect("keyboard events not in context");
+    let keyboard_events = use_keyboard_events(cx);
     create_effect(cx, move |_| log!("Ctrl: {}", keyboard_events.ctrl.get()));
     create_effect(cx, move |_| log!("Shift: {}", keyboard_events.shift.get()));
     create_effect(cx, move |_| log!("Alt: {}", keyboard_events.alt.get()));
@@ -60,11 +89,15 @@ where
     F: Fn() + Clone + 'static,
 {
     let duration_millis = duration_millis.into();
-    create_effect(cx, move |prev_handle: Option<IntervalHandle>| {
-        if let Some(prev_handle) = prev_handle {
+    create_effect(cx, move |prev: Option<IntervalHandle>| {
+        if let Some(prev_handle) = prev {
             prev_handle.clear();
         }
         let duration = Duration::from_millis(duration_millis.get());
         set_interval_with_handle(cb.clone(), duration).expect("could not create interval")
     });
+}
+
+fn use_keyboard_events(cx: Scope) -> KeyboardEvents {
+    return use_context(cx).expect("keyboard events not provided in context");
 }

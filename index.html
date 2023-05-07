@@ -9,6 +9,8 @@
     <link data-trunk rel="scss" href="./styles/main.scss" />
     <link data-trunk rel="scss" href="./styles/bootstrap-icons.scss" />
     <link rel="icon" href="./assets/droplet-fill.svg" />
+
+    <base data-trunk-public-url />
   </head>
   <body>
     <noscript>
@@ -17,5 +19,7 @@
         enabled. Please enable it to continue.
       </strong>
     </noscript>
+    <link data-trunk rel="rust" data-bin="ui" data-type="main" />
+    <link data-trunk rel="rust" data-bin="engine" data-type="worker" />
   </body>
 </html>

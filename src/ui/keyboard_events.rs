@@ -4,7 +4,7 @@ use leptos::*;
 use wasm_bindgen::prelude::*;
 
 #[derive(Clone)]
-pub(crate) struct KeyboardEvents {
+pub struct KeyboardEvents {
     pub ctrl: Memo<bool>,
     pub shift: Memo<bool>,
     pub alt: Memo<bool>,
