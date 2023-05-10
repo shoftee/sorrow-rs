@@ -1,4 +1,4 @@
-use leptos::log;
+use leptos::{log, warn};
 use leptos_reactive::{
     create_rw_signal, create_slice, provide_context, use_context, Scope, Signal, SignalSetter,
 };
@@ -8,14 +8,9 @@ use crate::{
     engine::endpoint::Endpoint,
 };
 
+#[derive(Default)]
 struct State {
     id: u64,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        Self { id: 0 }
-    }
 }
 
 #[derive(Clone)]
@@ -52,9 +47,15 @@ impl StateManager {
     }
 
     pub fn accept(&self, notification: Notification) {
+        use Notification::*;
+
         match notification {
-            Notification::LogMessage(msg) => log!("Received message: {}", msg),
-            Notification::Delta { id } => self.signals.id.1.set(id),
+            Initialized => log!("World initialized."),
+            LogMessage(msg) => log!("{}", msg),
+            WarnMessage(msg) => warn!("{}", msg),
+            Started => log!("Started!"),
+            Paused => log!("Paused!"),
+            StateChanged { id } => self.signals.id.1.set(id),
         }
     }
 }

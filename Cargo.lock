@@ -593,6 +593,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "gloo-timers"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b995a66bb87bebce9a0f4a95aed01daca4872c050bfcb21653361c03bc35e5c"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gloo-utils"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1733,11 +1743,14 @@ dependencies = [
 name = "sorrow-rs"
 version = "0.1.0"
 dependencies = [
+ "gloo-console",
+ "gloo-timers",
  "gloo-worker",
  "leptos",
  "leptos_meta",
  "leptos_reactive",
  "serde",
+ "time",
  "wasm-bindgen",
 ]
 
@@ -1807,6 +1820,23 @@ dependencies = [
  "quote",
  "syn 2.0.15",
 ]
+
+[[package]]
+name = "time"
+version = "0.3.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f3403384eaacbca9923fa06940178ac13e4edb725486d70e8e15881d0c836cc"
+dependencies = [
+ "js-sys",
+ "serde",
+ "time-core",
+]
+
+[[package]]
+name = "time-core"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7300fbefb4dadc1af235a9cef3737cea692a9d97e1b9cbcd4ebdae6f8868e6fb"
 
 [[package]]
 name = "tinyvec"

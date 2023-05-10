@@ -1,7 +1,5 @@
-use std::time::Duration;
-
-use leptos::{leptos_dom::helpers::IntervalHandle, *};
-use leptos_reactive::{MaybeSignal, Scope};
+use leptos::*;
+use leptos_reactive::Scope;
 
 use crate::ui::{events, state};
 
@@ -54,20 +52,4 @@ pub fn Center(cx: Scope) -> impl IntoView {
             </div>
         </main>
     }
-}
-
-#[allow(dead_code)]
-fn use_interval<D, F>(cx: Scope, duration_millis: D, cb: F)
-where
-    D: Into<MaybeSignal<u64>> + 'static,
-    F: Fn() + Clone + 'static,
-{
-    let duration_millis = duration_millis.into();
-    create_effect(cx, move |prev: Option<IntervalHandle>| {
-        if let Some(prev_handle) = prev {
-            prev_handle.clear();
-        }
-        let duration = Duration::from_millis(duration_millis.get());
-        set_interval_with_handle(cb.clone(), duration).expect("could not create interval")
-    });
 }

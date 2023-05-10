@@ -57,5 +57,5 @@ fn document_visibility_change_event_listener(cb: impl Fn() + 'static) {
 }
 
 pub fn use_keyboard_events(cx: Scope) -> KeyboardEvents {
-    return use_context(cx).expect("keyboard events not provided in context");
+    use_context(cx).expect("keyboard events not provided in context")
 }

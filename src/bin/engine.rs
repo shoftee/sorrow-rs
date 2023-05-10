@@ -1,3 +1,3 @@
 fn main() {
-    sorrow::engine::start()
+    sorrow::engine::engine_registrar().register()
 }

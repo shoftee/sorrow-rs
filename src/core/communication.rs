@@ -1,13 +1,18 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum Command {
     Initialize,
-    Increment,
+    Start,
+    Pause,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Notification {
     LogMessage(String),
-    Delta { id: u64 },
+    WarnMessage(String),
+    Initialized,
+    Started,
+    Paused,
+    StateChanged { id: u64 },
 }
