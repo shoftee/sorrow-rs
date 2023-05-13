@@ -12,6 +12,14 @@ impl TimeSpan {
             remaining: *self,
         }
     }
+
+    fn min(lhs: TimeSpan, rhs: TimeSpan) -> TimeSpan {
+        if lhs < rhs {
+            lhs
+        } else {
+            rhs
+        }
+    }
 }
 
 impl From<Duration> for TimeSpan {
@@ -34,6 +42,20 @@ impl std::ops::SubAssign for TimeSpan {
     }
 }
 
+impl std::ops::Mul<f64> for TimeSpan {
+    type Output = TimeSpan;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        Self(self.0 * rhs)
+    }
+}
+
+impl std::ops::MulAssign<f64> for TimeSpan {
+    fn mul_assign(&mut self, rhs: f64) {
+        self.0 *= rhs;
+    }
+}
+
 pub struct TicksIterator {
     max_span: TimeSpan,
     remaining: TimeSpan,
@@ -43,15 +65,11 @@ impl Iterator for TicksIterator {
     type Item = TimeSpan;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let segment = if self.remaining > self.max_span {
-            self.max_span
-        } else {
-            self.remaining
-        };
+        let segment = TimeSpan::min(self.max_span, self.remaining);
 
         self.remaining -= segment;
 
-        if segment.0 > 0.0 {
+        if segment > TimeSpan::ZERO {
             Some(segment)
         } else {
             None

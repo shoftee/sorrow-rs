@@ -1,18 +1,20 @@
-use leptos_reactive::{create_runtime, raw_scope_and_disposer, RuntimeId, Scope};
+use leptos_reactive::{RwSignal, SignalGet};
 use time::Duration;
 
 use crate::core::{
     communication::{Command, Notification},
-    timers::{DeltaTime, Ticker},
+    timers::{DeltaTime, Ticker, TimeSpan},
     utils::channel::{Receiver, Sender},
 };
 
+use super::runtime::Runtime;
+
 pub struct World {
-    _runtime: Runtime,
+    runtime: Runtime,
     command_receiver: Receiver<Command>,
     notification_sender: Sender<Notification>,
 
-    state: Option<WorldState>,
+    controller: Option<WorldController>,
 }
 
 impl World {
@@ -21,28 +23,31 @@ impl World {
         notification_sender: Sender<Notification>,
     ) -> Self {
         Self {
-            _runtime: Runtime::new(),
+            runtime: Runtime::new(),
             command_receiver,
             notification_sender,
 
-            state: None,
+            controller: None,
         }
     }
 
     pub fn activate(&mut self) {
-        self.state = Some(WorldState::new());
+        self.controller = Some(WorldController::new(&self.runtime));
 
         self.notification_sender.send(Notification::Initialized);
     }
 
     pub fn update(&mut self) {
-        let state = self.state.as_mut().expect("world state not initialized");
-        state.update();
+        let controller = self
+            .controller
+            .as_mut()
+            .expect("world state not initialized");
+        controller.update();
 
         self.notification_sender
             .send(Notification::LogMessage(format!(
                 "Ticks: {:.3}",
-                state.ticks.absolute.fractional(),
+                controller.state.ticks.absolute.fractional(),
             )));
 
         while let Some(cmd) = self.command_receiver.try_recv() {
@@ -55,40 +60,16 @@ impl World {
     }
 }
 
-pub struct Runtime {
-    runtime: RuntimeId,
-    pub _scope: Scope,
+struct WorldController {
+    delta_time: DeltaTime,
+    state: WorldState,
 }
 
-impl Runtime {
-    fn new() -> Self {
-        let runtime = create_runtime();
-        let (scope, _) = raw_scope_and_disposer(runtime);
-        Self {
-            runtime,
-            _scope: scope,
-        }
-    }
-}
-
-impl Drop for Runtime {
-    fn drop(&mut self) {
-        self.runtime.dispose();
-    }
-}
-
-struct WorldState {
-    pub delta_time: DeltaTime,
-    pub ticks: Ticker,
-}
-
-impl WorldState {
-    const TICK_DURATION: time::Duration = Duration::milliseconds(200);
-
-    fn new() -> Self {
+impl WorldController {
+    fn new(runtime: &Runtime) -> Self {
         Self {
             delta_time: DeltaTime::new(),
-            ticks: Ticker::new(Self::TICK_DURATION),
+            state: WorldState::new(runtime),
         }
     }
 
@@ -96,6 +77,31 @@ impl WorldState {
         self.delta_time.update();
 
         let delta = self.delta_time.delta();
+
+        self.state.update(delta);
+    }
+}
+
+struct WorldState {
+    pub ticks: Ticker,
+    pub acceleration_factor: RwSignal<f64>,
+}
+
+impl WorldState {
+    const TICK_DURATION: time::Duration = Duration::milliseconds(200);
+
+    fn new(runtime: &Runtime) -> Self {
+        Self {
+            ticks: Ticker::new(Self::TICK_DURATION),
+            acceleration_factor: runtime.create_rw_signal(1f64),
+        }
+    }
+
+    fn update(&mut self, delta: TimeSpan) {
+        // apply time acceleration
+        let delta = delta * self.acceleration_factor.get();
+
+        // simulate separate ticks in case the delta is too long
         for segment in delta.ticks_iter(Self::TICK_DURATION) {
             self.ticks.advance(segment);
         }

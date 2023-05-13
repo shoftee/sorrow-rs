@@ -2,10 +2,10 @@ use gloo_worker::{HandlerId, WorkerDestroyHandle, WorkerScope};
 
 use crate::core::communication::*;
 
-use super::controller::Controller;
+use super::dispatcher::Dispatcher;
 
 pub struct Worker {
-    controller: Controller,
+    dispatcher: Dispatcher,
 }
 
 impl gloo_worker::Worker for Worker {
@@ -15,14 +15,14 @@ impl gloo_worker::Worker for Worker {
 
     fn create(_scope: &WorkerScope<Self>) -> Self {
         Self {
-            controller: Controller::new(),
+            dispatcher: Dispatcher::new(),
         }
     }
 
     fn update(&mut self, _scope: &WorkerScope<Self>, _msg: Self::Message) {}
 
     fn received(&mut self, scope: &WorkerScope<Self>, msg: Self::Input, id: HandlerId) {
-        self.controller.accept(scope.clone(), id, msg);
+        self.dispatcher.accept(scope.clone(), id, msg);
     }
 
     fn destroy(&mut self, _scope: &WorkerScope<Self>, _destruct: WorkerDestroyHandle<Self>) {}

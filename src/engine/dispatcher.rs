@@ -11,7 +11,7 @@ use crate::core::{
 
 use super::{worker::Worker, world::World};
 
-pub struct Controller {
+pub struct Dispatcher {
     world: RcCell<World>,
 
     command_sender: Sender<Command>,
@@ -20,7 +20,7 @@ pub struct Controller {
     interval: Option<Interval>,
 }
 
-impl Controller {
+impl Dispatcher {
     pub fn new() -> Self {
         let (command_sender, command_receiver) = channel();
         let (notification_sender, notification_receiver) = channel();
