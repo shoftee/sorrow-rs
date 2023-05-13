@@ -1,11 +1,10 @@
 use leptos_reactive::{create_runtime, raw_scope_and_disposer, RuntimeId, Scope};
+use time::Duration;
 
 use crate::core::{
     communication::{Command, Notification},
-    utils::{
-        channel::{Receiver, Sender},
-        delta_time::DeltaTime,
-    },
+    timers::{DeltaTime, Ticker},
+    utils::channel::{Receiver, Sender},
 };
 
 pub struct World {
@@ -43,7 +42,7 @@ impl World {
         self.notification_sender
             .send(Notification::LogMessage(format!(
                 "Ticks: {:.3}",
-                state.ticks
+                state.ticks.absolute.fractional(),
             )));
 
         while let Some(cmd) = self.command_receiver.try_recv() {
@@ -80,20 +79,25 @@ impl Drop for Runtime {
 
 struct WorldState {
     pub delta_time: DeltaTime,
-    pub ticks: f32,
+    pub ticks: Ticker,
 }
 
 impl WorldState {
+    const TICK_DURATION: time::Duration = Duration::milliseconds(200);
+
     fn new() -> Self {
         Self {
             delta_time: DeltaTime::new(),
-            ticks: 0f32,
+            ticks: Ticker::new(Self::TICK_DURATION),
         }
     }
 
     fn update(&mut self) {
         self.delta_time.update();
 
-        self.ticks += self.delta_time.elapsed_ticks()
+        let delta = self.delta_time.delta();
+        for segment in delta.ticks_iter(Self::TICK_DURATION) {
+            self.ticks.advance(segment);
+        }
     }
 }
