@@ -53,9 +53,7 @@ impl StateManager {
             Initialized => log!("World initialized."),
             LogMessage(msg) => log!("{}", msg),
             WarnMessage(msg) => warn!("{}", msg),
-            Started => log!("Started!"),
-            Paused => log!("Paused!"),
-            StateChanged { id } => self.signals.id.1.set(id),
+            _ => log!("{:?}", notification),
         }
     }
 }

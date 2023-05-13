@@ -1,18 +1,27 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+use super::time::Acceleration;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub enum Command {
     Initialize,
+    TimeControl(TimeControl),
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+pub enum TimeControl {
+    SetAcceleration(Acceleration),
     Start,
     Pause,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub enum Notification {
     LogMessage(String),
     WarnMessage(String),
     Initialized,
-    Started,
-    Paused,
-    StateChanged { id: u64 },
+    StateChanged {
+        paused: bool,
+        acceleration: Acceleration,
+    },
 }

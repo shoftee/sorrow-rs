@@ -1,75 +1,90 @@
-use leptos_reactive::{RwSignal, SignalGet};
 use time::Duration;
 
 use crate::core::{
-    communication::{Command, Notification},
+    communication::{Command, Notification, TimeControl},
+    time::Acceleration,
     timers::{DeltaTime, Ticker, TimeSpan},
     utils::channel::{Receiver, Sender},
 };
 
-use super::runtime::Runtime;
+use super::runtime::{CreateReactive, DerivedState, Runtime};
+
+pub struct WorldQueues {
+    pub commands: Receiver<Command>,
+    pub notifications: Sender<Notification>,
+}
 
 pub struct World {
     runtime: Runtime,
-    command_receiver: Receiver<Command>,
-    notification_sender: Sender<Notification>,
-
-    controller: Option<WorldController>,
+    world_queues: WorldQueues,
+    controller: WorldController,
 }
 
 impl World {
-    pub fn new(
-        command_receiver: Receiver<Command>,
-        notification_sender: Sender<Notification>,
-    ) -> Self {
+    pub fn new(world_queues: WorldQueues) -> Self {
+        let runtime = Runtime::new();
+        let controller = WorldController::new(&runtime);
         Self {
-            runtime: Runtime::new(),
-            command_receiver,
-            notification_sender,
-
-            controller: None,
+            runtime,
+            world_queues,
+            controller,
         }
     }
 
     pub fn activate(&mut self) {
-        self.controller = Some(WorldController::new(&self.runtime));
+        let sender = &self.world_queues.notifications;
 
-        self.notification_sender.send(Notification::Initialized);
+        sender.send(Notification::Initialized);
+        self.controller.activate(&self.runtime, sender.clone())
     }
 
     pub fn update(&mut self) {
-        let controller = self
-            .controller
-            .as_mut()
-            .expect("world state not initialized");
-        controller.update();
-
-        self.notification_sender
-            .send(Notification::LogMessage(format!(
-                "Ticks: {:.3}",
-                controller.state.ticks.absolute.fractional(),
-            )));
-
-        while let Some(cmd) = self.command_receiver.try_recv() {
-            self.notification_sender
-                .send(Notification::WarnMessage(format!(
-                    "Unhandled command: {:?}",
-                    cmd,
-                )))
+        let receiver = &self.world_queues.commands;
+        while let Some(cmd) = receiver.try_recv() {
+            match cmd {
+                Command::TimeControl(cmd) => {
+                    self.controller.accept(cmd);
+                }
+                Command::Initialize => unreachable!(),
+            }
         }
+
+        self.controller.update();
     }
 }
 
 struct WorldController {
     delta_time: DeltaTime,
-    state: WorldState,
+    ticks: Ticker,
+    state: ReactiveWorldState,
 }
 
 impl WorldController {
     fn new(runtime: &Runtime) -> Self {
         Self {
             delta_time: DeltaTime::new(),
-            state: WorldState::new(runtime),
+            ticks: Ticker::new(Duration::milliseconds(200)),
+            state: runtime.create_reactive(WorldState::default()),
+        }
+    }
+
+    fn activate(&self, runtime: &Runtime, sender: Sender<Notification>) {
+        let acceleration = self.state.acceleration;
+        let paused = self.state.paused;
+
+        runtime.create_effect(move |_| {
+            sender.send(Notification::StateChanged {
+                acceleration: acceleration.get(),
+                paused: paused.get(),
+            })
+        });
+    }
+
+    fn accept(&mut self, command: TimeControl) {
+        match command {
+            TimeControl::SetAcceleration(acc) => self.state.acceleration.set(acc),
+            TimeControl::Start => self.state.paused.set(false),
+            TimeControl::Pause => self.state.paused.set(true),
         }
     }
 
@@ -78,32 +93,43 @@ impl WorldController {
 
         let delta = self.delta_time.delta();
 
-        self.state.update(delta);
-    }
-}
+        if self.state.paused.get() {
+            return;
+        }
 
-struct WorldState {
-    pub ticks: Ticker,
-    pub acceleration_factor: RwSignal<f64>,
-}
+        // apply time acceleration
+        let delta = delta * self.state.acceleration.get().into();
 
-impl WorldState {
-    const TICK_DURATION: time::Duration = Duration::milliseconds(200);
-
-    fn new(runtime: &Runtime) -> Self {
-        Self {
-            ticks: Ticker::new(Self::TICK_DURATION),
-            acceleration_factor: runtime.create_rw_signal(1f64),
+        // simulate separate ticks in case the delta is too long
+        for segment in delta.segments_iter(self.ticks.tick_duration()) {
+            self.update_with_delta(segment);
         }
     }
 
-    fn update(&mut self, delta: TimeSpan) {
-        // apply time acceleration
-        let delta = delta * self.acceleration_factor.get();
+    fn update_with_delta(&mut self, delta: TimeSpan) {
+        self.ticks.advance(delta);
+    }
+}
 
-        // simulate separate ticks in case the delta is too long
-        for segment in delta.ticks_iter(Self::TICK_DURATION) {
-            self.ticks.advance(segment);
+#[derive(Debug, Default)]
+struct WorldState {
+    paused: bool,
+    acceleration: Acceleration,
+}
+
+struct ReactiveWorldState {
+    paused: DerivedState<bool>,
+    acceleration: DerivedState<Acceleration>,
+}
+
+impl CreateReactive<WorldState> for Runtime {
+    type Target = ReactiveWorldState;
+
+    fn create_reactive(&self, value: WorldState) -> Self::Target {
+        let root = self.state(value);
+        Self::Target {
+            paused: self.derived_state(root, |s| s.paused, |s, v| s.paused = v),
+            acceleration: self.derived_state(root, |s| s.acceleration, |s, v| s.acceleration = v),
         }
     }
 }

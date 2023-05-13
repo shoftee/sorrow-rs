@@ -9,13 +9,19 @@ use crate::core::{
     },
 };
 
-use super::{worker::Worker, world::World};
+use super::{
+    worker::Worker,
+    world::{World, WorldQueues},
+};
+
+struct WorkerQueues {
+    commands: Sender<Command>,
+    notifications: Receiver<Notification>,
+}
 
 pub struct Dispatcher {
     world: RcCell<World>,
-
-    command_sender: Sender<Command>,
-    notification_receiver: Receiver<Notification>,
+    worker_queues: WorkerQueues,
 
     interval: Option<Interval>,
 }
@@ -25,32 +31,42 @@ impl Dispatcher {
         let (command_sender, command_receiver) = channel();
         let (notification_sender, notification_receiver) = channel();
 
+        let world_queues = WorldQueues {
+            commands: command_receiver,
+            notifications: notification_sender,
+        };
+        let worker_queues = WorkerQueues {
+            commands: command_sender,
+            notifications: notification_receiver,
+        };
         Self {
-            world: World::new(command_receiver, notification_sender).into(),
-
-            command_sender,
-            notification_receiver,
+            world: World::new(world_queues).into(),
+            worker_queues,
 
             interval: None,
         }
     }
 
     pub fn accept(&mut self, scope: WorkerScope<Worker>, id: HandlerId, command: Command) {
-        if command == Command::Initialize {
-            self.world.borrow_mut().activate();
+        match command {
+            Command::Initialize => {
+                self.world.borrow_mut().activate();
 
-            let world = self.world.clone();
-            let notification_receiver = self.notification_receiver.clone();
+                let world = self.world.clone();
+                let receiver = self.worker_queues.notifications.clone();
 
-            self.interval.replace(Interval::new(50, move || {
-                world.borrow_mut().update();
+                self.interval.replace(Interval::new(50, move || {
+                    world.borrow_mut().update();
 
-                while let Some(notification) = notification_receiver.try_recv() {
-                    scope.respond(id, notification);
-                }
-            }));
-        } else {
-            self.command_sender.send(command);
+                    while let Some(notification) = receiver.try_recv() {
+                        scope.respond(id, notification);
+                    }
+                }));
+            }
+            _ => {
+                let sender = &self.worker_queues.commands;
+                sender.send(command);
+            }
         }
     }
 }

@@ -6,8 +6,8 @@ pub struct TimeSpan(f64);
 impl TimeSpan {
     pub const ZERO: TimeSpan = TimeSpan(0f64);
 
-    pub fn ticks_iter(&self, max_span: impl Into<TimeSpan>) -> TicksIterator {
-        TicksIterator {
+    pub fn segments_iter(&self, max_span: impl Into<TimeSpan>) -> SegmentsIterator {
+        SegmentsIterator {
             max_span: max_span.into(),
             remaining: *self,
         }
@@ -56,12 +56,12 @@ impl std::ops::MulAssign<f64> for TimeSpan {
     }
 }
 
-pub struct TicksIterator {
+pub struct SegmentsIterator {
     max_span: TimeSpan,
     remaining: TimeSpan,
 }
 
-impl Iterator for TicksIterator {
+impl Iterator for SegmentsIterator {
     type Item = TimeSpan;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -118,6 +118,10 @@ impl Ticker {
             absolute: Default::default(),
             delta: Default::default(),
         }
+    }
+
+    pub fn tick_duration(&self) -> TimeSpan {
+        self.tick_duration
     }
 
     pub fn advance(&mut self, delta_span: TimeSpan) {
