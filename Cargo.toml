@@ -1,7 +1,13 @@
+[workspace]
+members = ["crates/*"]
+
 [package]
 name = "sorrow-rs"
+authors = ["shoftee"]
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -18,6 +24,7 @@ name = "ui"
 path = "src/bin/ui.rs"
 
 [dependencies]
+sorrow-reactive = { path = "crates/reactive" }
 leptos = "0.2.5"
 gloo-worker = "0.2"
 leptos_meta = { version = "0.2.5", features = ["csr"] }

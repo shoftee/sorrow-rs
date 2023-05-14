@@ -1,5 +1,7 @@
 use time::Duration;
 
+use sorrow_reactive::{CreateState, CreateStateSlice, Get, Set};
+
 use crate::core::{
     communication::{Command, Notification, TimeControl},
     time::Acceleration,
@@ -7,7 +9,7 @@ use crate::core::{
     utils::channel::{Receiver, Sender},
 };
 
-use super::runtime::{CreateReactive, DerivedState, Runtime};
+use super::runtime::{CreateReactive, Runtime, StateSlice};
 
 pub struct WorldQueues {
     pub commands: Receiver<Command>,
@@ -72,7 +74,7 @@ impl WorldController {
         let acceleration = self.state.acceleration;
         let paused = self.state.paused;
 
-        runtime.create_effect(move |_| {
+        runtime.create_batch_effect(move |_| {
             sender.send(Notification::StateChanged {
                 acceleration: acceleration.get(),
                 paused: paused.get(),
@@ -118,18 +120,18 @@ struct WorldState {
 }
 
 struct ReactiveWorldState {
-    paused: DerivedState<bool>,
-    acceleration: DerivedState<Acceleration>,
+    paused: StateSlice<bool>,
+    acceleration: StateSlice<Acceleration>,
 }
 
 impl CreateReactive<WorldState> for Runtime {
     type Target = ReactiveWorldState;
 
     fn create_reactive(&self, value: WorldState) -> Self::Target {
-        let root = self.state(value);
+        let root = self.create_state(value);
         Self::Target {
-            paused: self.derived_state(root, |s| s.paused, |s, v| s.paused = v),
-            acceleration: self.derived_state(root, |s| s.acceleration, |s, v| s.acceleration = v),
+            paused: self.create_slice(root, |s| s.paused, |s, v| s.paused = v),
+            acceleration: self.create_slice(root, |s| s.acceleration, |s, v| s.acceleration = v),
         }
     }
 }
