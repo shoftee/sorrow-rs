@@ -1,48 +1,117 @@
-pub trait Get<T>
+pub struct State<T>(leptos_reactive::RwSignal<T>)
 where
-    T: Clone,
-{
-    fn get(&self) -> T;
+    T: 'static;
+
+impl<T> Clone for State<T> {
+    fn clone(&self) -> Self {
+        Self(self.0)
+    }
 }
 
-pub trait Set<T> {
-    fn set(&self, new_value: T);
+impl<T> Copy for State<T> {}
+
+impl<T> State<T> {
+    pub fn get(&self) -> T
+    where
+        T: Clone,
+    {
+        leptos_reactive::SignalGet::get(&self.0)
+    }
+
+    pub fn set(&self, new_value: T) {
+        leptos_reactive::SignalSet::set(&self.0, new_value);
+    }
+
+    pub fn with<Output>(&self, f: impl FnOnce(&T) -> Output) -> Output {
+        leptos_reactive::SignalWith::with(&self.0, f)
+    }
+
+    pub fn update(&self, f: impl FnOnce(&mut T)) {
+        leptos_reactive::SignalUpdate::update(&self.0, f);
+    }
 }
 
-pub trait With<T> {
-    fn with<Output>(&self, f: impl FnOnce(&T) -> Output) -> Output;
-}
-
-pub trait Update<T> {
-    fn update(&self, f: impl FnOnce(&mut T));
-}
-
-pub trait StateSlice<T> {
-    fn get(&self) -> T;
-    fn set(&self, new_value: T);
-}
-
-pub trait CreateState<Target>
+pub struct DependentState<T>(leptos_reactive::Signal<T>, leptos_reactive::SignalSetter<T>)
 where
-    Target: 'static,
-{
-    type Reactive: With<Target> + Update<Target>;
+    T: 'static;
 
-    fn create_state(&self, value: Target) -> Self::Reactive;
+impl<T> Clone for DependentState<T>
+where
+    T: 'static,
+{
+    fn clone(&self) -> Self {
+        Self(self.0, self.1)
+    }
 }
 
-pub trait CreateStateSlice<Target, Output>
-where
-    Target: 'static,
-    Output: Clone + PartialEq + 'static,
-{
-    type State: With<Target> + Update<Target>;
-    type Reactive: Get<Output> + Set<Output>;
+impl<T> Copy for DependentState<T> where T: 'static {}
 
-    fn create_slice(
+impl<T> DependentState<T> {
+    pub fn get(&self) -> T
+    where
+        T: Clone,
+    {
+        leptos_reactive::SignalGet::get(&self.0)
+    }
+
+    pub fn set(&self, new_value: T) {
+        leptos_reactive::SignalSetter::set(&self.1, new_value);
+    }
+}
+
+pub struct Runtime {
+    runtime_id: leptos_reactive::RuntimeId,
+    scope: leptos_reactive::Scope,
+}
+
+impl Runtime {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        let runtime_id = leptos_reactive::create_runtime();
+        let (scope, _) = leptos_reactive::raw_scope_and_disposer(runtime_id);
+        Self { runtime_id, scope }
+    }
+
+    pub fn create_batch_effect<T, Effect>(&self, effect: Effect)
+    where
+        T: 'static,
+        Effect: Fn(Option<T>) -> T + 'static,
+    {
+        self.scope
+            .batch(|| leptos_reactive::create_effect(self.scope, effect))
+    }
+
+    pub fn create_state<Target>(&self, value: Target) -> State<Target>
+    where
+        Target: 'static,
+    {
+        let signal = leptos_reactive::create_rw_signal(self.scope, value);
+        State(signal)
+    }
+
+    pub fn create_dependent<Target, Output>(
         &self,
-        state: Self::State,
+        state: State<Target>,
         getter: impl Fn(&Target) -> Output + Clone + Copy + 'static,
         setter: impl Fn(&mut Target, Output) + Clone + Copy + 'static,
-    ) -> Self::Reactive;
+    ) -> DependentState<Output>
+    where
+        Output: PartialEq,
+    {
+        let (signal, signal_setter) =
+            leptos_reactive::create_slice(self.scope, state.0, getter, setter);
+        DependentState(signal, signal_setter)
+    }
+}
+
+impl Drop for Runtime {
+    fn drop(&mut self) {
+        self.runtime_id.dispose();
+    }
+}
+
+pub trait IntoReactive {
+    type Target;
+
+    fn into_reactive(self, runtime: &Runtime) -> Self::Target;
 }

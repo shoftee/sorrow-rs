@@ -1,6 +1,7 @@
-use time::Duration;
+use sorrow_derive::Reactive;
+use sorrow_reactive::IntoReactive;
 
-use sorrow_reactive::{CreateState, CreateStateSlice, Get, Set};
+use time::Duration;
 
 use crate::core::{
     communication::{Command, Notification, TimeControl},
@@ -9,22 +10,20 @@ use crate::core::{
     utils::channel::{Receiver, Sender},
 };
 
-use super::runtime::{CreateReactive, Runtime, StateSlice};
-
 pub struct WorldQueues {
     pub commands: Receiver<Command>,
     pub notifications: Sender<Notification>,
 }
 
 pub struct World {
-    runtime: Runtime,
+    runtime: ::sorrow_reactive::Runtime,
     world_queues: WorldQueues,
     controller: WorldController,
 }
 
 impl World {
     pub fn new(world_queues: WorldQueues) -> Self {
-        let runtime = Runtime::new();
+        let runtime = ::sorrow_reactive::Runtime::new();
         let controller = WorldController::new(&runtime);
         Self {
             runtime,
@@ -62,15 +61,15 @@ struct WorldController {
 }
 
 impl WorldController {
-    fn new(runtime: &Runtime) -> Self {
+    fn new(runtime: &::sorrow_reactive::Runtime) -> Self {
         Self {
             delta_time: DeltaTime::new(),
             ticks: Ticker::new(Duration::milliseconds(200)),
-            state: runtime.create_reactive(WorldState::default()),
+            state: WorldState::default().into_reactive(runtime),
         }
     }
 
-    fn activate(&self, runtime: &Runtime, sender: Sender<Notification>) {
+    fn activate(&self, runtime: &::sorrow_reactive::Runtime, sender: Sender<Notification>) {
         let acceleration = self.state.acceleration;
         let paused = self.state.paused;
 
@@ -113,25 +112,8 @@ impl WorldController {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Reactive)]
 struct WorldState {
     paused: bool,
     acceleration: Acceleration,
-}
-
-struct ReactiveWorldState {
-    paused: StateSlice<bool>,
-    acceleration: StateSlice<Acceleration>,
-}
-
-impl CreateReactive<WorldState> for Runtime {
-    type Target = ReactiveWorldState;
-
-    fn create_reactive(&self, value: WorldState) -> Self::Target {
-        let root = self.create_state(value);
-        Self::Target {
-            paused: self.create_slice(root, |s| s.paused, |s, v| s.paused = v),
-            acceleration: self.create_slice(root, |s| s.acceleration, |s, v| s.acceleration = v),
-        }
-    }
 }

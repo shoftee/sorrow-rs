@@ -1,0 +1,5 @@
+error: derive(Reactive) does not support generics.
+ --> tests/reactive/fail/04-generic-struct.rs:4:19
+  |
+4 | pub struct Generic<T> {
+  |                   ^^^

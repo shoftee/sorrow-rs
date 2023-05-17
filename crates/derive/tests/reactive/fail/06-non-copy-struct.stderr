@@ -1,0 +1,5 @@
+error[E0507]: cannot move out of `s.non_copy_field` which is behind a shared reference
+ --> tests/reactive/fail/06-non-copy-struct.rs:5:5
+  |
+5 |     non_copy_field: Vec<i32>,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^ move occurs because `s.non_copy_field` has type `Vec<i32>`, which does not implement the `Copy` trait

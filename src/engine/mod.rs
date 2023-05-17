@@ -2,7 +2,6 @@ pub mod endpoint;
 pub mod worker;
 
 mod dispatcher;
-mod runtime;
 mod world;
 
 use gloo_worker::{Registrable, Spawnable, WorkerRegistrar, WorkerSpawner};

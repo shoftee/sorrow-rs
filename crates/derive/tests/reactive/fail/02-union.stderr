@@ -1,0 +1,5 @@
+error: derive(Reactive) is only supported on struct types.
+ --> tests/reactive/fail/02-union.rs:5:5
+  |
+5 | pub union TestUnion {
+  |     ^^^^^

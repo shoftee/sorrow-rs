@@ -1,0 +1,12 @@
+error[E0277]: the trait bound `InnerTest: Clone` is not satisfied
+ --> tests/reactive/fail/10-non-clone-nested-struct.rs:3:10
+  |
+3 | #[derive(Reactive)]
+  |          ^^^^^^^^ the trait `Clone` is not implemented for `InnerTest`
+  |
+  = note: this error originates in the derive macro `Reactive` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider annotating `InnerTest` with `#[derive(Clone)]`
+  |
+10+ #[derive(Clone)]
+11| struct InnerTest {
+  |

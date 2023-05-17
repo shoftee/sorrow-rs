@@ -1,0 +1,8 @@
+error[E0277]: the trait bound `InnerTest: IntoReactive` is not satisfied
+ --> tests/reactive/fail/09-non-reactive-nested.rs:3:10
+  |
+3 | #[derive(Reactive)]
+  |          ^^^^^^^^ the trait `IntoReactive` is not implemented for `InnerTest`
+  |
+  = help: the trait `IntoReactive` is implemented for `OuterTest`
+  = note: this error originates in the derive macro `Reactive` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,0 +1,5 @@
+error: derive(Reactive) is only supported on struct types.
+ --> tests/reactive/fail/01-enum.rs:4:5
+  |
+4 | pub enum TestEnum {
+  |     ^^^^

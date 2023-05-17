@@ -8,3 +8,6 @@ publish = false
 
 [lib]
 name = "sorrow_reactive"
+
+[dependencies]
+leptos_reactive = "0.2.5"
