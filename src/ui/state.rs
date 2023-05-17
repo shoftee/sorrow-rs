@@ -1,7 +1,4 @@
-use leptos::{log, warn};
-use leptos_reactive::{
-    create_rw_signal, create_slice, provide_context, use_context, Scope, Signal, SignalSetter,
-};
+use leptos::*;
 
 use crate::{
     core::communication::{Command, Notification},

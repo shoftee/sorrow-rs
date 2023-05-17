@@ -1,5 +1,4 @@
 use leptos::*;
-use leptos_reactive::Scope;
 
 use crate::ui::{events, state};
 
