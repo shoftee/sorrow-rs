@@ -1,9 +1,7 @@
 use leptos::*;
 
-use crate::{
-    core::communication::{Command, Notification},
-    engine::endpoint::Endpoint,
-};
+use sorrow_core::communication::{Command, Notification};
+use sorrow_engine::endpoint::Endpoint;
 
 #[derive(Default)]
 struct State {

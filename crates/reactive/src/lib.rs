@@ -1,4 +1,6 @@
-pub struct State<T>(leptos_reactive::RwSignal<T>)
+use leptos_reactive::*;
+
+pub struct State<T>(RwSignal<T>)
 where
     T: 'static;
 
@@ -15,23 +17,23 @@ impl<T> State<T> {
     where
         T: Clone,
     {
-        leptos_reactive::SignalGet::get(&self.0)
+        SignalGet::get(&self.0)
     }
 
     pub fn set(&self, new_value: T) {
-        leptos_reactive::SignalSet::set(&self.0, new_value);
+        SignalSet::set(&self.0, new_value);
     }
 
     pub fn with<Output>(&self, f: impl FnOnce(&T) -> Output) -> Output {
-        leptos_reactive::SignalWith::with(&self.0, f)
+        SignalWith::with(&self.0, f)
     }
 
     pub fn update(&self, f: impl FnOnce(&mut T)) {
-        leptos_reactive::SignalUpdate::update(&self.0, f);
+        SignalUpdate::update(&self.0, f);
     }
 }
 
-pub struct DependentState<T>(leptos_reactive::Signal<T>, leptos_reactive::SignalSetter<T>)
+pub struct DependentState<T>(Signal<T>, SignalSetter<T>)
 where
     T: 'static;
 
@@ -51,24 +53,24 @@ impl<T> DependentState<T> {
     where
         T: Clone,
     {
-        leptos_reactive::SignalGet::get(&self.0)
+        SignalGet::get(&self.0)
     }
 
     pub fn set(&self, new_value: T) {
-        leptos_reactive::SignalSetter::set(&self.1, new_value);
+        SignalSetter::set(&self.1, new_value);
     }
 }
 
 pub struct Runtime {
-    runtime_id: leptos_reactive::RuntimeId,
-    scope: leptos_reactive::Scope,
+    runtime_id: RuntimeId,
+    scope: Scope,
 }
 
 impl Runtime {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        let runtime_id = leptos_reactive::create_runtime();
-        let (scope, _) = leptos_reactive::raw_scope_and_disposer(runtime_id);
+        let runtime_id = create_runtime();
+        let (scope, _) = raw_scope_and_disposer(runtime_id);
         Self { runtime_id, scope }
     }
 
@@ -77,15 +79,14 @@ impl Runtime {
         T: 'static,
         Effect: Fn(Option<T>) -> T + 'static,
     {
-        self.scope
-            .batch(|| leptos_reactive::create_effect(self.scope, effect))
+        self.scope.batch(|| create_effect(self.scope, effect))
     }
 
     pub fn create_state<Target>(&self, value: Target) -> State<Target>
     where
         Target: 'static,
     {
-        let signal = leptos_reactive::create_rw_signal(self.scope, value);
+        let signal = create_rw_signal(self.scope, value);
         State(signal)
     }
 
@@ -98,8 +99,7 @@ impl Runtime {
     where
         Output: PartialEq,
     {
-        let (signal, signal_setter) =
-            leptos_reactive::create_slice(self.scope, state.0, getter, setter);
+        let (signal, signal_setter) = create_slice(self.scope, state.0, getter, setter);
         DependentState(signal, signal_setter)
     }
 }

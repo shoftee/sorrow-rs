@@ -1,4 +1,4 @@
-use time::{Duration, OffsetDateTime};
+use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct TimeSpan(f64);
@@ -22,9 +22,15 @@ impl TimeSpan {
     }
 }
 
-impl From<Duration> for TimeSpan {
-    fn from(value: Duration) -> Self {
+impl From<time::Duration> for TimeSpan {
+    fn from(value: time::Duration) -> Self {
         Self(value.as_seconds_f64())
+    }
+}
+
+impl From<std::time::Duration> for TimeSpan {
+    fn from(value: std::time::Duration) -> Self {
+        Self(value.as_secs_f64())
     }
 }
 

@@ -1,9 +1,9 @@
+use std::time::Duration;
+
 use sorrow_derive::Reactive;
-use sorrow_reactive::IntoReactive;
+use sorrow_reactive::{IntoReactive, Runtime};
 
-use time::Duration;
-
-use crate::core::{
+use sorrow_core::{
     communication::{Command, Notification, TimeControl},
     time::Acceleration,
     timers::{DeltaTime, Ticker, TimeSpan},
@@ -16,14 +16,14 @@ pub struct WorldQueues {
 }
 
 pub struct World {
-    runtime: ::sorrow_reactive::Runtime,
+    runtime: Runtime,
     world_queues: WorldQueues,
     controller: WorldController,
 }
 
 impl World {
     pub fn new(world_queues: WorldQueues) -> Self {
-        let runtime = ::sorrow_reactive::Runtime::new();
+        let runtime = Runtime::new();
         let controller = WorldController::new(&runtime);
         Self {
             runtime,
@@ -57,14 +57,14 @@ impl World {
 struct WorldController {
     delta_time: DeltaTime,
     ticks: Ticker,
-    state: ReactiveWorldState,
+    state: <WorldState as IntoReactive>::Target,
 }
 
 impl WorldController {
     fn new(runtime: &::sorrow_reactive::Runtime) -> Self {
         Self {
             delta_time: DeltaTime::new(),
-            ticks: Ticker::new(Duration::milliseconds(200)),
+            ticks: Ticker::new(Duration::from_millis(200)),
             state: WorldState::default().into_reactive(runtime),
         }
     }

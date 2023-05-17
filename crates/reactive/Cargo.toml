@@ -1,10 +1,10 @@
 [package]
 name = "sorrow-reactive"
-authors = ["shoftee"]
-version = "0.1.0"
-edition = "2021"
-license = "MIT"
-publish = false
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
 
 [lib]
 name = "sorrow_reactive"

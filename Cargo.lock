@@ -1778,6 +1778,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "sorrow-core"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "time",
+]
+
+[[package]]
 name = "sorrow-derive"
 version = "0.1.0"
 dependencies = [
@@ -1791,6 +1799,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "sorrow-engine"
+version = "0.1.0"
+dependencies = [
+ "gloo-timers",
+ "gloo-worker",
+ "sorrow-core",
+ "sorrow-derive",
+ "sorrow-reactive",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "sorrow-reactive"
 version = "0.1.0"
 dependencies = [
@@ -1801,14 +1821,20 @@ dependencies = [
 name = "sorrow-rs"
 version = "0.1.0"
 dependencies = [
- "gloo-timers",
- "gloo-worker",
+ "sorrow-derive",
+ "sorrow-engine",
+ "sorrow-reactive",
+ "sorrow-ui",
+]
+
+[[package]]
+name = "sorrow-ui"
+version = "0.1.0"
+dependencies = [
  "leptos",
  "leptos_meta",
- "serde",
- "sorrow-derive",
- "sorrow-reactive",
- "time",
+ "sorrow-core",
+ "sorrow-engine",
  "wasm-bindgen",
 ]
 

@@ -1,7 +1,7 @@
 use gloo_timers::callback::Interval;
 use gloo_worker::{HandlerId, WorkerScope};
 
-use crate::core::{
+use sorrow_core::{
     communication::{Command, Notification},
     utils::{
         cell::RcCell,

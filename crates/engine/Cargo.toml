@@ -1,0 +1,21 @@
+[package]
+name = "sorrow-engine"
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "sorrow_engine"
+path = "src/lib.rs"
+
+[dependencies]
+sorrow-core = { path = "../../crates/core" }
+sorrow-derive = { path = "../../crates/derive" }
+sorrow-reactive = { path = "../../crates/reactive" }
+gloo-worker = "0.2"
+gloo-timers = "0.2.6"
+wasm-bindgen = "0.2.84"

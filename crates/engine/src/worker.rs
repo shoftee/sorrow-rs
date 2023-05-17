@@ -1,6 +1,6 @@
 use gloo_worker::{HandlerId, WorkerDestroyHandle, WorkerScope};
 
-use crate::core::communication::*;
+use sorrow_core::communication::*;
 
 use super::dispatcher::Dispatcher;
 

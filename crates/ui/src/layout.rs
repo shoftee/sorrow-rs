@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::ui::{events, state};
+use crate::{events, state};
 
 #[component]
 pub fn Header(cx: Scope) -> impl IntoView {

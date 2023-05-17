@@ -1,6 +1,6 @@
 use gloo_worker::WorkerBridge;
 
-use crate::core::communication::{Command, Notification};
+use sorrow_core::communication::{Command, Notification};
 
 use super::{engine_spawner, worker::Worker};
 

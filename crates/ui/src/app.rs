@@ -1,7 +1,7 @@
 use leptos::*;
 use leptos_meta::*;
 
-use crate::ui::state::provide_endpoint_context;
+use crate::state::provide_endpoint_context;
 
 use super::events::*;
 use super::layout::*;

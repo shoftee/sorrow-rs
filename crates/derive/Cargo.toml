@@ -1,17 +1,17 @@
 [package]
 name = "sorrow-derive"
-authors = ["shoftee"]
-version = "0.1.0"
-edition = "2021"
-license = "MIT"
-publish = false
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
 
 [lib]
 proc_macro = true
 name = "sorrow_derive"
 
 [dependencies]
-sorrow-reactive = { path = "../reactive" }
+sorrow-reactive = { path = "../../crates/reactive" }
 proc-macro2 = "1.0.56"
 quote = "1.0.27"
 syn = { version = "2.0.16", features = ["extra-traits", "parsing"] }
