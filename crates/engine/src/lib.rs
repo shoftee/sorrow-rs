@@ -4,14 +4,18 @@ pub mod worker;
 mod dispatcher;
 mod world;
 
-use gloo_worker::{Registrable, Spawnable, WorkerRegistrar, WorkerSpawner};
+use gloo_worker::{Registrable, Spawnable, WorkerBridge};
+use sorrow_core::communication::Notification;
 
 use self::worker::Worker;
 
-pub fn engine_registrar() -> WorkerRegistrar<Worker> {
-    Worker::registrar()
+pub fn register() {
+    Worker::registrar().register();
 }
 
-pub fn engine_spawner() -> WorkerSpawner<Worker> {
-    Worker::spawner()
+pub fn spawn<F>(cb: F, path: &str) -> WorkerBridge<Worker>
+where
+    F: Fn(Notification) + 'static,
+{
+    Worker::spawner().callback(cb).spawn(path)
 }

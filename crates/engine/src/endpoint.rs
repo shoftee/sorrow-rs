@@ -2,7 +2,7 @@ use gloo_worker::WorkerBridge;
 
 use sorrow_core::communication::{Command, Notification};
 
-use super::{engine_spawner, worker::Worker};
+use super::{spawn, worker::Worker};
 
 #[derive(Clone)]
 pub struct Endpoint(WorkerBridge<Worker>);
@@ -12,7 +12,7 @@ impl Endpoint {
     where
         F: 'static + Fn(Notification),
     {
-        Self(engine_spawner().callback(cb).spawn(path))
+        Self(spawn(cb, path))
     }
 
     pub fn send(&self, command: Command) {

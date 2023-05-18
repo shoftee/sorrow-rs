@@ -1,4 +1,3 @@
-use leptos::ev::KeyboardEvent;
 use leptos::*;
 
 use wasm_bindgen::prelude::*;
@@ -44,8 +43,8 @@ pub fn provide_keyboard_events_context(cx: Scope) {
     provide_context(cx, KeyboardEvents::new(cx));
 }
 
-fn window_keyboard_event_listener(event_name: &str, cb: impl Fn(KeyboardEvent) + 'static) {
-    let handler = Box::new(cb) as Box<dyn FnMut(KeyboardEvent)>;
+fn window_keyboard_event_listener(event_name: &str, cb: impl Fn(ev::KeyboardEvent) + 'static) {
+    let handler = Box::new(cb) as Box<dyn FnMut(ev::KeyboardEvent)>;
     let cb = Closure::wrap(handler).into_js_value();
     _ = window().add_event_listener_with_callback(event_name, cb.unchecked_ref());
 }

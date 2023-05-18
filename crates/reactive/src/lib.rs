@@ -74,10 +74,10 @@ impl Runtime {
         Self { runtime_id, scope }
     }
 
-    pub fn create_batch_effect<T, Effect>(&self, effect: Effect)
+    pub fn create_batch_effect<Target, Effect>(&self, effect: Effect)
     where
-        T: 'static,
-        Effect: Fn(Option<T>) -> T + 'static,
+        Target: 'static,
+        Effect: Fn(Option<Target>) -> Target + 'static,
     {
         self.scope.batch(|| create_effect(self.scope, effect))
     }

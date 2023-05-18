@@ -10,7 +10,7 @@ impl Default for Acceleration {
 }
 
 impl TryFrom<f64> for Acceleration {
-    type Error = String;
+    type Error = &'static str;
 
     fn try_from(value: f64) -> Result<Self, Self::Error> {
         let value = ((value * 10.0).round()) / 10.0;
@@ -18,7 +18,7 @@ impl TryFrom<f64> for Acceleration {
         if value >= 0.1 {
             Ok(Self(value))
         } else {
-            Err("Acceleration must be 0.1 or higher.".to_owned())
+            Err("Acceleration must be 0.1 or higher.")
         }
     }
 }

@@ -42,14 +42,15 @@ impl Dispatcher {
             Command::Initialize => {
                 self.world.borrow_mut().activate();
 
-                let world = self.world.clone();
-                let receiver = self.worker_queues.notifications.clone();
+                self.interval.replace(Interval::new(50, {
+                    let world = self.world.clone();
+                    let notifications = self.worker_queues.notifications.clone();
+                    move || {
+                        world.borrow_mut().update();
 
-                self.interval.replace(Interval::new(50, move || {
-                    world.borrow_mut().update();
-
-                    while let Some(notification) = receiver.try_recv() {
-                        scope.respond(id, notification);
+                        while let Some(notification) = notifications.try_recv() {
+                            scope.respond(id, notification);
+                        }
                     }
                 }));
             }

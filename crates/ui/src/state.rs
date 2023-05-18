@@ -57,11 +57,10 @@ pub fn provide_endpoint_context(cx: Scope) {
     let state_manager = StateManager::new(cx);
     provide_context(cx, state_manager.signals());
 
-    let endpoint = Endpoint::new(
-        move |notification| state_manager.accept(notification),
-        "./engine.js",
-    );
+    let endpoint = Endpoint::new(move |n| state_manager.accept(n), "./engine.js");
+
     endpoint.send(Command::Initialize);
+
     provide_context(cx, endpoint);
 }
 
