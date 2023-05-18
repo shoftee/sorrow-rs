@@ -28,17 +28,7 @@ pub struct Dispatcher {
 
 impl Dispatcher {
     pub fn new() -> Self {
-        let (command_sender, command_receiver) = channel();
-        let (notification_sender, notification_receiver) = channel();
-
-        let world_queues = WorldQueues {
-            commands: command_receiver,
-            notifications: notification_sender,
-        };
-        let worker_queues = WorkerQueues {
-            commands: command_sender,
-            notifications: notification_receiver,
-        };
+        let (worker_queues, world_queues) = queues();
         Self {
             world: World::new(world_queues).into(),
             worker_queues,
@@ -69,4 +59,20 @@ impl Dispatcher {
             }
         }
     }
+}
+
+fn queues() -> (WorkerQueues, WorldQueues) {
+    let (command_sender, command_receiver) = channel();
+    let (notification_sender, notification_receiver) = channel();
+
+    let world_queues = WorldQueues {
+        commands: command_receiver,
+        notifications: notification_sender,
+    };
+    let worker_queues = WorkerQueues {
+        commands: command_sender,
+        notifications: notification_receiver,
+    };
+
+    (worker_queues, world_queues)
 }
