@@ -1,9 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2_diagnostics::Diagnostic;
-use quote::{quote, quote_spanned};
-use syn::{
-    spanned::Spanned, AttrStyle, Data, DeriveInput, Field, Fields, FieldsNamed, Ident, Type,
-};
+use quote::quote;
+use syn::{AttrStyle, Data, DeriveInput, Field, Fields, FieldsNamed, Ident, Type};
 
 use crate::{error, parse_input};
 
@@ -33,55 +31,48 @@ pub(crate) fn try_reactive(input: TokenStream) -> Result<TokenStream, Diagnostic
     //let reactive_crate = reactive_crate_name()?;
     let reactive_ident = reactive_ident(&ident);
 
-    let nested_declarations = nested_fields.iter().map(|&field| {
+    let nested_decls = nested_fields.iter().map(|&field| {
         let vis = field.vis.clone();
         let ident = field.ident.clone().expect("all fields should be named");
         let ty = field.ty.clone();
         quote! { #vis #ident: <#ty as ::sorrow_reactive::IntoReactive>::Target }
     });
-    let dependent_declarations = dependent_fields.iter().map(|&field| {
+    let state_decls = dependent_fields.iter().map(|&field| {
         let vis = field.vis.clone();
         let ident = field.ident.clone().expect("all fields should be named");
         let ty = field.ty.clone();
-        quote! { #vis #ident: ::sorrow_reactive::DependentState<#ty> }
+        quote! { #vis #ident: ::sorrow_reactive::State<#ty> }
     });
 
-    let struct_declaration = quote! {
+    let reactive_struct_decl = quote! {
         #vis struct #reactive_ident {
-            #(#nested_declarations,)*
-            #(#dependent_declarations,)*
+            #(#nested_decls,)*
+            #(#state_decls,)*
         }
     };
 
-    let nested_variables = nested_fields.iter().map(|&field| {
-        let ident = field.ident.clone().expect("all fields should be named");
-        let ty = field.ty.clone();
-        quote! {
-            let #ident = <#ty as ::sorrow_reactive::IntoReactive>::into_reactive(
-                <#ty as ::core::clone::Clone>::clone(&self.#ident),
-                runtime,
-            );
-        }
-    });
-    let nested_initializers = nested_fields.iter().map(|&field| {
+    let field_idents = fields.iter().map(|field| {
         let ident = field.ident.clone().expect("all fields should be named");
         quote! { #ident }
     });
+    let nested_initializers = nested_fields.iter().map(|&field| {
+        let ident = field.ident.clone().expect("all fields should be named");
+        let ty = field.ty.clone();
+        quote! { #ident: <#ty as ::sorrow_reactive::IntoReactive>::into_reactive(#ident, __runtime) }
+    });
     let dependent_initializers = dependent_fields.iter().map(|&field| {
         let ident = field.ident.clone().expect("all fields should be named");
-        let value = quote_spanned!(field.span() =>
-            runtime.create_dependent(__root, |s| s.#ident, |s, v| s.#ident = v)
-        );
-        quote! { #ident: #value }
+        quote! { #ident: __runtime.create_state(#ident) }
     });
 
     let into_reactive_impl = quote! {
         #[automatically_derived]
         impl ::sorrow_reactive::IntoReactive for #ident {
             type Target = #reactive_ident;
-            fn into_reactive(self, runtime: &::sorrow_reactive::Runtime) -> Self::Target {
-                #(#nested_variables)*
-                let __root = runtime.create_state(self);
+            fn into_reactive(self, __runtime: &::sorrow_reactive::Runtime) -> Self::Target {
+                let Self {
+                    #(#field_idents,)*
+                } = self;
                 Self::Target {
                     #(#nested_initializers,)*
                     #(#dependent_initializers,)*
@@ -91,7 +82,7 @@ pub(crate) fn try_reactive(input: TokenStream) -> Result<TokenStream, Diagnostic
     };
 
     let token_stream = quote! {
-        #struct_declaration
+        #reactive_struct_decl
         #into_reactive_impl
     };
 

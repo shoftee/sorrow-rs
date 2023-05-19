@@ -1,5 +1,5 @@
 error: expected attribute arguments in parentheses: #[reactive(...)]
- --> tests/reactive/fail/07-attr-without-nested.rs:5:7
+ --> tests/reactive/fail/06-attr-without-nested.rs:5:7
   |
 5 |     #[reactive]
   |       ^^^^^^^^

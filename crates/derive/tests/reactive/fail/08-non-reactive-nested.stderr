@@ -1,5 +1,5 @@
 error[E0277]: the trait bound `InnerTest: IntoReactive` is not satisfied
- --> tests/reactive/fail/09-non-reactive-nested.rs:3:10
+ --> tests/reactive/fail/08-non-reactive-nested.rs:3:10
   |
 3 | #[derive(Reactive)]
   |          ^^^^^^^^ the trait `IntoReactive` is not implemented for `InnerTest`

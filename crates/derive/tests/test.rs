@@ -7,13 +7,11 @@ fn compilation_checks() {
     t.compile_fail("tests/reactive/fail/03-empty-struct.rs");
     t.compile_fail("tests/reactive/fail/04-generic-struct.rs");
     t.compile_fail("tests/reactive/fail/05-complex-field-type.rs");
-    t.compile_fail("tests/reactive/fail/06-non-copy-struct.rs");
-    t.compile_fail("tests/reactive/fail/07-attr-without-nested.rs");
-    t.compile_fail("tests/reactive/fail/08-attr-with-unknown-param.rs");
-    t.compile_fail("tests/reactive/fail/09-non-reactive-nested.rs");
-    t.compile_fail("tests/reactive/fail/10-non-clone-nested-struct.rs");
+    t.compile_fail("tests/reactive/fail/06-attr-without-nested.rs");
+    t.compile_fail("tests/reactive/fail/07-attr-with-unknown-param.rs");
+    t.compile_fail("tests/reactive/fail/08-non-reactive-nested.rs");
 
     t.pass("tests/reactive/pass/01-has-reactivity.rs");
     t.pass("tests/reactive/pass/02-inner-reactivity.rs");
-    t.pass("tests/reactive/pass/03-pub-struct.rs");
+    t.pass("tests/reactive/pass/03-struct-from-other-module.rs");
 }

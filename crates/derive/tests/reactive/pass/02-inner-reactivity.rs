@@ -6,7 +6,7 @@ struct Test {
     nested: Nested,
 }
 
-#[derive(Reactive, Clone)]
+#[derive(Reactive)]
 struct Nested {
     number: i32,
 }
