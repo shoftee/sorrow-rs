@@ -1,0 +1,5 @@
+error: derive(Reactive) uses this identifier internally, please use another one.
+ --> tests/reactive/fail/09-use-reserved-ident.rs:5:5
+  |
+5 |     __runtime: i32,
+  |     ^^^^^^^^^

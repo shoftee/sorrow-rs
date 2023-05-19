@@ -149,9 +149,21 @@ fn named_fields(ast: DeriveInput) -> Result<FieldsNamed, Diagnostic> {
         ));
     }
 
-    let mut complex_field_types = fields.named.iter().filter_map(|f| match f.ty {
+    let mut reserved_idents = fields.named.iter().filter_map(|field| match &field.ident {
+        Some(ident) if ident == "__runtime" => Some(ident),
+        Some(_) => None,
+        None => unreachable!("all fields should be named"),
+    });
+    if let Some(ident) = reserved_idents.next() {
+        return Err(error(
+            ident,
+            "derive(Reactive) uses this identifier internally, please use another one.",
+        ));
+    }
+
+    let mut complex_field_types = fields.named.iter().filter_map(|field| match field.ty {
         Type::Path(_) => None,
-        _ => Some(&f.ty),
+        _ => Some(&field.ty),
     });
     if let Some(ty) = complex_field_types.next() {
         return Err(error(ty, "derive(Reactive) only supports basic types."));
