@@ -54,14 +54,20 @@ impl World {
     }
 }
 
+#[derive(Debug, Default, Reactive)]
+struct WorldState {
+    paused: bool,
+    acceleration: Acceleration,
+}
+
 struct WorldController {
     delta_time: DeltaTime,
     ticks: Ticker,
-    state: <WorldState as IntoReactive>::Target,
+    state: ReactiveWorldState,
 }
 
 impl WorldController {
-    fn new(runtime: &::sorrow_reactive::Runtime) -> Self {
+    fn new(runtime: &Runtime) -> Self {
         Self {
             delta_time: DeltaTime::new(),
             ticks: Ticker::new(Duration::from_millis(200)),
@@ -69,7 +75,7 @@ impl WorldController {
         }
     }
 
-    fn activate(&self, runtime: &::sorrow_reactive::Runtime, sender: Sender<Notification>) {
+    fn activate(&self, runtime: &Runtime, sender: Sender<Notification>) {
         let acceleration = self.state.acceleration;
         let paused = self.state.paused;
 
@@ -110,10 +116,4 @@ impl WorldController {
     fn update_with_delta(&mut self, delta: TimeSpan) {
         self.ticks.advance(delta);
     }
-}
-
-#[derive(Debug, Default, Reactive)]
-struct WorldState {
-    paused: bool,
-    acceleration: Acceleration,
 }
