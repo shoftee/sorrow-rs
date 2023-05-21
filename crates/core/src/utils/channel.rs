@@ -15,6 +15,7 @@ impl<T> Sender<T> {
 }
 
 impl<T> Clone for Sender<T> {
+    #[inline(always)]
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
@@ -33,6 +34,7 @@ impl<T> Receiver<T> {
 }
 
 impl<T> Clone for Receiver<T> {
+    #[inline(always)]
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
