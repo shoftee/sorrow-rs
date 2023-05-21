@@ -6,6 +6,10 @@ pub struct TimeSpan(f64);
 impl TimeSpan {
     pub const ZERO: TimeSpan = TimeSpan(0f64);
 
+    pub fn value(&self) -> f64 {
+        self.0
+    }
+
     pub fn segments_iter(&self, max_span: impl Into<TimeSpan>) -> SegmentsIterator {
         SegmentsIterator {
             max_span: max_span.into(),
@@ -13,7 +17,7 @@ impl TimeSpan {
         }
     }
 
-    fn min(lhs: TimeSpan, rhs: TimeSpan) -> TimeSpan {
+    pub fn min(lhs: TimeSpan, rhs: TimeSpan) -> TimeSpan {
         if lhs < rhs {
             lhs
         } else {
@@ -130,10 +134,10 @@ impl Ticker {
         self.tick_duration
     }
 
-    pub fn advance(&mut self, delta_span: TimeSpan) {
+    pub fn advance(&mut self, delta: TimeSpan) {
         let last = self.absolute;
 
-        self.absolute.fractional += delta_span.0 / self.tick_duration.0;
+        self.absolute.fractional += delta.0 / self.tick_duration.0;
         self.absolute.whole = self.absolute.fractional.floor() as u64;
 
         self.delta = self.absolute - last;

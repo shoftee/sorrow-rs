@@ -3,7 +3,8 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use proc_macro2_diagnostics::{Diagnostic, Level};
-use syn::{spanned::Spanned, DeriveInput};
+use proc_macro_crate::{crate_name, FoundCrate};
+use syn::{DeriveInput, Ident};
 
 mod reactive;
 
@@ -11,31 +12,43 @@ mod reactive;
 pub fn derive_reactive(input: TokenStream) -> TokenStream {
     match reactive::try_reactive(input) {
         Ok(token_stream) => token_stream,
-        Err(diagnostic) => diagnostic.emit_as_expr_tokens().into(),
+        Err(error) => error.into_diagnostic().emit_as_expr_tokens().into(),
     }
 }
 
-pub(crate) fn error(spanned: impl Spanned, message: impl Into<String>) -> Diagnostic {
-    Diagnostic::spanned(spanned.span(), Level::Error, message)
+pub(crate) fn parse_input(input: TokenStream) -> Result<DeriveInput, Error> {
+    syn::parse::<DeriveInput>(input).map_err(Error::Syn)
 }
 
-pub(crate) fn parse_input(input: TokenStream) -> Result<DeriveInput, Diagnostic> {
-    syn::parse::<DeriveInput>(input).map_err(|e| error(e.span(), e.to_string()))
+pub(crate) fn core_crate_name() -> Result<FoundCrate, Error> {
+    crate_name("sorrow-core").map_err(Error::ProcMacroCrate)
 }
 
-pub(crate) fn _reactive_crate_name() -> Result<TokenStream, Diagnostic> {
-    use proc_macro_crate::{crate_name, FoundCrate};
-    use quote::quote;
-    use syn::Ident;
-
-    let found_crate =
-        crate_name("sorrow-reactive").map_err(|e| error(Span::call_site(), e.to_string()))?;
-
+pub(crate) fn found_crate_ident(found_crate: FoundCrate) -> Ident {
     match found_crate {
-        FoundCrate::Itself => Ok((quote! { crate }).into()),
-        FoundCrate::Name(name) => {
-            let ident = Ident::new(&name, Span::call_site());
-            Ok((quote! { #ident }).into())
+        FoundCrate::Itself => Ident::new("crate", Span::call_site()),
+        FoundCrate::Name(name) => Ident::new(name.as_str(), Span::call_site()),
+    }
+}
+
+pub(crate) enum Error {
+    Syn(syn::Error),
+    ProcMacroCrate(proc_macro_crate::Error),
+    Other(Span, String),
+}
+
+impl Error {
+    fn spanned(spanned: impl syn::spanned::Spanned, message: impl Into<String>) -> Error {
+        Error::Other(spanned.span(), message.into())
+    }
+
+    pub(crate) fn into_diagnostic(self) -> Diagnostic {
+        match self {
+            Error::Syn(e) => Diagnostic::spanned(e.span(), Level::Error, e.to_string()),
+            Error::ProcMacroCrate(e) => {
+                Diagnostic::spanned(Span::call_site(), Level::Error, e.to_string())
+            }
+            Error::Other(span, message) => Diagnostic::spanned(span, Level::Error, message),
         }
     }
 }

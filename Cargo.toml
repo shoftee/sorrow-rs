@@ -27,7 +27,7 @@ name = "ui"
 path = "src/bin/ui.rs"
 
 [dependencies]
+sorrow-core = { path = "crates/core" }
 sorrow-derive = { path = "crates/derive" }
-sorrow-reactive = { path = "crates/reactive" }
 sorrow-engine = { path = "crates/engine" }
 sorrow-ui = { path = "crates/ui" }

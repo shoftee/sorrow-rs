@@ -6,8 +6,10 @@ struct Test {
 }
 
 fn main() {
-    let runtime = sorrow_reactive::Runtime::new();
-    let reactive = sorrow_reactive::IntoReactive::into_reactive(Test { number: 42 }, &runtime);
+    use sorrow_core::reactive::*;
+
+    let runtime = Runtime::new();
+    let reactive = (Test { number: 42 }).into_reactive(&runtime);
     let number = reactive.number.get();
     assert_eq!(number, 42);
 }

@@ -1,11 +1,11 @@
-use std::time::Duration;
-
-use sorrow_derive::Reactive;
-use sorrow_reactive::{IntoReactive, Runtime};
+use std::ops::Mul;
 
 use sorrow_core::{
-    communication::{Command, Notification, TimeControl},
-    time::Acceleration,
+    communication::{
+        Command, Notification, PartialResourceState, PartialTimeState, ReactiveResourceState,
+        ReactiveTimeState, ResourceState, TimeControl, TimeState,
+    },
+    reactive::{IntoReactive, Runtime},
     timers::{DeltaTime, Ticker, TimeSpan},
     utils::channel::{Receiver, Sender},
 };
@@ -18,102 +18,138 @@ pub struct WorldQueues {
 pub struct World {
     runtime: Runtime,
     world_queues: WorldQueues,
-    controller: WorldController,
+
+    delta_time: DeltaTime,
+    game_ticks: Ticker,
+    time_state: ReactiveTimeState,
+
+    resource_controller: ResourceController,
 }
 
 impl World {
     pub fn new(world_queues: WorldQueues) -> Self {
         let runtime = Runtime::new();
-        let controller = WorldController::new(&runtime);
+
+        let time_state = TimeState::default().into_reactive(&runtime);
+
+        let resource_controller = ResourceController::new(&runtime);
+
         Self {
             runtime,
             world_queues,
-            controller,
+
+            delta_time: DeltaTime::new(),
+            game_ticks: Ticker::new(std::time::Duration::from_millis(200)),
+            time_state,
+
+            resource_controller,
         }
     }
 
     pub fn activate(&mut self) {
         let sender = &self.world_queues.notifications;
-
         sender.send(Notification::Initialized);
-        self.controller.activate(&self.runtime, sender.clone())
+
+        // set up updates for time state
+        {
+            let acceleration = self.time_state.acceleration;
+            let paused = self.time_state.paused;
+
+            self.runtime.create_batch_effect({
+                let sender = sender.clone();
+                move |_| {
+                    sender.send(Notification::StateChanged {
+                        time: Some(PartialTimeState {
+                            acceleration: Some(acceleration.get()),
+                            paused: Some(paused.get()),
+                        }),
+                        resource: None,
+                    })
+                }
+            });
+        }
+
+        // set up updates for resources
+        {
+            let catnip = self.resource_controller.state.catnip;
+
+            self.runtime.create_batch_effect({
+                let sender = sender.clone();
+                move |_| {
+                    sender.send(Notification::StateChanged {
+                        time: None,
+                        resource: Some(PartialResourceState {
+                            catnip: Some(catnip.get()),
+                        }),
+                    })
+                }
+            })
+        }
     }
 
     pub fn update(&mut self) {
         let receiver = &self.world_queues.commands;
-        while let Some(cmd) = receiver.try_recv() {
-            match cmd {
-                Command::TimeControl(cmd) => {
-                    self.controller.accept(cmd);
+        while let Some(command) = receiver.try_recv() {
+            match command {
+                Command::TimeControl(time_control) => match time_control {
+                    TimeControl::SetAcceleration(acceleration) => {
+                        self.time_state.acceleration.set(acceleration)
+                    }
+                    TimeControl::Start => self.time_state.paused.set(false),
+                    TimeControl::Pause => self.time_state.paused.set(true),
+                },
+                Command::Initialize => {
+                    unreachable!("Update should never be called for the Initialize command.")
                 }
-                Command::Initialize => unreachable!(),
             }
         }
 
-        self.controller.update();
-    }
-}
-
-#[derive(Debug, Default, Reactive)]
-struct WorldState {
-    paused: bool,
-    acceleration: Acceleration,
-}
-
-struct WorldController {
-    delta_time: DeltaTime,
-    ticks: Ticker,
-    state: ReactiveWorldState,
-}
-
-impl WorldController {
-    fn new(runtime: &Runtime) -> Self {
-        Self {
-            delta_time: DeltaTime::new(),
-            ticks: Ticker::new(Duration::from_millis(200)),
-            state: WorldState::default().into_reactive(runtime),
-        }
-    }
-
-    fn activate(&self, runtime: &Runtime, sender: Sender<Notification>) {
-        let acceleration = self.state.acceleration;
-        let paused = self.state.paused;
-
-        runtime.create_batch_effect(move |_| {
-            sender.send(Notification::StateChanged {
-                acceleration: acceleration.get(),
-                paused: paused.get(),
-            })
-        });
-    }
-
-    fn accept(&mut self, command: TimeControl) {
-        match command {
-            TimeControl::SetAcceleration(acc) => self.state.acceleration.set(acc),
-            TimeControl::Start => self.state.paused.set(false),
-            TimeControl::Pause => self.state.paused.set(true),
-        }
-    }
-
-    fn update(&mut self) {
-        self.delta_time.update();
-
-        let delta = self.delta_time.delta();
-
-        if self.state.paused.get() {
+        if self.time_state.paused.get() {
             return;
         }
 
+        // advance system time
+        self.delta_time.update();
+        let system_delta = self.delta_time.delta();
+
         // apply time acceleration
-        let delta = delta * self.state.acceleration.get().into();
+        let game_delta = system_delta * self.time_state.acceleration.get().into();
 
         // simulate separate ticks in case the delta is too long
-        for segment in delta.segments_iter(self.ticks.tick_duration()) {
-            self.update_with_delta(segment);
+        for segment in game_delta.segments_iter(self.game_ticks.tick_duration()) {
+            self.game_ticks.advance(segment);
+
+            self.resource_controller.update(segment);
+        }
+    }
+}
+
+struct ResourceController {
+    state: ReactiveResourceState,
+}
+
+impl ResourceController {
+    const CATNIP_RATE: AmountPerTimeSpan = AmountPerTimeSpan(0.125);
+
+    fn new(runtime: &Runtime) -> Self {
+        Self {
+            state: ResourceState::default().into_reactive(runtime),
         }
     }
 
-    fn update_with_delta(&mut self, delta: TimeSpan) {
-        self.ticks.advance(delta);
+    fn update(&mut self, delta: TimeSpan) {
+        self.state
+            .catnip
+            .update(|v| *v += Self::CATNIP_RATE * delta)
+    }
+}
+
+struct AmountPerTimeSpan(f64);
+
+impl Mul<TimeSpan> for AmountPerTimeSpan {
+    type Output = f64;
+
+    fn mul(self, rhs: TimeSpan) -> Self::Output {
+        self.0 * rhs.value()
     }
 }

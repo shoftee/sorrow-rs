@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::{events, state};
+use crate::{events::use_keyboard_events, state::use_state_signals};
 
 #[component]
 pub fn Header(cx: Scope) -> impl IntoView {
@@ -33,19 +33,22 @@ pub fn Footer(cx: Scope) -> impl IntoView {
 
 #[component]
 pub fn Center(cx: Scope) -> impl IntoView {
-    let keyboard_events = events::use_keyboard_events(cx);
-    create_effect(cx, move |_| log!("Ctrl: {}", keyboard_events.ctrl.get()));
-    create_effect(cx, move |_| log!("Shift: {}", keyboard_events.shift.get()));
-    create_effect(cx, move |_| log!("Alt: {}", keyboard_events.alt.get()));
+    let _keyboard_events = use_keyboard_events(cx);
 
-    let id = state::use_state_signals(cx).id();
+    let state_signals = use_state_signals(cx);
+
+    let catnip = state_signals.resource.catnip;
+
     view! { cx,
         <main class="unscrollable">
             <div class="nav-container">
                 <div>"navigation goes here"</div>
                 <div class="main-container unscrollable">
-                    <div class="col unscrollable">"Resources"</div>
-                    <div class="col unscrollable">"ID is: "{id}</div>
+                    <div class="col unscrollable">
+                        <div>"Resources"</div>
+                        <div></div>
+                    </div>
+                    <div class="col unscrollable">"ID is: "{catnip.get()}</div>
                     <div class="col env-container unscrollable">"Calendar and History"</div>
                 </div>
             </div>

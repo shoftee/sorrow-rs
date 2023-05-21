@@ -61,8 +61,9 @@ impl<T> DependentState<T> {
     }
 }
 
+#[derive(Clone)]
 pub struct Runtime {
-    runtime_id: RuntimeId,
+    runtime: Option<RuntimeId>,
     scope: Scope,
 }
 
@@ -71,7 +72,17 @@ impl Runtime {
     pub fn new() -> Self {
         let runtime_id = create_runtime();
         let (scope, _) = raw_scope_and_disposer(runtime_id);
-        Self { runtime_id, scope }
+        Self {
+            runtime: Some(runtime_id),
+            scope,
+        }
+    }
+
+    pub fn from_scope(scope: Scope) -> Self {
+        Self {
+            runtime: None,
+            scope,
+        }
     }
 
     pub fn create_batch_effect<Target, Effect>(&self, effect: Effect)
@@ -106,7 +117,9 @@ impl Runtime {
 
 impl Drop for Runtime {
     fn drop(&mut self) {
-        self.runtime_id.dispose();
+        if let Some(runtime) = self.runtime {
+            runtime.dispose();
+        }
     }
 }
 

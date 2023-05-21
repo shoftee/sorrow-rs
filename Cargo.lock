@@ -1781,7 +1781,9 @@ dependencies = [
 name = "sorrow-core"
 version = "0.1.0"
 dependencies = [
+ "leptos_reactive",
  "serde",
+ "sorrow-derive",
  "time",
 ]
 
@@ -1793,7 +1795,7 @@ dependencies = [
  "proc-macro2",
  "proc-macro2-diagnostics",
  "quote",
- "sorrow-reactive",
+ "sorrow-core",
  "syn 2.0.16",
  "trybuild",
 ]
@@ -1806,24 +1808,16 @@ dependencies = [
  "gloo-worker",
  "sorrow-core",
  "sorrow-derive",
- "sorrow-reactive",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "sorrow-reactive"
-version = "0.1.0"
-dependencies = [
- "leptos_reactive",
 ]
 
 [[package]]
 name = "sorrow-rs"
 version = "0.1.0"
 dependencies = [
+ "sorrow-core",
  "sorrow-derive",
  "sorrow-engine",
- "sorrow-reactive",
  "sorrow-ui",
 ]
 

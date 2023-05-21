@@ -1,9 +1,8 @@
 use proc_macro::TokenStream;
-use proc_macro2_diagnostics::Diagnostic;
 use quote::quote;
 use syn::{AttrStyle, Data, DeriveInput, Field, Fields, FieldsNamed, Ident, Type};
 
-use crate::{error, parse_input};
+use crate::{core_crate_name, found_crate_ident, parse_input, Error};
 
 #[derive(Clone, Copy, PartialEq)]
 enum FieldKind {
@@ -11,11 +10,17 @@ enum FieldKind {
     Nested,
 }
 
-pub(crate) fn try_reactive(input: TokenStream) -> Result<TokenStream, Diagnostic> {
+pub(crate) fn try_reactive(input: TokenStream) -> Result<TokenStream, Error> {
+    let found_core_crate = core_crate_name()?;
+    let core_crate = found_crate_ident(found_core_crate);
+    let into_reactive_type = quote!(#core_crate::reactive::IntoReactive);
+    let runtime_type = quote!(#core_crate::reactive::Runtime);
+    let state_type = quote!(#core_crate::reactive::State);
+
     let ast = parse_input(input)?;
 
     if !ast.generics.params.is_empty() {
-        return Err(error(
+        return Err(Error::spanned(
             ast.generics,
             "derive(Reactive) does not support generics.",
         ));
@@ -28,23 +33,25 @@ pub(crate) fn try_reactive(input: TokenStream) -> Result<TokenStream, Diagnostic
 
     let (nested_fields, dependent_fields) = partition_by_kind(&fields)?;
 
-    //let reactive_crate = reactive_crate_name()?;
-    let reactive_ident = reactive_ident(&ident);
+    let reactive_ident = Ident::new(format!("Reactive{}", ident).as_str(), ident.span());
 
     let nested_decls = nested_fields.iter().map(|&field| {
         let vis = field.vis.clone();
         let ident = field.ident.clone().expect("all fields should be named");
         let ty = field.ty.clone();
-        quote! { #vis #ident: <#ty as ::sorrow_reactive::IntoReactive>::Target }
+
+        let into_reactive_type = into_reactive_type.clone();
+        quote! { #vis #ident: <#ty as #into_reactive_type>::Target }
     });
     let state_decls = dependent_fields.iter().map(|&field| {
         let vis = field.vis.clone();
         let ident = field.ident.clone().expect("all fields should be named");
         let ty = field.ty.clone();
-        quote! { #vis #ident: ::sorrow_reactive::State<#ty> }
+        quote! { #vis #ident: #state_type<#ty> }
     });
 
     let reactive_struct_decl = quote! {
+        #[derive(Clone)]
         #vis struct #reactive_ident {
             #(#nested_decls,)*
             #(#state_decls,)*
@@ -58,7 +65,8 @@ pub(crate) fn try_reactive(input: TokenStream) -> Result<TokenStream, Diagnostic
     let nested_initializers = nested_fields.iter().map(|&field| {
         let ident = field.ident.clone().expect("all fields should be named");
         let ty = field.ty.clone();
-        quote! { #ident: <#ty as ::sorrow_reactive::IntoReactive>::into_reactive(#ident, __runtime) }
+        let into_reactive_type = into_reactive_type.clone();
+        quote! { #ident: <#ty as #into_reactive_type>::into_reactive(#ident, __runtime) }
     });
     let dependent_initializers = dependent_fields.iter().map(|&field| {
         let ident = field.ident.clone().expect("all fields should be named");
@@ -67,9 +75,9 @@ pub(crate) fn try_reactive(input: TokenStream) -> Result<TokenStream, Diagnostic
 
     let into_reactive_impl = quote! {
         #[automatically_derived]
-        impl ::sorrow_reactive::IntoReactive for #ident {
+        impl #into_reactive_type for #ident {
             type Target = #reactive_ident;
-            fn into_reactive(self, __runtime: &::sorrow_reactive::Runtime) -> Self::Target {
+            fn into_reactive(self, __runtime: &#runtime_type) -> Self::Target {
                 let Self {
                     #(#field_idents,)*
                 } = self;
@@ -91,10 +99,10 @@ pub(crate) fn try_reactive(input: TokenStream) -> Result<TokenStream, Diagnostic
 
 fn partition_by_kind(
     fields: &syn::punctuated::Punctuated<Field, syn::token::Comma>,
-) -> Result<(Vec<&Field>, Vec<&Field>), Diagnostic> {
+) -> Result<(Vec<&Field>, Vec<&Field>), Error> {
     let fields: Vec<_> = fields
         .iter()
-        .map(|field| -> Result<_, Diagnostic> {
+        .map(|field| -> Result<_, Error> {
             let kind = if is_nested(field)? {
                 FieldKind::Nested
             } else {
@@ -121,14 +129,14 @@ fn partition_by_kind(
     Ok((nested, dependent))
 }
 
-fn named_fields(ast: DeriveInput) -> Result<FieldsNamed, Diagnostic> {
+fn named_fields(ast: DeriveInput) -> Result<FieldsNamed, Error> {
     let data = match ast.data {
         Data::Struct(data) => Ok(data),
-        Data::Enum(e) => Err(error(
+        Data::Enum(e) => Err(Error::spanned(
             e.enum_token,
             "derive(Reactive) is only supported on struct types.",
         )),
-        Data::Union(u) => Err(error(
+        Data::Union(u) => Err(Error::spanned(
             u.union_token,
             "derive(Reactive) is only supported on struct types.",
         )),
@@ -136,14 +144,14 @@ fn named_fields(ast: DeriveInput) -> Result<FieldsNamed, Diagnostic> {
 
     let fields = match data.fields {
         Fields::Named(fields) => Ok(fields),
-        _ => Err(error(
+        _ => Err(Error::spanned(
             data.fields,
             "derive(Reactive) is not supported on tuples.",
         )),
     }?;
 
     if fields.named.is_empty() {
-        return Err(error(
+        return Err(Error::spanned(
             fields,
             "derive(Reactive) is only supported on structs with one or more named fields.",
         ));
@@ -155,7 +163,7 @@ fn named_fields(ast: DeriveInput) -> Result<FieldsNamed, Diagnostic> {
         None => unreachable!("all fields should be named"),
     });
     if let Some(ident) = reserved_idents.next() {
-        return Err(error(
+        return Err(Error::spanned(
             ident,
             "derive(Reactive) uses this identifier internally, please use another one.",
         ));
@@ -166,13 +174,16 @@ fn named_fields(ast: DeriveInput) -> Result<FieldsNamed, Diagnostic> {
         _ => Some(&field.ty),
     });
     if let Some(ty) = complex_field_types.next() {
-        return Err(error(ty, "derive(Reactive) only supports basic types."));
+        return Err(Error::spanned(
+            ty,
+            "derive(Reactive) only supports basic types.",
+        ));
     }
 
     Ok(fields)
 }
 
-fn is_nested(field: &Field) -> Result<bool, Diagnostic> {
+fn is_nested(field: &Field) -> Result<bool, Error> {
     let reactive_attr = field
         .attrs
         .iter()
@@ -189,11 +200,6 @@ fn is_nested(field: &Field) -> Result<bool, Diagnostic> {
                 }
             })
             .and(Ok(true))
-            .map_err(|e| error(e.span(), e.to_string())),
+            .map_err(Error::Syn),
     }
-}
-
-fn reactive_ident(ident: &Ident) -> Ident {
-    let name = format!("Reactive{}", ident);
-    Ident::new(&name, ident.span())
 }

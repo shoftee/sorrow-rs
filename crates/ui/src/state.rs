@@ -1,28 +1,24 @@
-use leptos::*;
-
-use sorrow_core::communication::{Command, Notification};
+use sorrow_core::{
+    communication::{
+        Command, Notification, ReactiveResourceState, ReactiveTimeState, ResourceState, TimeState,
+    },
+    reactive::{IntoReactive, Runtime},
+};
 use sorrow_engine::endpoint::Endpoint;
-
-#[derive(Default)]
-struct State {
-    id: u64,
-}
 
 #[derive(Clone)]
 pub struct StateSignals {
-    id: (Signal<u64>, SignalSetter<u64>),
+    pub time: ReactiveTimeState,
+    pub resource: ReactiveResourceState,
 }
 
 impl StateSignals {
-    pub fn new(cx: Scope) -> Self {
-        let root = create_rw_signal(cx, State::default());
-        Self {
-            id: create_slice(cx, root, |root| root.id, |root, value| root.id = value),
-        }
-    }
+    pub fn new(cx: leptos::Scope) -> Self {
+        let runtime = Runtime::from_scope(cx);
+        let time = TimeState::default().into_reactive(&runtime);
+        let resource = ResourceState::default().into_reactive(&runtime);
 
-    pub fn id(&self) -> Signal<u64> {
-        self.id.0
+        Self { time, resource }
     }
 }
 
@@ -31,7 +27,7 @@ pub struct StateManager {
 }
 
 impl StateManager {
-    pub fn new(cx: Scope) -> Self {
+    pub fn new(cx: leptos::Scope) -> Self {
         Self {
             signals: StateSignals::new(cx),
         }
@@ -45,25 +41,25 @@ impl StateManager {
         use Notification::*;
 
         match notification {
-            Initialized => log!("World initialized."),
-            LogMessage(msg) => log!("{}", msg),
-            WarnMessage(msg) => warn!("{}", msg),
-            _ => log!("{:?}", notification),
+            Initialized => leptos::log!("World initialized."),
+            LogMessage(msg) => leptos::log!("{}", msg),
+            WarnMessage(msg) => leptos::warn!("{}", msg),
+            _ => leptos::log!("{:?}", notification),
         }
     }
 }
 
-pub fn provide_endpoint_context(cx: Scope) {
+pub fn provide_endpoint_context(cx: leptos::Scope) {
     let state_manager = StateManager::new(cx);
-    provide_context(cx, state_manager.signals());
+    leptos::provide_context(cx, state_manager.signals());
 
     let endpoint = Endpoint::new(move |n| state_manager.accept(n), "./engine.js");
 
     endpoint.send(Command::Initialize);
 
-    provide_context(cx, endpoint);
+    leptos::provide_context(cx, endpoint);
 }
 
-pub fn use_state_signals(cx: Scope) -> StateSignals {
-    use_context(cx).expect("state signals not provided in context")
+pub fn use_state_signals(cx: leptos::Scope) -> StateSignals {
+    leptos::use_context(cx).expect("state signals not provided in context")
 }
