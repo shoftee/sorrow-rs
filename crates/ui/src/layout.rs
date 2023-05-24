@@ -37,7 +37,7 @@ pub fn Center(cx: Scope) -> impl IntoView {
 
     let state_signals = use_state_signals(cx);
 
-    let catnip = state_signals.resource.catnip;
+    let catnip = move || state_signals.resource.catnip.get();
 
     view! { cx,
         <main class="unscrollable">
@@ -46,9 +46,9 @@ pub fn Center(cx: Scope) -> impl IntoView {
                 <div class="main-container unscrollable">
                     <div class="col unscrollable">
                         <div>"Resources"</div>
-                        <div></div>
+                        <div>"Catnip is: "{catnip}</div>
                     </div>
-                    <div class="col unscrollable">"ID is: "{catnip.get()}</div>
+                    <div class="col unscrollable"></div>
                     <div class="col env-container unscrollable">"Calendar and History"</div>
                 </div>
             </div>
