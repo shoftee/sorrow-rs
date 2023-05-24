@@ -4,7 +4,7 @@ use sorrow_core::{
     },
     reactive::{IntoReactive, Runtime},
 };
-use sorrow_engine::endpoint::Endpoint;
+use sorrow_engine::Endpoint;
 
 #[derive(Clone)]
 pub struct StateSignals {

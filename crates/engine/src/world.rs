@@ -1,13 +1,11 @@
-use std::ops::Mul;
-
 use sorrow_core::{
     communication::{
         Command, Notification, PartialResourceState, PartialTimeState, ReactiveResourceState,
         ReactiveTimeState, ResourceState, TimeControl, TimeState,
     },
     reactive::{IntoReactive, Runtime},
-    timers::{DeltaTime, Ticker, TimeSpan},
-    utils::channel::{Receiver, Sender},
+    timers::{DeltaTime, GameTick, Rate, Ticker, TimeSpan},
+    utils::{Receiver, Sender},
 };
 
 pub struct WorldQueues {
@@ -110,16 +108,20 @@ impl World {
 
         // advance system time
         self.delta_time.update();
-        let system_delta = self.delta_time.delta();
+        let delta = self.delta_time.delta();
 
         // apply time acceleration
-        let game_delta = system_delta * self.time_state.acceleration.get().into();
+        let delta = delta * self.time_state.acceleration.get().into();
 
-        // simulate separate ticks in case the delta is too long
-        for segment in game_delta.segments_iter(self.game_ticks.tick_duration()) {
+        // convert to game ticks
+        let delta = delta.convert::<GameTick>();
+
+        // simulate ticks one by one
+        for segment in delta.segments_iter(self.game_ticks.span()) {
             self.game_ticks.advance(segment);
 
-            self.resource_controller.update(segment);
+            self.resource_controller
+                .update(self.game_ticks.delta.fractional());
         }
     }
 }
@@ -129,7 +131,7 @@ struct ResourceController {
 }
 
 impl ResourceController {
-    const CATNIP_RATE: AmountPerTimeSpan = AmountPerTimeSpan(0.125);
+    const CATNIP_RATE: Rate<GameTick> = Rate::new(0.125);
 
     fn new(runtime: &Runtime) -> Self {
         Self {
@@ -137,19 +139,9 @@ impl ResourceController {
         }
     }
 
-    fn update(&mut self, delta: TimeSpan) {
+    fn update(&mut self, delta: TimeSpan<GameTick>) {
         self.state
             .catnip
             .update(|v| *v += Self::CATNIP_RATE * delta)
-    }
-}
-
-struct AmountPerTimeSpan(f64);
-
-impl Mul<TimeSpan> for AmountPerTimeSpan {
-    type Output = f64;
-
-    fn mul(self, rhs: TimeSpan) -> Self::Output {
-        self.0 * rhs.value()
     }
 }

@@ -3,10 +3,7 @@ use gloo_worker::{HandlerId, WorkerScope};
 
 use sorrow_core::{
     communication::{Command, Notification},
-    utils::{
-        cell::RcCell,
-        channel::{channel, Receiver, Sender},
-    },
+    utils::{channel, RcCell, Receiver, Sender},
 };
 
 use super::{
