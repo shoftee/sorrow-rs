@@ -1,9 +1,7 @@
 use sorrow_core::{
-    communication::{
-        Command, Notification, PartialResourceState, PartialTimeState, ReactiveResourceState,
-        ReactiveTimeState, ResourceState, TimeControl, TimeState,
-    },
+    communication::{Command, Notification, TimeControl},
     reactive::{IntoReactive, Runtime},
+    state::*,
     timers::{DeltaTime, GameTick, Rate, Ticker, TimeSpan},
     utils::{Receiver, Sender},
 };

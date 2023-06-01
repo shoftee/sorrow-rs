@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use sorrow_derive::Reactive;
 
 #[derive(Serialize, Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct Acceleration(f64);
@@ -27,4 +28,16 @@ impl From<Acceleration> for f64 {
     fn from(val: Acceleration) -> Self {
         val.0
     }
+}
+
+#[derive(Debug, Default, Reactive)]
+pub struct TimeState {
+    pub paused: bool,
+    pub acceleration: Acceleration,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PartialTimeState {
+    pub paused: Option<bool>,
+    pub acceleration: Option<Acceleration>,
 }

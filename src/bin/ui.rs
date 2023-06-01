@@ -1,3 +1,3 @@
 fn main() {
-    sorrow_ui::app::mount();
+    sorrow_ui::mount();
 }

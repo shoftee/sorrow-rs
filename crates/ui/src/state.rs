@@ -1,13 +1,13 @@
 use sorrow_core::{
-    communication::{
-        Command, Notification, ReactiveResourceState, ReactiveTimeState, ResourceState, TimeState,
-    },
+    communication::{Command, Notification},
     reactive::{IntoReactive, Runtime},
+    state::*,
 };
 use sorrow_engine::Endpoint;
 
 #[derive(Clone)]
 pub struct StateSignals {
+    pub options: ReactiveGameOptionsState,
     pub time: ReactiveTimeState,
     pub resource: ReactiveResourceState,
 }
@@ -15,10 +15,15 @@ pub struct StateSignals {
 impl StateSignals {
     pub fn new(cx: leptos::Scope) -> Self {
         let runtime = Runtime::from_scope(cx);
+        let options = GameOptionsState::default().into_reactive(&runtime);
         let time = TimeState::default().into_reactive(&runtime);
         let resource = ResourceState::default().into_reactive(&runtime);
 
-        Self { time, resource }
+        Self {
+            options,
+            time,
+            resource,
+        }
     }
 }
 
