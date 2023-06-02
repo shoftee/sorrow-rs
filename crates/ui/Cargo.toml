@@ -15,6 +15,6 @@ path = "src/lib.rs"
 [dependencies]
 sorrow-core = { path = "../../crates/core" }
 sorrow-engine = { path = "../../crates/engine" }
-leptos = "0.2.5"
-leptos_meta = { version = "0.2.5", features = ["csr"] }
+leptos = "0.3.0"
+leptos_meta = { version = "0.3.0", features = ["csr"] }
 wasm-bindgen = "0.2.84"
