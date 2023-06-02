@@ -61,20 +61,51 @@ pub fn ResourcesContainer(cx: Scope) -> impl IntoView {
 
     let catnip = Signal::derive(cx, move || state_signals.resource.catnip.get());
 
+    let expanded_rw = create_rw_signal(cx, true);
+
+    let expanded = move || expanded_rw.get();
+
     view! { cx,
         <div class="resources-container">
-        <ul class="list-group resources-list">
-            <button class="list-group-item list-group-item-action expander">
-                <div>"Resources"</div>
-                <div><i class="bi bi-arrows-expand"></i></div>
-            </button>
-            <li class="list-group-item small">"catnip " <DecimalView value=catnip /></li>
-        </ul>
+            <ul class="list-group resources-list">
+                <ResourceExpander expanded=expanded_rw />
+                <Show when=expanded fallback=|_| ()>
+                    <li class="list-group-item small">"catnip " <DecimalView value=catnip /></li>
+                </Show>
+            </ul>
         </div>
+    }
+}
+
+#[component]
+fn ResourceExpander(cx: Scope, expanded: RwSignal<bool>) -> impl IntoView {
+    view! { cx,
+        <button
+            on:click=move |_| expanded.toggle()
+            class="list-group-item list-group-item-action expander"
+        >
+            <div>"Resources"</div>
+            <Show
+                when=move || !expanded.get()
+                fallback=|_| ()
+            >
+                <div><i class="bi bi-arrows-expand"></i></div>
+            </Show>
+        </button>
     }
 }
 
 #[component]
 fn NoResources(cx: Scope) -> impl IntoView {
     view! { cx, <li class="list-group-item">"Your paws are empty."</li> }
+}
+
+trait ToggleSignal: SignalUpdate<bool> {
+    fn toggle(self);
+}
+
+impl ToggleSignal for RwSignal<bool> {
+    fn toggle(self) {
+        self.update(|v| *v = !*v)
+    }
 }
