@@ -51,7 +51,7 @@ impl World {
             let acceleration = self.time_state.acceleration;
 
             let sender = sender.clone();
-            self.runtime.batch(move |_| {
+            self.runtime.create_effect(move |_| {
                 sender.send(Notification::StateChanged {
                     time: Some(PartialTimeState {
                         acceleration: Some(acceleration.get()),
@@ -67,7 +67,7 @@ impl World {
             let running_state = self.time_state.running_state;
 
             let sender = sender.clone();
-            self.runtime.batch(move |_| {
+            self.runtime.create_effect(move |_| {
                 sender.send(Notification::StateChanged {
                     time: Some(PartialTimeState {
                         acceleration: None,
@@ -83,7 +83,7 @@ impl World {
             let catnip = self.resource_controller.state.catnip;
 
             let sender = sender.clone();
-            self.runtime.batch(move |_| {
+            self.runtime.create_effect(move |_| {
                 sender.send(Notification::StateChanged {
                     time: None,
                     resource: Some(PartialResourceState {

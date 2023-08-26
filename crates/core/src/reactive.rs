@@ -92,19 +92,19 @@ impl Runtime {
         }
     }
 
-    pub fn batch<Target, Effect>(&self, effect: Effect)
+    pub fn create_effect<Target, Effect>(&self, effect: Effect)
     where
         Target: 'static,
         Effect: Fn(Option<Target>) -> Target + 'static,
     {
-        self.scope.batch(|| create_effect(self.scope, effect))
+        leptos_reactive::create_effect(self.scope, effect);
     }
 
     pub fn create_state<Target>(&self, value: Target) -> State<Target>
     where
         Target: 'static,
     {
-        let signal = create_rw_signal(self.scope, value);
+        let signal = leptos_reactive::create_rw_signal(self.scope, value);
         State(signal)
     }
 
@@ -117,7 +117,8 @@ impl Runtime {
     where
         Output: PartialEq,
     {
-        let (signal, signal_setter) = create_slice(self.scope, state.0, getter, setter);
+        let (signal, signal_setter) =
+            leptos_reactive::create_slice(self.scope, state.0, getter, setter);
         DependentState(signal, signal_setter)
     }
 }
