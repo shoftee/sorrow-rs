@@ -6,7 +6,7 @@ where
 
 impl<T> Clone for State<T> {
     fn clone(&self) -> Self {
-        Self(self.0)
+        *self
     }
 }
 
@@ -42,7 +42,7 @@ where
     T: 'static,
 {
     fn clone(&self) -> Self {
-        Self(self.0, self.1)
+        *self
     }
 }
 
