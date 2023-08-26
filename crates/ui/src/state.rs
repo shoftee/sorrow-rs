@@ -15,14 +15,11 @@ pub struct StateSignals {
 impl StateSignals {
     pub fn new(cx: leptos::Scope) -> Self {
         let runtime = Runtime::from_scope(cx);
-        let options = GameOptionsState::default().into_reactive(&runtime);
-        let time = TimeState::default().into_reactive(&runtime);
-        let resource = ResourceState::default().into_reactive(&runtime);
 
         Self {
-            options,
-            time,
-            resource,
+            options: GameOptionsState::default().into_reactive(&runtime),
+            time: TimeState::default().into_reactive(&runtime),
+            resource: ResourceState::default().into_reactive(&runtime),
         }
     }
 }
