@@ -15,6 +15,6 @@ path = "src/lib.rs"
 [dependencies]
 sorrow-core = { path = "../../crates/core" }
 sorrow-derive = { path = "../../crates/derive" }
-gloo-worker = "0.2"
-gloo-timers = "0.2.6"
+gloo-worker = "0.4"
+gloo-timers = "0.3.0"
 wasm-bindgen = "0.2.84"

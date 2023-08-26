@@ -10,6 +10,6 @@ publish.workspace = true
 
 [dependencies]
 sorrow-derive = { path = "../../crates/derive" }
-leptos_reactive = "0.3.0"
+leptos_reactive = "0.4.10"
 serde = { version = "1.0.162", features = ["derive"] }
 time = { version = "0.3.21", features = ["wasm-bindgen"] }

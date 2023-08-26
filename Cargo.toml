@@ -27,6 +27,7 @@ name = "ui"
 path = "src/bin/ui.rs"
 
 [dependencies]
+leptos = { version = "0.4.10", features = ["csr"] }
 sorrow-core = { path = "crates/core" }
 sorrow-derive = { path = "crates/derive" }
 sorrow-engine = { path = "crates/engine" }
