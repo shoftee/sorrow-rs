@@ -10,7 +10,7 @@ mod reactive;
 
 #[proc_macro_derive(Reactive, attributes(reactive))]
 pub fn derive_reactive(input: TokenStream) -> TokenStream {
-    match reactive::try_reactive(input) {
+    match reactive::try_derive(input) {
         Ok(token_stream) => token_stream,
         Err(error) => error.into_diagnostic().emit_as_expr_tokens().into(),
     }

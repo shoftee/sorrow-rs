@@ -10,7 +10,7 @@ enum FieldKind {
     Nested,
 }
 
-pub(crate) fn try_reactive(input: TokenStream) -> Result<TokenStream, Error> {
+pub(crate) fn try_derive(input: TokenStream) -> Result<TokenStream, Error> {
     let found_core_crate = core_crate_name()?;
     let core_crate = found_crate_ident(found_core_crate);
     let into_reactive_type = quote!(#core_crate::reactive::IntoReactive);
@@ -126,6 +126,7 @@ fn partition_by_kind(
             FieldKind::Nested => None,
         })
         .collect();
+
     Ok((nested, dependent))
 }
 
