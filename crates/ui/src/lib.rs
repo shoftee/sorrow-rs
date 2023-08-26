@@ -4,6 +4,8 @@ mod layout;
 mod number_view;
 mod state;
 
+mod conditional;
+
 pub fn mount() {
     use leptos::*;
     use leptos_meta::*;

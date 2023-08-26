@@ -2,6 +2,7 @@ use leptos::*;
 
 use crate::{events::use_keyboard_events, state::use_state_signals};
 
+use crate::conditional::*;
 use crate::number_view::*;
 
 #[component]
@@ -45,9 +46,16 @@ pub fn Center(cx: Scope) -> impl IntoView {
                     <div class="col resources-col unscrollable">
                         <ResourcesContainer />
                     </div>
-                    <div class="col controls-col unscrollable"></div>
+                    <div class="col controls-col unscrollable">
+                        <div class="container controls-container">
+                            <div class="row">
+                                <div class="col">"Controls go here"</div>
+                                <div class="col">"Controls go here"</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col environment-col unscrollable">
-                        <div class="env-container">"Calendar and History"</div>
+                        <div class="environment-container">"Calendar and History"</div>
                     </div>
                 </div>
             </div>
@@ -63,15 +71,15 @@ pub fn ResourcesContainer(cx: Scope) -> impl IntoView {
 
     let expanded_rw = create_rw_signal(cx, true);
 
-    let expanded = move || expanded_rw.get();
-
     view! { cx,
         <div class="resources-container">
             <ul class="list-group resources-list">
                 <ResourceExpander expanded=expanded_rw />
-                <Show when=expanded fallback=|_| ()>
-                    <li class="list-group-item small">"catnip " <DecimalView value=catnip /></li>
-                </Show>
+                <Conditional>
+                    <Main slot condition=expanded_rw>
+                        <li class="list-group-item small">"catnip " <DecimalView value=catnip /></li>
+                    </Main>
+                </Conditional>
             </ul>
         </div>
     }
@@ -79,18 +87,19 @@ pub fn ResourcesContainer(cx: Scope) -> impl IntoView {
 
 #[component]
 fn ResourceExpander(cx: Scope, expanded: RwSignal<bool>) -> impl IntoView {
+    let collapsed = Signal::derive(cx, move || !expanded.get());
+
     view! { cx,
         <button
-            on:click=move |_| expanded.toggle()
+            on:click=move |_| expanded.update(|v| *v = !*v)
             class="list-group-item list-group-item-action expander"
         >
             <div>"Resources"</div>
-            <Show
-                when=move || !expanded.get()
-                fallback=|_| ()
-            >
-                <div><i class="bi bi-arrows-expand"></i></div>
-            </Show>
+            <Conditional>
+                <Main slot condition=collapsed>
+                    <div><i class="bi bi-arrows-expand"></i></div>
+                </Main>
+            </Conditional>
         </button>
     }
 }
@@ -98,14 +107,4 @@ fn ResourceExpander(cx: Scope, expanded: RwSignal<bool>) -> impl IntoView {
 #[component]
 fn NoResources(cx: Scope) -> impl IntoView {
     view! { cx, <li class="list-group-item">"Your paws are empty."</li> }
-}
-
-trait ToggleSignal: SignalUpdate<bool> {
-    fn toggle(self);
-}
-
-impl ToggleSignal for RwSignal<bool> {
-    fn toggle(self) {
-        self.update(|v| *v = !*v)
-    }
 }

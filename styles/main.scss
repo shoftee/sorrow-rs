@@ -186,10 +186,6 @@ button,
   }
 }
 
-.col {
-  flex: 1 0 0%;
-}
-
 .main-container {
   @include wh-100();
   @include flex-row();
@@ -232,29 +228,6 @@ button,
   border-radius: 0.25rem;
 }
 
-.row {
-  --bs-gutter-x: 1.5rem;
-  --bs-gutter-y: 0;
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: calc(-1 * var(--bs-gutter-y));
-  margin-right: calc(-0.5 * var(--bs-gutter-x));
-  margin-left: calc(-0.5 * var(--bs-gutter-x));
-
-  > * {
-    flex-shrink: 0;
-    width: 100%;
-    height: 100%;
-    padding-right: calc(var(--bs-gutter-x) * 0.5);
-    padding-left: calc(var(--bs-gutter-x) * 0.5);
-    margin-top: var(--bs-gutter-y);
-  }
-}
-
-.col {
-  flex: 1 0 0%;
-}
-
 .number {
   font-family: var(--bs-font-monospace);
 }
@@ -271,6 +244,18 @@ button,
 
     &:first-child {
       padding: 0.5rem;
+    }
+  }
+}
+
+.controls-container {
+  .row {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+
+    > * {
+      flex: 0 0 auto;
+      width: 50%;
     }
   }
 }
