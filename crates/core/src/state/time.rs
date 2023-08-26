@@ -30,14 +30,21 @@ impl From<Acceleration> for f64 {
     }
 }
 
+#[derive(Debug, Default, Serialize, Deserialize, Clone, Copy)]
+pub enum RunningState {
+    #[default]
+    Running,
+    Paused,
+}
+
 #[derive(Debug, Default, Reactive)]
 pub struct TimeState {
-    pub paused: bool,
+    pub running_state: RunningState,
     pub acceleration: Acceleration,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PartialTimeState {
-    pub paused: Option<bool>,
+    pub running_state: Option<RunningState>,
     pub acceleration: Option<Acceleration>,
 }

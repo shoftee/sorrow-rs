@@ -46,22 +46,35 @@ impl World {
         let sender = &self.world_queues.notifications;
         sender.send(Notification::Initialized);
 
-        // set up updates for time state
+        // set up updates for acceleration
         {
             let acceleration = self.time_state.acceleration;
-            let paused = self.time_state.paused;
 
-            self.runtime.create_batch_effect({
-                let sender = sender.clone();
-                move |_| {
-                    sender.send(Notification::StateChanged {
-                        time: Some(PartialTimeState {
-                            acceleration: Some(acceleration.get()),
-                            paused: Some(paused.get()),
-                        }),
-                        resource: None,
-                    })
-                }
+            let sender = sender.clone();
+            self.runtime.batch(move |_| {
+                sender.send(Notification::StateChanged {
+                    time: Some(PartialTimeState {
+                        acceleration: Some(acceleration.get()),
+                        running_state: None,
+                    }),
+                    resource: None,
+                })
+            });
+        }
+
+        // set up updates for running state
+        {
+            let running_state = self.time_state.running_state;
+
+            let sender = sender.clone();
+            self.runtime.batch(move |_| {
+                sender.send(Notification::StateChanged {
+                    time: Some(PartialTimeState {
+                        acceleration: None,
+                        running_state: Some(running_state.get()),
+                    }),
+                    resource: None,
+                })
             });
         }
 
@@ -69,16 +82,14 @@ impl World {
         {
             let catnip = self.resource_controller.state.catnip;
 
-            self.runtime.create_batch_effect({
-                let sender = sender.clone();
-                move |_| {
-                    sender.send(Notification::StateChanged {
-                        time: None,
-                        resource: Some(PartialResourceState {
-                            catnip: Some(catnip.get()),
-                        }),
-                    })
-                }
+            let sender = sender.clone();
+            self.runtime.batch(move |_| {
+                sender.send(Notification::StateChanged {
+                    time: None,
+                    resource: Some(PartialResourceState {
+                        catnip: Some(catnip.get()),
+                    }),
+                })
             })
         }
     }
@@ -91,8 +102,8 @@ impl World {
                     TimeControl::SetAcceleration(acceleration) => {
                         self.time_state.acceleration.set(acceleration)
                     }
-                    TimeControl::Start => self.time_state.paused.set(false),
-                    TimeControl::Pause => self.time_state.paused.set(true),
+                    TimeControl::Start => self.time_state.running_state.set(RunningState::Running),
+                    TimeControl::Pause => self.time_state.running_state.set(RunningState::Paused),
                 },
                 Command::Initialize => {
                     unreachable!("Update should never be called for the Initialize command.")
@@ -100,7 +111,10 @@ impl World {
             }
         }
 
-        if self.time_state.paused.get() {
+        if matches!(
+            self.time_state.running_state.get_untracked(),
+            RunningState::Paused
+        ) {
             return;
         }
 
@@ -109,7 +123,7 @@ impl World {
         let delta = self.delta_time.delta();
 
         // apply time acceleration
-        let delta = delta * self.time_state.acceleration.get().into();
+        let delta = delta * self.time_state.acceleration.get_untracked().into();
 
         // convert to game ticks
         let delta = delta.convert::<GameTick>();

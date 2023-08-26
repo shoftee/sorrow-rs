@@ -20,6 +20,13 @@ impl<T> State<T> {
         SignalGet::get(&self.0)
     }
 
+    pub fn get_untracked(&self) -> T
+    where
+        T: Clone,
+    {
+        SignalGetUntracked::get_untracked(&self.0)
+    }
+
     pub fn set(&self, new_value: T) {
         SignalSet::set(&self.0, new_value);
     }
@@ -85,7 +92,7 @@ impl Runtime {
         }
     }
 
-    pub fn create_batch_effect<Target, Effect>(&self, effect: Effect)
+    pub fn batch<Target, Effect>(&self, effect: Effect)
     where
         Target: 'static,
         Effect: Fn(Option<Target>) -> Target + 'static,

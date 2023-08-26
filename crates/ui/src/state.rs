@@ -54,8 +54,8 @@ impl StateManager {
                     if let Some(acceleration) = time.acceleration {
                         self.signals.time.acceleration.set(acceleration);
                     }
-                    if let Some(paused) = time.paused {
-                        self.signals.time.paused.set(paused);
+                    if let Some(running_state) = time.running_state {
+                        self.signals.time.running_state.set(running_state);
                     }
                 }
                 if let Some(resource) = resource {
