@@ -108,6 +108,10 @@ impl World {
             }
         }
 
+        // advance system time
+        self.delta_time.update();
+
+        // if time is paused, do nothing else.
         if matches!(
             self.time_state.running_state.get_untracked(),
             RunningState::Paused
@@ -115,11 +119,8 @@ impl World {
             return;
         }
 
-        // advance system time
-        self.delta_time.update();
-        let delta = self.delta_time.delta();
-
         // apply time acceleration
+        let delta = self.delta_time.delta();
         let delta = delta * self.time_state.acceleration.get_untracked().into();
 
         // convert to game ticks
