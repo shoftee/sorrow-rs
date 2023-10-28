@@ -6,8 +6,8 @@ use crate::conditional::*;
 use crate::number_view::*;
 
 #[component]
-pub fn Header(cx: Scope) -> impl IntoView {
-    view! { cx,
+pub fn Header() -> impl IntoView {
+    view! {
         <header class="row">
             <div class="col">
                 <div class="header-start">
@@ -23,8 +23,8 @@ pub fn Header(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-pub fn Footer(cx: Scope) -> impl IntoView {
-    view! { cx,
+pub fn Footer() -> impl IntoView {
+    view! {
         <footer>
             <div>
                 "Observable Sorrow is a clone of "
@@ -35,10 +35,10 @@ pub fn Footer(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-pub fn Center(cx: Scope) -> impl IntoView {
-    let _keyboard_events = use_keyboard_events(cx);
+pub fn Center() -> impl IntoView {
+    let _keyboard_events = use_keyboard_events();
 
-    view! { cx,
+    view! {
         <main class="unscrollable">
             <div class="nav-container">
                 <div>"navigation goes here"</div>
@@ -64,14 +64,14 @@ pub fn Center(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-pub fn ResourcesContainer(cx: Scope) -> impl IntoView {
-    let state_signals = use_state_signals(cx);
+pub fn ResourcesContainer() -> impl IntoView {
+    let state_signals = use_state_signals();
 
-    let catnip = Signal::derive(cx, move || state_signals.resource.catnip.get());
+    let catnip = Signal::derive(move || state_signals.resource.catnip.get());
 
-    let expanded_rw = create_rw_signal(cx, true);
+    let expanded_rw = create_rw_signal(true);
 
-    view! { cx,
+    view! {
         <div class="resources-container">
             <ul class="list-group resources-list">
                 <ResourceExpander expanded=expanded_rw />
@@ -86,10 +86,10 @@ pub fn ResourcesContainer(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-fn ResourceExpander(cx: Scope, expanded: RwSignal<bool>) -> impl IntoView {
-    let collapsed = Signal::derive(cx, move || !expanded.get());
+fn ResourceExpander(expanded: RwSignal<bool>) -> impl IntoView {
+    let collapsed = Signal::derive(move || !expanded.get());
 
-    view! { cx,
+    view! {
         <button
             on:click=move |_| expanded.update(|v| *v = !*v)
             class="list-group-item list-group-item-action expander"
@@ -105,6 +105,6 @@ fn ResourceExpander(cx: Scope, expanded: RwSignal<bool>) -> impl IntoView {
 }
 
 #[component]
-fn NoResources(cx: Scope) -> impl IntoView {
-    view! { cx, <li class="list-group-item">"Your paws are empty."</li> }
+fn NoResources() -> impl IntoView {
+    view! { <li class="list-group-item">"Your paws are empty."</li> }
 }

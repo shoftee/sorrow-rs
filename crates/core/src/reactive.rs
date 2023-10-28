@@ -69,42 +69,25 @@ impl<T> DependentState<T> {
 }
 
 #[derive(Clone)]
-pub struct Runtime {
-    runtime: Option<RuntimeId>,
-    scope: Scope,
-}
+pub struct Runtime;
 
 impl Runtime {
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        let runtime_id = create_runtime();
-        let (scope, _) = raw_scope_and_disposer(runtime_id);
-        Self {
-            runtime: Some(runtime_id),
-            scope,
-        }
-    }
-
-    pub fn from_scope(scope: Scope) -> Self {
-        Self {
-            runtime: None,
-            scope,
-        }
-    }
-
     pub fn create_effect<Target, Effect>(&self, effect: Effect)
     where
         Target: 'static,
         Effect: Fn(Option<Target>) -> Target + 'static,
     {
-        leptos_reactive::create_effect(self.scope, effect);
+        // NOTE: Use create_render_effect to avoid queue_microtask.
+        //       Microtasks don't work inside the worker
+        //       because they require a window object.
+        leptos_reactive::create_render_effect(effect);
     }
 
     pub fn create_state<Target>(&self, value: Target) -> State<Target>
     where
         Target: 'static,
     {
-        let signal = leptos_reactive::create_rw_signal(self.scope, value);
+        let signal = leptos_reactive::create_rw_signal(value);
         State(signal)
     }
 
@@ -117,17 +100,8 @@ impl Runtime {
     where
         Output: PartialEq,
     {
-        let (signal, signal_setter) =
-            leptos_reactive::create_slice(self.scope, state.0, getter, setter);
+        let (signal, signal_setter) = leptos_reactive::create_slice(state.0, getter, setter);
         DependentState(signal, signal_setter)
-    }
-}
-
-impl Drop for Runtime {
-    fn drop(&mut self) {
-        if let Some(runtime) = self.runtime {
-            runtime.dispose();
-        }
     }
 }
 

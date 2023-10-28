@@ -4,7 +4,6 @@ use sorrow_core::communication::{Command, Notification};
 
 use super::{spawn, worker::Worker};
 
-#[derive(Clone)]
 pub struct Endpoint(WorkerBridge<Worker>);
 
 impl Endpoint {

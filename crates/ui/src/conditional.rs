@@ -21,20 +21,19 @@ pub struct Fallback {
 
 #[component]
 pub fn Conditional(
-    cx: Scope,
     main: Main,
     #[prop(default=vec![])] else_if: Vec<ElseIf>,
     #[prop(optional)] fallback: Option<Fallback>,
 ) -> impl IntoView {
     move || {
         if main.condition.get() {
-            (main.children)(cx).into_view(cx)
+            (main.children)().into_view()
         } else if let Some(else_if) = else_if.iter().find(|i| i.condition.get()) {
-            (else_if.children)(cx).into_view(cx)
+            (else_if.children)().into_view()
         } else if let Some(fallback) = &fallback {
-            (fallback.children)(cx).into_view(cx)
+            (fallback.children)().into_view()
         } else {
-            ().into_view(cx)
+            ().into_view()
         }
     }
 }

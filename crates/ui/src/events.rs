@@ -8,10 +8,10 @@ pub struct KeyboardEvents {
 }
 
 impl KeyboardEvents {
-    fn new(cx: Scope) -> Self {
-        let ctrl = create_rw_signal(cx, false);
-        let shift = create_rw_signal(cx, false);
-        let alt = create_rw_signal(cx, false);
+    fn new() -> Self {
+        let ctrl = create_rw_signal(false);
+        let shift = create_rw_signal(false);
+        let alt = create_rw_signal(false);
 
         let track_keys = move |ev: ev::KeyboardEvent| {
             ctrl.set(ev.ctrl_key());
@@ -28,17 +28,17 @@ impl KeyboardEvents {
         });
 
         Self {
-            ctrl: create_memo(cx, move |_| ctrl.get()),
-            shift: create_memo(cx, move |_| shift.get()),
-            alt: create_memo(cx, move |_| alt.get()),
+            ctrl: create_memo(move |_| ctrl.get()),
+            shift: create_memo(move |_| shift.get()),
+            alt: create_memo(move |_| alt.get()),
         }
     }
 }
 
-pub fn provide_keyboard_events_context(cx: Scope) {
-    provide_context(cx, KeyboardEvents::new(cx));
+pub fn provide_keyboard_events_context() {
+    provide_context(KeyboardEvents::new());
 }
 
-pub fn use_keyboard_events(cx: Scope) -> KeyboardEvents {
-    use_context(cx).expect("keyboard events not provided in context")
+pub fn use_keyboard_events() -> KeyboardEvents {
+    use_context().expect("keyboard events not provided in context")
 }

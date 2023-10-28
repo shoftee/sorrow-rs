@@ -24,7 +24,7 @@ pub struct World {
 
 impl World {
     pub fn new(world_queues: WorldQueues) -> Self {
-        let runtime = Runtime::new();
+        let runtime = Runtime;
 
         let time_state = TimeState::default().into_reactive(&runtime);
 

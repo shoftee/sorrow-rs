@@ -12,12 +12,12 @@ pub fn mount() {
 
     use self::layout::*;
 
-    mount_to_body(|cx| {
-        provide_meta_context(cx);
-        self::events::provide_keyboard_events_context(cx);
-        self::state::provide_endpoint_context(cx);
+    mount_to_body(|| {
+        provide_meta_context();
+        self::events::provide_keyboard_events_context();
+        self::state::provide_state_management_context();
 
-        view! { cx,
+        view! {
            <Title text="Obserable Sorrow"/>
            <div id="app">
                <div class="app-container">
