@@ -46,16 +46,14 @@ impl StateManager {
             Initialized => leptos::log!("World initialized."),
             LogMessage(msg) => leptos::log!("{}", msg),
             WarnMessage(msg) => leptos::warn!("{}", msg),
-            StateChanged { time, resource } => {
-                if let Some(time) = time {
-                    if let Some(acceleration) = time.acceleration {
-                        self.signals.time.acceleration.set(acceleration);
-                    }
-                    if let Some(running_state) = time.running_state {
-                        self.signals.time.running_state.set(running_state);
-                    }
+            StateChanged(state) => {
+                if let Some(acceleration) = state.acceleration {
+                    self.signals.time.acceleration.set(acceleration);
                 }
-                if let Some(resource) = resource {
+                if let Some(running_state) = state.running_state {
+                    self.signals.time.running_state.set(running_state);
+                }
+                if let Some(resource) = state.resource {
                     if let Some(catnip) = resource.catnip {
                         self.signals.resource.catnip.set(catnip);
                     }

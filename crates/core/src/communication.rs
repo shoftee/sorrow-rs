@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::state::{Acceleration, PartialResourceState, PartialTimeState};
+use crate::state::{Acceleration, PartialResourceState, RunningState};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Command {
@@ -16,12 +16,16 @@ pub enum TimeControl {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct PartialState {
+    pub acceleration: Option<Acceleration>,
+    pub running_state: Option<RunningState>,
+    pub resource: Option<PartialResourceState>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Notification {
     LogMessage(String),
     WarnMessage(String),
     Initialized,
-    StateChanged {
-        time: Option<PartialTimeState>,
-        resource: Option<PartialResourceState>,
-    },
+    StateChanged(PartialState),
 }

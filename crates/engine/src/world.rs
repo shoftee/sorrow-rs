@@ -1,5 +1,5 @@
 use sorrow_core::{
-    communication::{Command, Notification, TimeControl},
+    communication::{Command, Notification, PartialState, TimeControl},
     reactive::{IntoReactive, Runtime},
     state::*,
     timers::{DeltaTime, GameTick, Rate, Ticker, TimeSpan},
@@ -52,13 +52,11 @@ impl World {
 
             let sender = sender.clone();
             self.runtime.create_effect(move |_| {
-                sender.send(Notification::StateChanged {
-                    time: Some(PartialTimeState {
-                        acceleration: Some(acceleration.get()),
-                        running_state: None,
-                    }),
+                sender.send(Notification::StateChanged(PartialState {
+                    acceleration: Some(acceleration.get()),
+                    running_state: None,
                     resource: None,
-                })
+                }));
             });
         }
 
@@ -68,13 +66,11 @@ impl World {
 
             let sender = sender.clone();
             self.runtime.create_effect(move |_| {
-                sender.send(Notification::StateChanged {
-                    time: Some(PartialTimeState {
-                        acceleration: None,
-                        running_state: Some(running_state.get()),
-                    }),
+                sender.send(Notification::StateChanged(PartialState {
+                    acceleration: None,
+                    running_state: Some(running_state.get()),
                     resource: None,
-                })
+                }));
             });
         }
 
@@ -84,12 +80,13 @@ impl World {
 
             let sender = sender.clone();
             self.runtime.create_effect(move |_| {
-                sender.send(Notification::StateChanged {
-                    time: None,
+                sender.send(Notification::StateChanged(PartialState {
+                    acceleration: None,
+                    running_state: None,
                     resource: Some(PartialResourceState {
                         catnip: Some(catnip.get()),
                     }),
-                })
+                }));
             })
         }
     }
