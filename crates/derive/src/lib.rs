@@ -1,5 +1,3 @@
-#![feature(iterator_try_collect)]
-
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use proc_macro2_diagnostics::{Diagnostic, Level};

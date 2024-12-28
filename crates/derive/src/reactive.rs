@@ -4,12 +4,6 @@ use syn::{AttrStyle, Data, DeriveInput, Field, Fields, FieldsNamed, Ident, Type}
 
 use crate::{core_crate_name, found_crate_ident, parse_input, Error};
 
-#[derive(Clone, Copy, PartialEq)]
-enum FieldKind {
-    Dependent,
-    Nested,
-}
-
 pub(crate) fn try_derive(input: TokenStream) -> Result<TokenStream, Error> {
     let found_core_crate = core_crate_name()?;
     let core_crate = found_crate_ident(found_core_crate);
@@ -100,33 +94,15 @@ pub(crate) fn try_derive(input: TokenStream) -> Result<TokenStream, Error> {
 fn partition_by_kind(
     fields: &syn::punctuated::Punctuated<Field, syn::token::Comma>,
 ) -> Result<(Vec<&Field>, Vec<&Field>), Error> {
-    let fields: Vec<_> = fields
-        .iter()
-        .map(|field| -> Result<_, Error> {
-            let kind = if is_nested(field)? {
-                FieldKind::Nested
-            } else {
-                FieldKind::Dependent
-            };
-            Ok((field, kind))
-        })
-        .try_collect()?;
-
-    let nested: Vec<_> = fields
-        .iter()
-        .filter_map(|&(f, k)| match k {
-            FieldKind::Nested => Some(f),
-            FieldKind::Dependent => None,
-        })
-        .collect();
-    let dependent: Vec<_> = fields
-        .iter()
-        .filter_map(|&(f, k)| match k {
-            FieldKind::Dependent => Some(f),
-            FieldKind::Nested => None,
-        })
-        .collect();
-
+    let mut nested = Vec::new();
+    let mut dependent = Vec::new();
+    for field in fields {
+        if is_nested(field)? {
+            nested.push(field);
+        } else {
+            dependent.push(field);
+        };
+    }
     Ok((nested, dependent))
 }
 
