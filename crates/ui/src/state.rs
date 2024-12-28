@@ -1,6 +1,8 @@
+use std::cell::LazyCell;
+
 use leptos::{
     logging::{log, warn},
-    use_context,
+    prelude::*,
 };
 use sorrow_core::{
     communication::{Command, Notification},
@@ -17,7 +19,7 @@ pub struct StateSignals {
 }
 
 impl StateSignals {
-    pub fn new() -> Self {
+    fn new() -> Self {
         let runtime = Runtime;
 
         Self {
@@ -28,31 +30,16 @@ impl StateSignals {
     }
 }
 
-#[derive(Clone)]
-pub struct CommandSink(std::rc::Rc<Endpoint>);
-
-impl CommandSink {
-    pub fn send(&self, command: Command) {
-        self.0.send(command);
-    }
-}
-
-pub struct StateManager {
+struct StateManager {
     signals: StateSignals,
 }
 
 impl StateManager {
-    pub fn new() -> Self {
-        Self {
-            signals: StateSignals::new(),
-        }
-    }
-
-    pub fn signals(&self) -> StateSignals {
+    fn signals(&self) -> StateSignals {
         self.signals.clone()
     }
 
-    pub fn accept(&self, notification: Notification) {
+    fn accept(&self, notification: Notification) {
         use Notification::*;
 
         match notification {
@@ -76,19 +63,24 @@ impl StateManager {
     }
 }
 
-pub fn provide_state_management_context() {
-    let state_manager = StateManager::new();
-    leptos::provide_context(state_manager.signals());
+const STATE_MANAGER: LazyCell<StateManager> = LazyCell::new(|| StateManager {
+    signals: StateSignals::new(),
+});
+const ENDPOINT: LazyCell<Endpoint> = LazyCell::new(|| {
+    Endpoint::new(
+        move |notification| STATE_MANAGER.accept(notification),
+        "./engine.js",
+    )
+});
 
-    let endpoint = Endpoint::new(move |n| state_manager.accept(n), "./engine.js");
-    endpoint.send(Command::Initialize);
-    leptos::provide_context(CommandSink(std::rc::Rc::new(endpoint)));
+pub fn provide_state_signals_context() {
+    provide_context(STATE_MANAGER.signals());
+}
+
+pub fn send_command(command: Command) {
+    ENDPOINT.send(command);
 }
 
 pub fn use_state_signals() -> StateSignals {
-    leptos::use_context().expect("state signals not provided in context")
-}
-
-pub fn use_command_sink() -> CommandSink {
-    use_context().expect("command sink not provided in context")
+    use_context().expect("state signals not provided in context")
 }

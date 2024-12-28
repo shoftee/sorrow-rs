@@ -1,4 +1,5 @@
-use leptos::*;
+use leptos::ev;
+use leptos::prelude::*;
 
 #[derive(Clone)]
 pub struct KeyboardEvents {
@@ -9,9 +10,9 @@ pub struct KeyboardEvents {
 
 impl KeyboardEvents {
     fn new() -> Self {
-        let ctrl = create_rw_signal(false);
-        let shift = create_rw_signal(false);
-        let alt = create_rw_signal(false);
+        let ctrl = RwSignal::new(false);
+        let shift = RwSignal::new(false);
+        let alt = RwSignal::new(false);
 
         let track_keys = move |ev: ev::KeyboardEvent| {
             ctrl.set(ev.ctrl_key());
@@ -28,9 +29,9 @@ impl KeyboardEvents {
         });
 
         Self {
-            ctrl: create_memo(move |_| ctrl.get()),
-            shift: create_memo(move |_| shift.get()),
-            alt: create_memo(move |_| alt.get()),
+            ctrl: Memo::new(move |_| ctrl.get()),
+            shift: Memo::new(move |_| shift.get()),
+            alt: Memo::new(move |_| alt.get()),
         }
     }
 }

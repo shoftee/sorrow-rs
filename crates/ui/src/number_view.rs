@@ -1,21 +1,27 @@
-use leptos::*;
+use leptos::{
+    either::Either,
+    html::{HtmlElement, Span},
+    prelude::*,
+    tachys::html::class::Class,
+};
 
 use crate::{
     formatter::{Formatter, ShowSign},
     state::use_state_signals,
 };
 
-fn number(inner: impl IntoView) -> HtmlElement<html::Span> {
-    leptos_dom::html::span()
-        .attr("class", "number")
-        .child(inner)
+fn number<I: IntoView>(inner: I) -> HtmlElement<Span, (Class<&'static str>,), (I,)> {
+    leptos::html::span().class("number").child(inner)
 }
 
 #[component]
-pub fn IntegerView(show_sign: ShowSign, value: ReadSignal<i64>) -> impl IntoView {
+pub fn IntegerView(
+    #[prop(optional)] show_sign: ShowSign,
+    #[prop(into)] value: Signal<f64>,
+) -> Either<impl IntoView, impl IntoView> {
     match show_sign {
-        ShowSign::NegativeOnly => number(move || format!("{}", value.get())),
-        ShowSign::Always => number(move || format!("{:+}", value.get())),
+        ShowSign::NegativeOnly => Either::Left(number(move || format!("{}", value.get()))),
+        ShowSign::Always => Either::Right(number(move || format!("{:+}", value.get()))),
     }
 }
 

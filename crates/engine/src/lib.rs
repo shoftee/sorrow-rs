@@ -4,7 +4,6 @@ mod worker;
 mod world;
 
 pub use endpoint::*;
-pub use worker::*;
 
 use gloo_worker::{Registrable, Spawnable, WorkerBridge};
 use sorrow_core::communication::Notification;
