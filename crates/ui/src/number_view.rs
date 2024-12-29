@@ -14,6 +14,7 @@ fn number<I: IntoView>(inner: I) -> HtmlElement<Span, (Class<&'static str>,), (I
     leptos::html::span().class("number").child(inner)
 }
 
+#[allow(dead_code)]
 #[component]
 pub fn IntegerView(
     #[prop(optional)] show_sign: ShowSign,

@@ -95,11 +95,13 @@ impl Formatter {
 pub enum ShowSign {
     #[default]
     NegativeOnly,
+    #[allow(dead_code)]
     Always,
 }
 
 pub trait Roundable {
     fn round_with_precision(self, precision: Precision) -> f64;
+    #[allow(dead_code)]
     fn trunc_with_precision(self, precision: Precision) -> f64;
 }
 

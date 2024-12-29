@@ -94,8 +94,8 @@ impl Runtime {
     pub fn create_dependent<Target, Output>(
         &self,
         state: State<Target>,
-        getter: impl Fn(&Target) -> Output + Clone + Copy + 'static,
-        setter: impl Fn(&mut Target, Output) + Clone + Copy + 'static,
+        getter: impl Fn(&Target) -> Output + Copy + 'static,
+        setter: impl Fn(&mut Target, Output) + Copy + 'static,
     ) -> DependentState<Output>
     where
         Output: PartialEq,

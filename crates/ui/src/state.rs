@@ -1,4 +1,4 @@
-use std::cell::LazyCell;
+use std::{cell::LazyCell, sync::LazyLock};
 
 use leptos::{
     logging::{log, warn},
@@ -63,10 +63,11 @@ impl StateManager {
     }
 }
 
-const STATE_MANAGER: LazyCell<StateManager> = LazyCell::new(|| StateManager {
+static STATE_MANAGER: LazyLock<StateManager> = LazyLock::new(|| StateManager {
     signals: StateSignals::new(),
 });
-const ENDPOINT: LazyCell<Endpoint> = LazyCell::new(|| {
+
+static mut ENDPOINT: LazyCell<Endpoint> = LazyCell::new(|| {
     Endpoint::new(
         move |notification| STATE_MANAGER.accept(notification),
         "./engine.js",
@@ -78,7 +79,11 @@ pub fn provide_state_signals_context() {
 }
 
 pub fn send_command(command: Command) {
-    ENDPOINT.send(command);
+    #[allow(static_mut_refs)]
+    // SAFETY: This is the UI part of a WASM app, we only have one thread.
+    unsafe {
+        ENDPOINT.send(command);
+    }
 }
 
 pub fn use_state_signals() -> StateSignals {
