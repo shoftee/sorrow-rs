@@ -200,6 +200,8 @@ button,
   > .resources-col,
   > .environment-col {
     flex-grow: 3.5;
+    display: flex;
+    flex-direction: column;
   }
 
   > .controls-col {
