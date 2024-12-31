@@ -2,7 +2,7 @@ use std::{default::Default, time::Duration};
 
 use sorrow_core::{
     communication::*,
-    state::{PartialResourceState, RunningState},
+    state::{PartialResourceState, PartialState, PartialTimeState, RunningState},
     utils::Shared,
 };
 
@@ -109,30 +109,28 @@ fn main_step(mut inputs: EventReader<InputEvent>, mut outputs: EventWriter<Outpu
             }
             Command::GatherCatnip => {
                 outputs.send(OutputEvent(Notification::StateChanged(PartialState {
-                    resource: Some(PartialResourceState { catnip: Some(1.0) }),
+                    resource: PartialResourceState { catnip: Some(1.0) },
                     ..Default::default()
                 })));
             }
-            Command::TimeControl(time_control) => match time_control {
-                TimeControl::SetAcceleration(a) => {
-                    outputs.send(OutputEvent(Notification::StateChanged(PartialState {
-                        acceleration: Some(*a),
-                        ..Default::default()
-                    })));
-                }
-                TimeControl::Pause => {
-                    outputs.send(OutputEvent(Notification::StateChanged(PartialState {
-                        running_state: Some(RunningState::Paused),
-                        ..Default::default()
-                    })));
-                }
-                TimeControl::Start => {
-                    outputs.send(OutputEvent(Notification::StateChanged(PartialState {
-                        running_state: Some(RunningState::Running),
-                        ..Default::default()
-                    })));
-                }
-            },
+            Command::TimeControl(time_control) => {
+                let mut time = PartialTimeState::default();
+                match time_control {
+                    TimeControl::SetAcceleration(a) => {
+                        time.acceleration = Some(*a);
+                    }
+                    TimeControl::Pause => {
+                        time.running_state = Some(RunningState::Paused);
+                    }
+                    TimeControl::Start => {
+                        time.running_state = Some(RunningState::Running);
+                    }
+                };
+                outputs.send(OutputEvent(Notification::StateChanged(PartialState {
+                    time,
+                    ..Default::default()
+                })));
+            }
             _ => {}
         }
     }

@@ -10,17 +10,14 @@ use sorrow_core::{
 };
 use sorrow_engine::Endpoint;
 
-#[derive(Clone)]
 pub struct OptionSignals {
     pub precision: RwSignal<Precision>,
 }
 
-#[derive(Clone)]
 pub struct ResourceSignals {
     pub catnip: RwSignal<f64>,
 }
 
-#[derive(Clone)]
 pub struct StateSignals {
     pub options: OptionSignals,
     pub running_state: RwSignal<RunningState>,
@@ -46,10 +43,6 @@ struct StateManager {
 }
 
 impl StateManager {
-    fn signals(&self) -> StateSignals {
-        self.signals.clone()
-    }
-
     fn accept(&self, notification: Notification) {
         use Notification::*;
 
@@ -58,13 +51,11 @@ impl StateManager {
             LogMessage(msg) => log!("{}", msg),
             WarnMessage(msg) => warn!("{}", msg),
             StateChanged(state) => {
-                if let Some(running_state) = state.running_state {
+                if let Some(running_state) = state.time.running_state {
                     self.signals.running_state.set(running_state);
                 }
-                if let Some(resource) = state.resource {
-                    if let Some(catnip) = resource.catnip {
-                        self.signals.resources.catnip.set(catnip);
-                    }
+                if let Some(catnip) = state.resource.catnip {
+                    self.signals.resources.catnip.set(catnip);
                 }
             }
         }
@@ -83,7 +74,7 @@ static mut ENDPOINT: LazyCell<Endpoint> = LazyCell::new(|| {
 });
 
 pub fn provide_state_signals_context() {
-    provide_context(STATE_MANAGER.signals());
+    provide_context(&STATE_MANAGER.signals);
     send_command(Command::Load);
 }
 
@@ -95,6 +86,6 @@ pub fn send_command(command: Command) {
     }
 }
 
-pub fn use_state_signals() -> StateSignals {
+pub fn use_state_signals<'a>() -> &'a StateSignals {
     use_context().expect("state signals not provided in context")
 }

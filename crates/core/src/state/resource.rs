@@ -1,11 +1,8 @@
+use partially::Partial;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Partial)]
+#[partially(attribute(derive(Default, Debug, Serialize, Deserialize)))]
 pub struct ResourceState {
     pub catnip: f64,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct PartialResourceState {
-    pub catnip: Option<f64>,
 }

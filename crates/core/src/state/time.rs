@@ -1,3 +1,4 @@
+use partially::Partial;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Clone, Copy, Debug)]
@@ -36,14 +37,9 @@ pub enum RunningState {
     Paused,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Partial)]
+#[partially(attribute(derive(Default, Debug, Serialize, Deserialize)))]
 pub struct TimeState {
     pub running_state: RunningState,
     pub acceleration: Acceleration,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct PartialTimeState {
-    pub running_state: Option<RunningState>,
-    pub acceleration: Option<Acceleration>,
 }

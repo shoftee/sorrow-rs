@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::state::{Acceleration, PartialResourceState, RunningState};
+use crate::state::{Acceleration, PartialState};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Command {
@@ -16,13 +16,6 @@ pub enum TimeControl {
     SetAcceleration(Acceleration),
     Start,
     Pause,
-}
-
-#[derive(Serialize, Deserialize, Default, Debug)]
-pub struct PartialState {
-    pub acceleration: Option<Acceleration>,
-    pub running_state: Option<RunningState>,
-    pub resource: Option<PartialResourceState>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

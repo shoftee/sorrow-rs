@@ -12,3 +12,4 @@ publish.workspace = true
 serde.workspace = true
 
 time = { version = "0.3", features = ["wasm-bindgen"] }
+partially = { version = "0.2", features = ["derive"] }
