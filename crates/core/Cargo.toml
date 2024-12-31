@@ -9,7 +9,6 @@ publish.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sorrow-derive = { path = "../../crates/derive" }
-leptos_reactive = { version = "0.6", features = ["csr"] }
-serde = { version = "1.0", features = ["derive"] }
+serde.workspace = true
+
 time = { version = "0.3", features = ["wasm-bindgen"] }

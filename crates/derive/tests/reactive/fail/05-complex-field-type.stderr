@@ -1,5 +1,0 @@
-error: derive(Reactive) only supports basic types.
- --> tests/reactive/fail/05-complex-field-type.rs:5:14
-  |
-5 |     complex: *const i32,
-  |              ^^^^^^^^^^

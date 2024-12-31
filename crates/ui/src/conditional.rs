@@ -1,4 +1,4 @@
-use leptos::prelude::*;
+use leptos::{logging::log, prelude::*};
 
 #[slot]
 pub struct Main {
@@ -26,6 +26,7 @@ pub fn Conditional(
     #[prop(optional)] fallback: Option<Fallback>,
 ) -> AnyView {
     if main.condition.get() {
+        log!("Main condition.");
         (main.children)().into_any()
     } else if let Some(else_if) = else_if.iter().find(|i| i.condition.get()) {
         (else_if.children)().into_any()

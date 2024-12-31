@@ -6,26 +6,37 @@ use leptos::{
 };
 use sorrow_core::{
     communication::{Command, Notification},
-    reactive::{IntoReactive, Runtime},
     state::*,
 };
 use sorrow_engine::Endpoint;
 
 #[derive(Clone)]
+pub struct OptionSignals {
+    pub precision: RwSignal<Precision>,
+}
+
+#[derive(Clone)]
+pub struct ResourceSignals {
+    pub catnip: RwSignal<f64>,
+}
+
+#[derive(Clone)]
 pub struct StateSignals {
-    pub options: ReactiveGameOptionsState,
-    pub time: ReactiveTimeState,
-    pub resource: ReactiveResourceState,
+    pub options: OptionSignals,
+    pub running_state: RwSignal<RunningState>,
+    pub resources: ResourceSignals,
 }
 
 impl StateSignals {
     fn new() -> Self {
-        let runtime = Runtime;
-
         Self {
-            options: GameOptionsState::default().into_reactive(&runtime),
-            time: TimeState::default().into_reactive(&runtime),
-            resource: ResourceState::default().into_reactive(&runtime),
+            options: OptionSignals {
+                precision: RwSignal::new(Precision::default()),
+            },
+            running_state: RwSignal::new(RunningState::default()),
+            resources: ResourceSignals {
+                catnip: RwSignal::new(0.0),
+            },
         }
     }
 }
@@ -47,15 +58,12 @@ impl StateManager {
             LogMessage(msg) => log!("{}", msg),
             WarnMessage(msg) => warn!("{}", msg),
             StateChanged(state) => {
-                if let Some(acceleration) = state.acceleration {
-                    self.signals.time.acceleration.set(acceleration);
-                }
                 if let Some(running_state) = state.running_state {
-                    self.signals.time.running_state.set(running_state);
+                    self.signals.running_state.set(running_state);
                 }
                 if let Some(resource) = state.resource {
                     if let Some(catnip) = resource.catnip {
-                        self.signals.resource.catnip.set(catnip);
+                        self.signals.resources.catnip.set(catnip);
                     }
                 }
             }
@@ -76,6 +84,7 @@ static mut ENDPOINT: LazyCell<Endpoint> = LazyCell::new(|| {
 
 pub fn provide_state_signals_context() {
     provide_context(STATE_MANAGER.signals());
+    send_command(Command::Load);
 }
 
 pub fn send_command(command: Command) {

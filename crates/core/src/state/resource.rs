@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
-use sorrow_derive::Reactive;
 
-#[derive(Debug, Default, Reactive)]
+#[derive(Debug, Default)]
 pub struct ResourceState {
     pub catnip: f64,
 }

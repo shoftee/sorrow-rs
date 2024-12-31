@@ -13,8 +13,10 @@ name = "sorrow_ui"
 path = "src/lib.rs"
 
 [dependencies]
-sorrow-core = { path = "../../crates/core" }
-sorrow-engine = { path = "../../crates/engine" }
-leptos = { version = "0.7", features = ["csr"] }
+sorrow-core.workspace = true
+sorrow-engine.workspace = true
+
+leptos.workspace = true
+wasm-bindgen.workspace = true
+
 leptos_meta = "0.7"
-wasm-bindgen = "0.2"

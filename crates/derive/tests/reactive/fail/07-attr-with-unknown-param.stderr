@@ -1,5 +1,0 @@
-error: invalid reactive attribute
- --> tests/reactive/fail/07-attr-with-unknown-param.rs:5:16
-  |
-5 |     #[reactive(unexpected)]
-  |                ^^^^^^^^^^

@@ -1,5 +1,0 @@
-error: derive(Reactive) is only supported on structs with one or more named fields.
- --> tests/reactive/fail/03-empty-struct.rs:4:24
-  |
-4 | pub struct EmptyStruct {}
-  |                        ^^

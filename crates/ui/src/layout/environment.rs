@@ -1,11 +1,13 @@
 use leptos::prelude::*;
-use sorrow_core::{communication::*, reactive::State, state::RunningState};
+use sorrow_core::{communication::*, state::RunningState};
 
 use crate::state::{send_command, use_state_signals};
 
 #[component]
 pub fn EnvironmentContainer() -> impl IntoView {
     let state = use_state_signals();
+
+    let running_state = Signal::derive(move || state.running_state.get());
 
     view! {
         <div class="calendar-container">"Calendar goes here"</div>
@@ -14,7 +16,7 @@ pub fn EnvironmentContainer() -> impl IntoView {
                 <div>"You are a kitten in a catnip forest."</div>
                 <div class="btn-group">
                     <button type="button" class="btn btn-outline-secondary">"Clear log"</button>
-                    <PawseButton running_state=state.time.running_state />
+                    <PawseButton running_state=running_state />
                 </div>
             </div>
             <div class="log-container">
@@ -60,7 +62,7 @@ fn EpochSection() -> impl IntoView {
 }
 
 #[component]
-fn PawseButton(running_state: State<RunningState>) -> impl IntoView {
+fn PawseButton(running_state: Signal<RunningState>) -> impl IntoView {
     let pawsed = Memo::new(move |_| matches!(running_state.get(), RunningState::Paused));
 
     let toggle = move |_| {

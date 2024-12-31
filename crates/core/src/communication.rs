@@ -4,8 +4,11 @@ use crate::state::{Acceleration, PartialResourceState, RunningState};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Command {
-    Initialize,
+    /// Stub for initializing game session.
+    Load,
     TimeControl(TimeControl),
+    GatherCatnip,
+    RefineCatnip,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -15,7 +18,7 @@ pub enum TimeControl {
     Pause,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct PartialState {
     pub acceleration: Option<Acceleration>,
     pub running_state: Option<RunningState>,

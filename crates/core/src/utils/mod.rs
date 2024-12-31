@@ -1,5 +1,3 @@
-mod cell;
-mod channel;
+mod shared;
 
-pub use cell::*;
-pub use channel::*;
+pub use shared::*;

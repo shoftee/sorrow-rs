@@ -9,20 +9,28 @@ use crate::state::use_state_signals;
 pub fn ResourcesContainer() -> impl IntoView {
     let state_signals = use_state_signals();
 
-    let catnip = Signal::derive(move || state_signals.resource.catnip.get());
+    let catnip = Signal::derive(move || state_signals.resources.catnip.get());
+    let has_resources = Signal::derive(move || catnip.get() > 0.0);
 
     let expanded_rw = RwSignal::new(true);
 
     view! {
         <div class="resources-container">
-            <ul class="list-group resources-list">
-                <ResourceExpander expanded=expanded_rw />
-                <Conditional>
-                    <Main slot condition=expanded_rw>
-                        <li class="list-group-item small">"catnip " <DecimalView value=catnip /></li>
-                    </Main>
-                </Conditional>
-            </ul>
+            <Conditional>
+                <Main slot condition=has_resources>
+                    <ul class="list-group resources-list">
+                        <ResourceExpander expanded=expanded_rw />
+                        <Conditional>
+                            <Main slot condition=expanded_rw>
+                                <li class="list-group-item small">"catnip " <DecimalView value=catnip /></li>
+                            </Main>
+                        </Conditional>
+                    </ul>
+                </Main>
+                <Fallback slot>
+                    <NoResources />
+                </Fallback>
+            </Conditional>
         </div>
     }
 }

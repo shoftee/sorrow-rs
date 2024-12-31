@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use sorrow_derive::Reactive;
 
 #[derive(Serialize, Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct Acceleration(f64);
@@ -37,7 +36,7 @@ pub enum RunningState {
     Paused,
 }
 
-#[derive(Debug, Default, Reactive)]
+#[derive(Debug, Default)]
 pub struct TimeState {
     pub running_state: RunningState,
     pub acceleration: Acceleration,
