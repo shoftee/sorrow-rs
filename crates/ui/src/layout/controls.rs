@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use sorrow_core::communication::Command;
+use sorrow_core::communication::Intent;
 
 use crate::{events::use_keyboard_events, state::send_command};
 
@@ -7,8 +7,8 @@ use crate::{events::use_keyboard_events, state::send_command};
 pub fn ControlsContainer() -> impl IntoView {
     let keyboard_events = use_keyboard_events();
 
-    let gather_catnip = move |_| send_command(Command::GatherCatnip);
-    let refine_catnip = move |_| send_command(Command::RefineCatnip);
+    let gather_catnip = move |_| send_command(Intent::GatherCatnip);
+    let refine_catnip = move |_| send_command(Intent::RefineCatnip);
 
     view! {
         <div class="container controls-container">

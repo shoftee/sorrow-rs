@@ -5,7 +5,7 @@ use leptos::{
     prelude::*,
 };
 use sorrow_core::{
-    communication::{Command, Notification},
+    communication::{Intent, Notification},
     state::*,
 };
 use sorrow_engine::Endpoint;
@@ -75,10 +75,10 @@ static mut ENDPOINT: LazyCell<Endpoint> = LazyCell::new(|| {
 
 pub fn provide_state_signals_context() {
     provide_context(&STATE_MANAGER.signals);
-    send_command(Command::Load);
+    send_command(Intent::Load);
 }
 
-pub fn send_command(command: Command) {
+pub fn send_command(command: Intent) {
     #[allow(static_mut_refs)]
     // SAFETY: This is the UI part of a WASM app, we only have one thread.
     unsafe {

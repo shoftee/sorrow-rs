@@ -67,9 +67,9 @@ fn PawseButton(running_state: Signal<RunningState>) -> impl IntoView {
 
     let toggle = move |_| {
         send_command(if pawsed.get() {
-            Command::TimeControl(TimeControl::Start)
+            Intent::TimeControl(TimeControl::Start)
         } else {
-            Command::TimeControl(TimeControl::Pause)
+            Intent::TimeControl(TimeControl::Pause)
         });
     };
 

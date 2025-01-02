@@ -1,20 +1,20 @@
-use gloo_worker::WorkerBridge;
+use gloo_worker::{Spawnable, WorkerBridge};
 
-use sorrow_core::communication::{Command, Notification};
+use sorrow_core::communication::{Intent, Notification};
 
-use super::{spawn, worker::Worker};
+use super::rpc::Rpc;
 
-pub struct Endpoint(WorkerBridge<Worker>);
+pub struct Endpoint(WorkerBridge<Rpc>);
 
 impl Endpoint {
     pub fn new<F>(cb: F, path: &str) -> Self
     where
         F: 'static + Fn(Notification),
     {
-        Self(spawn(cb, path))
+        Self(Rpc::spawner().callback(cb).spawn(path))
     }
 
-    pub fn send(&self, command: Command) {
+    pub fn send(&self, command: Intent) {
         self.0.send(command);
     }
 }

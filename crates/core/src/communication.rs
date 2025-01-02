@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::state::{Acceleration, PartialState};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum Command {
+pub enum Intent {
     /// Stub for initializing game session.
     Load,
     TimeControl(TimeControl),
