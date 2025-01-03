@@ -1,9 +1,6 @@
 use std::{cell::LazyCell, sync::LazyLock};
 
-use leptos::{
-    logging::{log, warn},
-    prelude::*,
-};
+use leptos::{logging::log, prelude::*};
 use sorrow_core::{
     communication::{Intent, Notification},
     state::{precision::Precision, resources::Kind, time::RunningState},
@@ -48,8 +45,6 @@ impl StateManager {
 
         match notification {
             Initialized => log!("World initialized."),
-            LogMessage(msg) => log!("{}", msg),
-            WarnMessage(msg) => warn!("{}", msg),
             StateChanged(state) => {
                 if let Some(running_state) = state.time.running_state {
                     self.signals.running_state.set(running_state);

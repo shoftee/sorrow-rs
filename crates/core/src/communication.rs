@@ -18,8 +18,6 @@ pub enum TimeControl {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Notification {
-    LogMessage(String),
-    WarnMessage(String),
     Initialized,
     StateChanged(crate::state::PartialState),
 }

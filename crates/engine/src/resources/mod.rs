@@ -1,6 +1,6 @@
 use bevy::{
     app::{Plugin, Startup, Update},
-    prelude::{Commands, Component, DetectChangesMut, IntoSystemConfigs, Query, With},
+    prelude::*,
 };
 use sorrow_core::state::resources::Kind as StateKind;
 use strum::IntoEnumIterator;
@@ -29,6 +29,7 @@ impl From<StateKind> for Kind {
 }
 
 #[derive(Component, Debug, Clone, Copy)]
+#[require(Debit, Credit)]
 pub struct Amount(f64);
 
 impl From<Amount> for f64 {
@@ -37,27 +38,27 @@ impl From<Amount> for f64 {
     }
 }
 
-#[derive(Component, Debug)]
-pub struct Delta(f64);
+#[derive(Component, Debug, Default)]
+pub struct Capacity(f64);
 
-impl std::ops::AddAssign<f64> for Delta {
-    fn add_assign(&mut self, rhs: f64) {
-        self.0 += rhs;
-    }
-}
+#[derive(Component, Debug, Default)]
+pub struct Delta(pub f64);
 
-impl std::ops::SubAssign<f64> for Delta {
-    fn sub_assign(&mut self, rhs: f64) {
-        self.0 -= rhs;
-    }
-}
+#[derive(Component, Debug, Default)]
+pub struct Debit(pub f64);
+
+#[derive(Component, Debug, Default)]
+pub struct Credit(pub f64);
 
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(LookupIndexPlugin::<Kind>::new())
             .add_systems(Startup, spawn_resources)
-            .add_systems(Update, clear_deltas.in_set(schedule::Prepare))
-            .add_systems(Update, resolve_deltas.in_set(schedule::Resolve));
+            .add_systems(Update, clear_transactions.in_set(schedule::Prepare))
+            .add_systems(
+                Update,
+                (resolve_deltas, resolve_transactions).in_set(schedule::Resolve),
+            );
     }
 }
 
@@ -67,15 +68,62 @@ fn spawn_resources(mut cmd: Commands) {
     }
 }
 
-fn clear_deltas(mut deltas: Query<&mut Delta, With<Kind>>) {
-    for mut delta in deltas.iter_mut() {
-        delta.0 = 0.0;
+fn clear_transactions(mut transactions: Query<(&mut Debit, &mut Credit), With<Kind>>) {
+    for (mut debit, mut credit) in transactions.iter_mut() {
+        debit.0 = 0.0;
+        credit.0 = 0.0;
     }
 }
 
-fn resolve_deltas(mut resources: Query<(&mut Amount, &Delta), With<Kind>>) {
-    for (mut amount, delta) in resources.iter_mut() {
-        amount.0 += delta.0;
-        amount.set_changed();
+fn resolve_deltas(mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<Kind>>) {
+    for (delta, mut debit, mut credit) in resources.iter_mut() {
+        let delta = delta.0;
+        if delta.is_infinite() {
+            info!("Encountered infinite delta value.");
+            continue;
+        }
+        match delta.signum() {
+            -1.0 => credit.0 += delta,
+            1.0 => debit.0 += delta,
+            _ => panic!("Encountered NaN-valued delta value."),
+        };
+    }
+}
+
+fn resolve_transactions(
+    mut resources: Query<(&mut Amount, &Debit, &Credit, Option<&Capacity>), With<Kind>>,
+) {
+    for (mut amount, debit, credit, capacity) in resources.iter_mut() {
+        let change = calculate(amount.as_ref().0, debit.0, credit.0, capacity.map(|f| f.0));
+        if let Some(new_amount) = change {
+            amount.0 = new_amount;
+        }
+    }
+}
+
+fn calculate(current: f64, debit: f64, credit: f64, capacity: Option<f64>) -> Option<f64> {
+    let mut new_amount = current;
+    // subtract losses first
+    new_amount -= credit;
+
+    {
+        let capacity = capacity.unwrap_or(f64::MAX);
+        if new_amount < capacity {
+            // new resources are gained only when under capacity
+            new_amount += debit;
+
+            // but they only go up to capacity at most
+            new_amount = f64::min(new_amount, capacity);
+        }
+    }
+
+    // negative resource amount is non-sense (for now...)
+    new_amount = f64::max(new_amount, 0.0);
+
+    // check if the value actually changed
+    if (current - new_amount).abs() > f64::EPSILON {
+        Some(new_amount)
+    } else {
+        None
     }
 }

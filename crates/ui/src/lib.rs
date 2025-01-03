@@ -6,7 +6,11 @@ mod state;
 
 mod conditional;
 
-pub fn mount() {
+pub fn start() {
+    mount();
+}
+
+fn mount() {
     use leptos::prelude::*;
     use leptos_meta::*;
 

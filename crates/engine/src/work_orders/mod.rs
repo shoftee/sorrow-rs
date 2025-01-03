@@ -6,7 +6,7 @@ use bevy::{
 
 use crate::{
     index::IndexedQueryMut,
-    resources::{Delta, Kind},
+    resources::{Credit, Debit, Kind},
 };
 
 pub mod schedule {
@@ -35,15 +35,15 @@ impl Plugin for WorkOrdersPlugin {
 
 fn process_work_orders(
     mut pending_work_orders: EventReader<PendingWorkOrder>,
-    mut deltas: IndexedQueryMut<Kind, &mut Delta>,
+    mut transactions: IndexedQueryMut<Kind, (&mut Debit, &mut Credit)>,
 ) {
     use sorrow_core::state::resources::Kind as StateKind;
 
     for work_order in pending_work_orders.read() {
         match work_order.0 {
-            WorkOrderType::GatherCatnip => match deltas.get_mut(StateKind::Catnip.into()) {
-                Ok(ref mut delta) => {
-                    **delta += 1.0;
+            WorkOrderType::GatherCatnip => match transactions.get_mut(StateKind::Catnip.into()) {
+                Ok((ref mut debit, _)) => {
+                    debit.0 += 1.0;
                 }
                 Err(err) => {
                     error!("Couldn't get catnip data: {:?}", err);
