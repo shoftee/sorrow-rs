@@ -2,6 +2,7 @@ use leptos::ev;
 use leptos::prelude::*;
 
 #[derive(Clone)]
+#[expect(dead_code)]
 pub struct KeyboardEvents {
     pub ctrl: Memo<bool>,
     pub shift: Memo<bool>,

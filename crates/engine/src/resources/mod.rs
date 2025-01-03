@@ -1,3 +1,5 @@
+use std::ops::{AddAssign, SubAssign};
+
 use bevy::{
     app::{Plugin, Startup, Update},
     prelude::*,
@@ -38,6 +40,18 @@ impl From<Amount> for f64 {
     }
 }
 
+impl AddAssign<f64> for Amount {
+    fn add_assign(&mut self, rhs: f64) {
+        self.0 += rhs;
+    }
+}
+
+impl SubAssign<f64> for Amount {
+    fn sub_assign(&mut self, rhs: f64) {
+        self.0 -= rhs;
+    }
+}
+
 #[derive(Component, Debug, Default)]
 pub struct Capacity(f64);
 
@@ -45,10 +59,22 @@ pub struct Capacity(f64);
 pub struct Delta(pub f64);
 
 #[derive(Component, Debug, Default)]
-pub struct Debit(pub f64);
+pub struct Debit(f64);
+
+impl AddAssign<f64> for Debit {
+    fn add_assign(&mut self, rhs: f64) {
+        self.0 += rhs;
+    }
+}
 
 #[derive(Component, Debug, Default)]
-pub struct Credit(pub f64);
+pub struct Credit(f64);
+
+impl AddAssign<f64> for Credit {
+    fn add_assign(&mut self, rhs: f64) {
+        self.0 += rhs;
+    }
+}
 
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -83,8 +109,8 @@ fn resolve_deltas(mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<K
             continue;
         }
         match delta.signum() {
-            -1.0 => credit.0 += delta,
-            1.0 => debit.0 += delta,
+            -1.0 => *credit += delta,
+            1.0 => *debit += delta,
             _ => panic!("Encountered NaN-valued delta value."),
         };
     }

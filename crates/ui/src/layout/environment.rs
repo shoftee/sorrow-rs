@@ -10,43 +10,32 @@ pub fn EnvironmentContainer() -> impl IntoView {
     let running_state = Signal::derive(move || state.running_state.get());
 
     view! {
-        <div class="calendar-container">"Calendar goes here"</div>
-        <section class="history-container unscrollable">
-            <div class="game-controls-container">
-                <div>"You are a kitten in a catnip forest."</div>
+        <section class="environment-area unscroll-y flex flex-col gap-2">
+            <div>"Calendar goes here"</div>
+            <div>"You are a kitten in a catnip forest."</div>
+            <div class="flex flex-col">
                 <div class="btn-group">
                     <button type="button" class="btn btn-outline-secondary">"Clear log"</button>
                     <PawseButton running_state=running_state />
                 </div>
             </div>
-            <div class="log-container">
+            <div class="overflow-y-hidden flex-grow flex flex-col text-sm fade-down-to-transparent space-y-4">
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
+                <EpochSection />
                 <EpochSection />
             </div>
-        //  <div class="log-container small p-2">
-        //    <div
-        //      class="log-section mb-3"
-        //      v-for="epoch in epochs"
-        //      :key="epoch.id"
-        //      :ref="el => { if (el) epoch.ref = el as Element }"
-        //    >
-        //      <div class="border-bottom">
-        //        <i18n-t scope="global" :keypath="environment.calendar.epochLabel">
-        //          <template #year>
-        //            <span class="number">{{ fmt.number(epoch.year) }}</span>
-        //          </template>
-        //          <template #season>{{ t(epoch.seasonLabel) }}</template>
-        //        </i18n-t>
-        //      </div>
-        //      <div
-        //        class="log-event"
-        //        v-for="event in epoch.events"
-        //        :key="event.id"
-        //        :ref="el => { if (el) event.ref = el as Element }"
-        //      >
-        //        {{ event.text }}
-        //      </div>
-        //    </div>
-        //  </div>
         </section>
     }
 }

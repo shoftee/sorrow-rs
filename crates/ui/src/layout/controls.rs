@@ -5,26 +5,34 @@ use crate::{events::use_keyboard_events, state::send_command};
 
 #[component]
 pub fn ControlsContainer() -> impl IntoView {
+    #[expect(unused_variables)]
     let keyboard_events = use_keyboard_events();
 
-    let gather_catnip = move |_| send_command(Intent::GatherCatnip);
-    let refine_catnip = move |_| send_command(Intent::RefineCatnip);
+    let gather_catnip = move || send_command(Intent::GatherCatnip);
+    let refine_catnip = move || send_command(Intent::RefineCatnip);
 
     view! {
-        <div class="container controls-container">
-            <div class="row">
-                <div class="col">
-                    <button class="btn btn-outline-secondary w-100" type="button" on:click=gather_catnip>"Gather catnip"</button>
+        <section class="controls-area unscroll-y">
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <Button command=gather_catnip>"Gather catnip"</Button>
                 </div>
-                <div class="col">
-                    <button class="btn btn-outline-secondary w-100" type="button" on:click=refine_catnip>"Refine catnip"</button>
+                <div>
+                    <Button command=refine_catnip>"Refine catnip"</Button>
                 </div>
+                // <div>{move || keyboard_events.ctrl.get() }</div>
+                // <div>{move || keyboard_events.shift.get() }</div>
+                // <div>{move || keyboard_events.alt.get() }</div>
             </div>
-            <div class="row">
-            <div class="col">{move || keyboard_events.ctrl.get() }</div>
-            <div class="col">{move || keyboard_events.shift.get() }</div>
-            <div class="col">{move || keyboard_events.alt.get() }</div>
-            </div>
-        </div>
+        </section>
+    }
+}
+
+#[component]
+fn Button(command: fn(), children: ChildrenFn) -> impl IntoView {
+    view! {
+        <button class="btn btn-outline-secondary w-100" type="button" on:click=move |_| command()>
+            {children()}
+        </button>
     }
 }

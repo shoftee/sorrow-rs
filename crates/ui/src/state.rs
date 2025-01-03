@@ -1,11 +1,12 @@
 use std::{cell::LazyCell, sync::LazyLock};
 
-use leptos::{logging::log, prelude::*};
+use leptos::prelude::*;
 use sorrow_core::{
     communication::{Intent, Notification},
     state::{precision::Precision, resources::Kind, time::RunningState},
 };
 use sorrow_engine::Endpoint;
+use tracing::debug;
 
 pub struct OptionSignals {
     pub precision: RwSignal<Precision>,
@@ -44,7 +45,7 @@ impl StateManager {
         use Notification::*;
 
         match notification {
-            Initialized => log!("World initialized."),
+            Initialized => debug!("World initialized."),
             StateChanged(state) => {
                 if let Some(running_state) = state.time.running_state {
                     self.signals.running_state.set(running_state);

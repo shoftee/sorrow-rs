@@ -1,0 +1,47 @@
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+html, body {
+  height: 100dvh;
+}
+
+body {
+  @apply select-none;
+}
+
+@layer utilities {
+  .unscroll-y {
+    @apply h-full overflow-y-auto;
+  }
+
+  .grid-top-nav-layout {
+    @apply grid;
+
+    grid-template: "navigation navigation navigation " auto
+                   "resources  controls   environment" minmax(0, 1fr)
+                   / 3.5fr 5fr 3.5fr;
+  }
+
+  .navigation-area {
+    grid-area: navigation;
+  }
+
+  .resources-area {
+    grid-area: resources;
+  }
+
+  .controls-area {
+    grid-area: controls;
+  }
+
+  .environment-area {
+    grid-area: environment;
+  }
+
+  .fade-down-to-transparent {
+    mask-image: linear-gradient(to top, transparent, white min(25%, 25vh));
+  }
+}

@@ -1,3 +1,5 @@
+use tracing_wasm::WASMLayerConfig;
+
 mod events;
 mod formatter;
 mod layout;
@@ -8,6 +10,7 @@ mod conditional;
 
 pub fn start() {
     mount();
+    tracing_wasm::set_as_global_default_with_config(WASMLayerConfig::default());
 }
 
 fn mount() {

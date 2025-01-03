@@ -42,8 +42,8 @@ fn process_work_orders(
     for work_order in pending_work_orders.read() {
         match work_order.0 {
             WorkOrderType::GatherCatnip => match transactions.get_mut(StateKind::Catnip.into()) {
-                Ok((ref mut debit, _)) => {
-                    debit.0 += 1.0;
+                Ok((mut debit, _)) => {
+                    *debit += 1.0;
                 }
                 Err(err) => {
                     error!("Couldn't get catnip data: {:?}", err);
