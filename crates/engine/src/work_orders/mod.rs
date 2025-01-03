@@ -1,6 +1,7 @@
 use bevy::{
+    app::{App, Plugin, Update},
     log::error,
-    prelude::{Event, EventReader, IntoSystemConfigs, SystemSet},
+    prelude::{Event, EventReader, IntoSystemConfigs},
 };
 
 use crate::{
@@ -8,9 +9,12 @@ use crate::{
     resources::{Delta, Kind},
 };
 
-#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub mod schedule {
+    use bevy::prelude::SystemSet;
 
-pub struct WorkOrdersSystemSet;
+    #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Main;
+}
 
 #[derive(Default)]
 pub struct WorkOrdersPlugin;
@@ -22,12 +26,10 @@ pub enum WorkOrderType {
 #[derive(Event)]
 pub struct PendingWorkOrder(pub WorkOrderType);
 
-impl bevy::app::Plugin for WorkOrdersPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_event::<PendingWorkOrder>().add_systems(
-            bevy::app::Update,
-            process_work_orders.in_set(WorkOrdersSystemSet),
-        );
+impl Plugin for WorkOrdersPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<PendingWorkOrder>()
+            .add_systems(Update, process_work_orders.in_set(schedule::Main));
     }
 }
 
@@ -35,9 +37,11 @@ fn process_work_orders(
     mut pending_work_orders: EventReader<PendingWorkOrder>,
     mut deltas: IndexedQueryMut<Kind, &mut Delta>,
 ) {
+    use sorrow_core::state::resources::Kind as StateKind;
+
     for work_order in pending_work_orders.read() {
         match work_order.0 {
-            WorkOrderType::GatherCatnip => match deltas.get_mut(Kind::Catnip) {
+            WorkOrderType::GatherCatnip => match deltas.get_mut(StateKind::Catnip.into()) {
                 Ok(ref mut delta) => {
                     **delta += 1.0;
                 }

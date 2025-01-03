@@ -1,18 +1,26 @@
 use std::{default::Default, hash::Hash, marker::PhantomData};
 
 use bevy::{
+    app::{App, Plugin},
     ecs::{
         query::{QueryData, QueryEntityError, WorldQuery},
         system::SystemParam,
     },
     prelude::{Component, Entity, OnAdd, OnRemove, Query, Res, ResMut, Resource, Trigger, With},
+    utils::HashMap,
 };
 
-pub struct LookupIndexPlugin<K: Component + Eq + Hash> {
+pub struct LookupIndexPlugin<K>
+where
+    K: Component + Eq + Hash + Clone,
+{
     _phantom: PhantomData<K>,
 }
 
-impl<K: Component + Eq + Hash> LookupIndexPlugin<K> {
+impl<K> LookupIndexPlugin<K>
+where
+    K: Component + Eq + Hash + Clone,
+{
     pub fn new() -> Self {
         Self {
             _phantom: PhantomData::<K>,
@@ -21,20 +29,29 @@ impl<K: Component + Eq + Hash> LookupIndexPlugin<K> {
 }
 
 #[derive(Resource, Default)]
-pub struct LookupIndex<K: Component + Eq + Hash + Clone> {
-    inner: bevy::utils::HashMap<K, Entity>,
+pub struct LookupIndex<K>
+where
+    K: Component + Eq + Hash + Clone,
+{
+    inner: HashMap<K, Entity>,
 }
 
-impl<K: Component + Eq + Hash + Clone> LookupIndex<K> {
+impl<K> LookupIndex<K>
+where
+    K: Component + Eq + Hash + Clone,
+{
     pub fn get(&self, key: &K) -> Option<&Entity> {
         self.inner.get(key)
     }
 }
 
-impl<K: Component + Eq + Hash + Clone> bevy::app::Plugin for LookupIndexPlugin<K> {
-    fn build(&self, app: &mut bevy::prelude::App) {
+impl<K> Plugin for LookupIndexPlugin<K>
+where
+    K: Component + Eq + Hash + Clone,
+{
+    fn build(&self, app: &mut App) {
         app.insert_resource(LookupIndex {
-            inner: bevy::utils::HashMap::<K, Entity>::default(),
+            inner: HashMap::<K, Entity>::default(),
         })
         .add_observer(
             |trigger: Trigger<OnAdd, K>, data: Query<&K>, mut index: ResMut<LookupIndex<K>>| {
@@ -60,12 +77,20 @@ impl<K: Component + Eq + Hash + Clone> bevy::app::Plugin for LookupIndexPlugin<K
 }
 
 // #[derive(SystemParam)]
-// pub struct IndexedQuery<'w, 's, K: Component + Eq + Hash + Clone, D: 'static + QueryData> {
+// pub struct IndexedQuery<'w, 's, K, D>
+// where
+//     K: Component + Eq + Hash + Clone,
+//     D: 'static + QueryData,
+// {
 //     lookup: Res<'w, LookupIndex<K>>,
 //     query: Query<'w, 's, D, With<K>>,
 // }
 
-// impl<K: Component + Eq + Hash + Clone, D: 'static + QueryData> IndexedQuery<'_, '_, K, D> {
+// impl<K, D> IndexedQuery<'_, '_, K, D>
+// where
+//     K: Component + Eq + Hash + Clone,
+//     D: 'static + QueryData,
+// {
 //     pub fn get(
 //         &self,
 //         key: K,
@@ -95,12 +120,20 @@ impl<K: Component + Eq + Hash + Clone> bevy::app::Plugin for LookupIndexPlugin<K
 // }
 
 #[derive(SystemParam)]
-pub struct IndexedQueryMut<'w, 's, K: Component + Eq + Hash + Clone, D: 'static + QueryData> {
+pub struct IndexedQueryMut<'w, 's, K, D>
+where
+    K: Component + Eq + Hash + Clone,
+    D: 'static + QueryData,
+{
     lookup: Res<'w, LookupIndex<K>>,
     query: Query<'w, 's, D, With<K>>,
 }
 
-impl<K: Component + Eq + Hash + Clone, D: 'static + QueryData> IndexedQueryMut<'_, '_, K, D> {
+impl<K, D> IndexedQueryMut<'_, '_, K, D>
+where
+    K: Component + Eq + Hash + Clone,
+    D: 'static + QueryData,
+{
     pub fn get_mut(&mut self, key: K) -> Result<<D as WorldQuery>::Item<'_>, IndexedLookupError> {
         if let Some(entity) = self.lookup.get(&key) {
             match self.query.get_mut(*entity) {

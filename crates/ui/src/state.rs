@@ -6,7 +6,7 @@ use leptos::{
 };
 use sorrow_core::{
     communication::{Intent, Notification},
-    state::*,
+    state::{precision::Precision, resources::Kind, time::RunningState},
 };
 use sorrow_engine::Endpoint;
 
@@ -54,8 +54,8 @@ impl StateManager {
                 if let Some(running_state) = state.time.running_state {
                     self.signals.running_state.set(running_state);
                 }
-                if let Some(catnip) = state.resource.catnip {
-                    self.signals.resources.catnip.set(catnip);
+                if let Some(catnip) = state.resource.amounts.get_state(&Kind::Catnip) {
+                    self.signals.resources.catnip.set(*catnip);
                 }
             }
         }

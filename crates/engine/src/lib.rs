@@ -5,6 +5,7 @@ mod rpc;
 mod runner;
 mod work_orders;
 
+use bevy::prelude::IntoSystemSetConfigs;
 pub use endpoint::Endpoint;
 
 pub fn start() {
@@ -22,12 +23,11 @@ fn register() {
 fn run_bevy() {
     use bevy::app::Update;
     use bevy::log::LogPlugin;
-    use bevy::prelude::IntoSystemSetConfigs;
-    use resources::{ResourcesPlugin, ResourcesSystemSet};
-    use rpc::{ProcessInputsSystemSet, ProcessOutputsSystemSet, RpcPlugin};
+    use resources::ResourcesPlugin;
+    use rpc::RpcPlugin;
     use runner::TimeoutRunnerPlugin;
     use std::time::Duration;
-    use work_orders::{WorkOrdersPlugin, WorkOrdersSystemSet};
+    use work_orders::WorkOrdersPlugin;
 
     bevy::app::App::new()
         .add_plugins(TimeoutRunnerPlugin::new(Duration::from_millis(20)))
@@ -38,10 +38,11 @@ fn run_bevy() {
         .configure_sets(
             Update,
             (
-                ProcessInputsSystemSet,
-                WorkOrdersSystemSet,
-                ResourcesSystemSet,
-                ProcessOutputsSystemSet,
+                resources::schedule::Prepare,
+                rpc::schedule::Inputs,
+                work_orders::schedule::Main,
+                resources::schedule::Resolve,
+                rpc::schedule::Outputs,
             )
                 .chain(),
         )

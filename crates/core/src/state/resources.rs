@@ -1,8 +1,17 @@
-use partially::Partial;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Partial)]
-#[partially(attribute(derive(Default, Debug, Serialize, Deserialize)))]
+use crate::state_key;
+
+use super::StateTable;
+
+state_key! {
+    pub enum Kind {
+        Catnip,
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct ResourceState {
-    pub catnip: f64,
+    pub amounts: StateTable<Kind, f64>,
+    pub deltas: StateTable<Kind, f64>,
 }

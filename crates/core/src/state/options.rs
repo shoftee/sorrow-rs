@@ -1,6 +1,4 @@
-use super::Precision;
-
 #[derive(Debug, Default)]
 pub struct GameOptionsState {
-    pub precision: Precision,
+    pub precision: super::precision::Precision,
 }

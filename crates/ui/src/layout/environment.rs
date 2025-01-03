@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use sorrow_core::{communication::*, state::RunningState};
+use sorrow_core::{communication::*, state::time::RunningState};
 
 use crate::state::{send_command, use_state_signals};
 

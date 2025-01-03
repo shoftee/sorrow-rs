@@ -1,18 +1,31 @@
 use bevy::{
-    app::{Plugin, PreUpdate, Startup, Update},
-    prelude::{Commands, Component, DetectChangesMut, IntoSystemConfigs, Query, SystemSet, With},
+    app::{Plugin, Startup, Update},
+    prelude::{Commands, Component, DetectChangesMut, IntoSystemConfigs, Query, With},
 };
+use sorrow_core::state::resources::Kind as StateKind;
+use strum::IntoEnumIterator;
 
 use crate::index::LookupIndexPlugin;
 
-#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ResourcesSystemSet;
+pub mod schedule {
+    use bevy::prelude::SystemSet;
+
+    #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Prepare;
+
+    #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Resolve;
+}
 
 pub struct ResourcesPlugin;
 
 #[derive(Component, Clone, Copy, Hash, PartialEq, Eq, Debug)]
-pub enum Kind {
-    Catnip,
+pub struct Kind(pub StateKind);
+
+impl From<StateKind> for Kind {
+    fn from(value: StateKind) -> Self {
+        Self(value)
+    }
 }
 
 #[derive(Component, Debug, Clone, Copy)]
@@ -42,14 +55,16 @@ impl std::ops::SubAssign<f64> for Delta {
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(LookupIndexPlugin::<Kind>::new())
-            .add_systems(Startup, spawn_resources.in_set(ResourcesSystemSet))
-            .add_systems(PreUpdate, clear_deltas.in_set(ResourcesSystemSet))
-            .add_systems(Update, resolve_deltas.in_set(ResourcesSystemSet));
+            .add_systems(Startup, spawn_resources)
+            .add_systems(Update, clear_deltas.in_set(schedule::Prepare))
+            .add_systems(Update, resolve_deltas.in_set(schedule::Resolve));
     }
 }
 
 fn spawn_resources(mut cmd: Commands) {
-    cmd.spawn((Kind::Catnip, Amount(0.0), Delta(0.0)));
+    for kind in <StateKind as IntoEnumIterator>::iter() {
+        cmd.spawn((Kind(kind), Amount(0.0), Delta(0.0)));
+    }
 }
 
 fn clear_deltas(mut deltas: Query<&mut Delta, With<Kind>>) {

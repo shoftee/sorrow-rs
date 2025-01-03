@@ -5,16 +5,19 @@ use std::sync::{
 
 use bevy::{
     app::{Plugin, Update},
-    log::debug,
     prelude::{
         Changed, Event, EventReader, EventWriter, Events, IntoSystemConfigs, IntoSystemSetConfigs,
-        NonSend, NonSendMut, Query, ResMut, SystemSet,
+        NonSend, NonSendMut, Query, ResMut,
     },
 };
 use gloo_worker::{HandlerId, Worker, WorkerScope};
 use sorrow_core::{
     communication::{Intent, Notification, TimeControl},
-    state::{PartialResourceState, PartialState, PartialTimeState, RunningState},
+    state::{
+        resources::ResourceState,
+        time::{PartialTimeState, RunningState},
+        PartialState,
+    },
 };
 
 use crate::{
@@ -69,14 +72,17 @@ impl Worker for Rpc {
         rpc
     }
 
+    #[tracing::instrument(level = "trace", fields(id), skip_all)]
     fn connected(&mut self, _: &WorkerScope<Self>, id: HandlerId) {
         self.dispatch(RemoteEvent::Connected(id));
     }
 
+    #[tracing::instrument(level = "trace", fields(id), skip_all)]
     fn disconnected(&mut self, _: &WorkerScope<Self>, id: HandlerId) {
         self.dispatch(RemoteEvent::Disconnected(id));
     }
 
+    #[tracing::instrument(level = "trace", fields(msg), skip_all)]
     fn received(&mut self, _: &WorkerScope<Self>, msg: Self::Input, _: HandlerId) {
         self.dispatch(RemoteEvent::Received(msg));
     }
@@ -123,7 +129,6 @@ impl Dispatcher {
                         self.handler_id = None;
                     }
                     RemoteEvent::Received(intent) => {
-                        debug!("Received {:?}", intent);
                         self.inbox.push(intent);
                     }
                 }
@@ -131,8 +136,8 @@ impl Dispatcher {
         };
     }
 
+    #[tracing::instrument(level = "trace", fields(notification), skip_all)]
     fn respond(&self, notification: Notification) {
-        debug!("Responding with {:?}", notification);
         match (&self.scope, self.handler_id) {
             (Some(scope), Some(id)) => scope.respond(id, notification),
             _ => panic!("Respond was called on an uninitialized dispatcher."),
@@ -146,11 +151,15 @@ struct InputEvent(Intent);
 #[derive(Event)]
 struct OutputEvent(Notification);
 
-#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ProcessInputsSystemSet;
+pub mod schedule {
+    use bevy::prelude::SystemSet;
 
-#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ProcessOutputsSystemSet;
+    #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Inputs;
+
+    #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Outputs;
+}
 
 pub struct RpcPlugin;
 
@@ -163,18 +172,15 @@ impl Plugin for RpcPlugin {
                 Update,
                 (receive_remote_events, process_inbox, resolve_intents)
                     .chain()
-                    .in_set(ProcessInputsSystemSet),
+                    .in_set(schedule::Inputs),
             )
             .add_systems(
                 Update,
                 (detect_changes, send_outputs)
                     .chain()
-                    .in_set(ProcessOutputsSystemSet),
+                    .in_set(schedule::Outputs),
             )
-            .configure_sets(
-                Update,
-                ProcessInputsSystemSet.before(ProcessOutputsSystemSet),
-            );
+            .configure_sets(Update, schedule::Inputs.before(schedule::Outputs));
     }
 }
 
@@ -229,11 +235,10 @@ fn detect_changes(
     resources: Query<(&Kind, &Amount), Changed<Amount>>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
-    let mut partial_state = PartialResourceState::default();
+    let mut partial_state = ResourceState::default();
     for (kind, &amount) in resources.iter() {
-        match kind {
-            Kind::Catnip => partial_state.catnip = Some(amount.into()),
-        }
+        let state = partial_state.amounts.get_state_mut(&kind.0);
+        *state = Some(amount.into());
     }
 
     outputs.send(OutputEvent(Notification::StateChanged(PartialState {

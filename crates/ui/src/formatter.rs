@@ -1,7 +1,7 @@
 // almost shamelessly copied from Sandcastle Builder
 // https://github.com/eternaldensity/Sandcastle-Builder/blob/master/redundancy.js
 
-use sorrow_core::state::Precision;
+use sorrow_core::state::precision::Precision;
 
 struct Breakpoint {
     limit: f64,

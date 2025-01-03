@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::state::{Acceleration, PartialState};
-
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Intent {
     /// Stub for initializing game session.
@@ -13,7 +11,7 @@ pub enum Intent {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum TimeControl {
-    SetAcceleration(Acceleration),
+    SetAcceleration(crate::state::time::Acceleration),
     Start,
     Pause,
 }
@@ -23,5 +21,5 @@ pub enum Notification {
     LogMessage(String),
     WarnMessage(String),
     Initialized,
-    StateChanged(PartialState),
+    StateChanged(crate::state::PartialState),
 }
