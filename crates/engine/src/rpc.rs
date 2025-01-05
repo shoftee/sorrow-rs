@@ -4,16 +4,17 @@ use std::sync::{
 };
 
 use bevy::{
-    app::{Plugin, Update},
+    app::{First, Last, Plugin},
     prelude::{
-        Changed, Event, EventReader, EventWriter, Events, IntoSystemConfigs, IntoSystemSetConfigs,
-        NonSend, NonSendMut, Query, ResMut,
+        DetectChanges, Event, EventReader, EventWriter, Events, IntoSystemConfigs, NonSend,
+        NonSendMut, Query, Ref, ResMut,
     },
 };
 use gloo_worker::{HandlerId, Worker, WorkerScope};
 use sorrow_core::{
     communication::{Intent, Notification, TimeControl},
     state::{
+        calendar::PartialCalendarState,
         resources::ResourceState,
         time::{PartialTimeState, RunningState},
         PartialState,
@@ -21,6 +22,7 @@ use sorrow_core::{
 };
 
 use crate::{
+    calendar::{Day, Season, Year},
     resources::{Amount, Kind},
     work_orders::PendingWorkOrder,
 };
@@ -166,21 +168,21 @@ pub struct RpcPlugin;
 impl Plugin for RpcPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_non_send_resource(Dispatcher::new())
+            .insert_non_send_resource(PartialState::default())
             .add_event::<InputEvent>()
             .add_event::<OutputEvent>()
             .add_systems(
-                Update,
+                First,
                 (receive_remote_events, process_inbox, resolve_intents)
                     .chain()
                     .in_set(schedule::Inputs),
             )
             .add_systems(
-                Update,
+                Last,
                 (detect_changes, send_outputs)
                     .chain()
                     .in_set(schedule::Outputs),
-            )
-            .configure_sets(Update, schedule::Inputs.before(schedule::Outputs));
+            );
     }
 }
 
@@ -222,7 +224,7 @@ fn resolve_intents(
                     }
                 };
                 outputs.send(OutputEvent(Notification::StateChanged(PartialState {
-                    time,
+                    time: Some(time),
                     ..Default::default()
                 })));
             }
@@ -232,19 +234,57 @@ fn resolve_intents(
 }
 
 fn detect_changes(
-    resources: Query<(&Kind, &Amount), Changed<Amount>>,
+    mut state: NonSendMut<PartialState>,
+    resources: Query<(&Kind, Ref<Amount>)>,
+    calendar: Query<(Ref<Day>, Ref<Season>, Ref<Year>)>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
-    let mut partial_state = ResourceState::default();
-    for (kind, &amount) in resources.iter() {
-        let state = partial_state.amounts.get_state_mut(&kind.0);
-        *state = Some(amount.into());
+    {
+        let mut has_resource_changes = false;
+        let mut resource_state = ResourceState::default();
+        for (kind, amount) in resources.iter() {
+            if amount.is_changed() {
+                let amount_state = resource_state.amounts.get_state_mut(&kind.0);
+                *amount_state = Some((*amount).into());
+                has_resource_changes = true;
+            }
+        }
+
+        if has_resource_changes {
+            state.resources = Some(resource_state);
+        }
     }
 
-    outputs.send(OutputEvent(Notification::StateChanged(PartialState {
-        resource: partial_state,
-        ..Default::default()
-    })));
+    if let Ok(calendar) = calendar.get_single() {
+        let mut has_calendar_changes = false;
+        let mut calendar_state = PartialCalendarState::default();
+        let day = &calendar.0;
+        if day.is_changed() {
+            calendar_state.day = Some(day.0);
+            has_calendar_changes = true;
+        }
+
+        let season = &calendar.1;
+        if season.is_changed() {
+            calendar_state.season = Some(season.0);
+            has_calendar_changes = true;
+        }
+
+        let year = &calendar.2;
+        if year.is_changed() {
+            calendar_state.year = Some(year.0);
+            has_calendar_changes = true;
+        }
+
+        if has_calendar_changes {
+            state.calendar = Some(calendar_state);
+        }
+    }
+
+    if state.is_changed() {
+        let changed = std::mem::take(state.as_mut());
+        outputs.send(OutputEvent(Notification::StateChanged(changed)));
+    }
 }
 
 fn send_outputs(mut outputs: ResMut<Events<OutputEvent>>, dispatcher: NonSend<Dispatcher>) {

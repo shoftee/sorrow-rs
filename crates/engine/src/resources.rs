@@ -1,7 +1,7 @@
 use std::ops::{AddAssign, SubAssign};
 
 use bevy::{
-    app::{Plugin, Startup, Update},
+    app::{Plugin, Startup},
     prelude::*,
 };
 use sorrow_core::state::resources::Kind as StateKind;
@@ -80,9 +80,9 @@ impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(LookupIndexPlugin::<Kind>::new())
             .add_systems(Startup, spawn_resources)
-            .add_systems(Update, clear_transactions.in_set(schedule::Prepare))
+            .add_systems(FixedUpdate, clear_transactions.in_set(schedule::Prepare))
             .add_systems(
-                Update,
+                FixedUpdate,
                 (resolve_deltas, resolve_transactions).in_set(schedule::Resolve),
             );
     }
@@ -120,7 +120,7 @@ fn resolve_transactions(
     mut resources: Query<(&mut Amount, &Debit, &Credit, Option<&Capacity>), With<Kind>>,
 ) {
     for (mut amount, debit, credit, capacity) in resources.iter_mut() {
-        let change = calculate(amount.as_ref().0, debit.0, credit.0, capacity.map(|f| f.0));
+        let change = calculate(amount.0, debit.0, credit.0, capacity.map(|f| f.0));
         if let Some(new_amount) = change {
             amount.0 = new_amount;
         }

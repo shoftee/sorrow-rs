@@ -3,7 +3,7 @@ use std::{default::Default, hash::Hash, marker::PhantomData};
 use bevy::{
     app::{App, Plugin},
     ecs::{
-        query::{QueryData, QueryEntityError, WorldQuery},
+        query::{QueryData, WorldQuery},
         system::SystemParam,
     },
     prelude::{Component, Entity, OnAdd, OnRemove, Query, Res, ResMut, Resource, Trigger, With},
@@ -91,19 +91,12 @@ where
 //     K: Component + Eq + Hash + Clone,
 //     D: 'static + QueryData,
 // {
-//     pub fn get(
-//         &self,
-//         key: K,
-//     ) -> Result<<<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>, IndexedLookupError> {
-//         if let Some(entity) = self.lookup.inner.get(&key) {
-//             match self.query.get(*entity) {
-//                 Ok(value) => Ok(value),
-//                 Err(QueryEntityError::NoSuchEntity(_)) => Err(IndexedLookupError::ValueNotFound),
-//                 Err(err) => panic!("Unexpected query error: {}", err),
-//             }
-//         } else {
-//             Err(IndexedLookupError::KeyNotFound)
-//         }
+//     pub fn get(&self, key: K) -> Option<<<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>> {
+//         let entity = self
+//             .lookup
+//             .get(&key)
+//             .expect("Expected indexed entity, found None instead.");
+//         self.query.get(*entity).ok()
 //     }
 
 //     pub fn get_all_indexed(
@@ -134,21 +127,11 @@ where
     K: Component + Eq + Hash + Clone,
     D: 'static + QueryData,
 {
-    pub fn get_mut(&mut self, key: K) -> Result<<D as WorldQuery>::Item<'_>, IndexedLookupError> {
-        if let Some(entity) = self.lookup.get(&key) {
-            match self.query.get_mut(*entity) {
-                Ok(value) => Ok(value),
-                Err(QueryEntityError::NoSuchEntity(_)) => Err(IndexedLookupError::ValueNotFound),
-                Err(err) => panic!("Unexpected query error: {}", err),
-            }
-        } else {
-            Err(IndexedLookupError::KeyNotFound)
-        }
+    pub fn get_mut(&mut self, key: K) -> Option<<D as WorldQuery>::Item<'_>> {
+        let entity = self
+            .lookup
+            .get(&key)
+            .expect("Expected indexed entity, found None instead.");
+        self.query.get_mut(*entity).ok()
     }
-}
-
-#[derive(Debug)]
-pub enum IndexedLookupError {
-    KeyNotFound,
-    ValueNotFound,
 }

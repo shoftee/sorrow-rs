@@ -3,7 +3,7 @@ use std::{cell::LazyCell, sync::LazyLock};
 use leptos::prelude::*;
 use sorrow_core::{
     communication::{Intent, Notification},
-    state::{precision::Precision, resources::Kind, time::RunningState},
+    state::{calendar::SeasonKind, precision::Precision, resources::Kind, time::RunningState},
 };
 use sorrow_engine::Endpoint;
 use tracing::debug;
@@ -16,9 +16,16 @@ pub struct ResourceSignals {
     pub catnip: RwSignal<f64>,
 }
 
+pub struct CalendarSignals {
+    pub day: RwSignal<i16>,
+    pub season: RwSignal<SeasonKind>,
+    pub year: RwSignal<usize>,
+}
+
 pub struct StateSignals {
     pub options: OptionSignals,
     pub running_state: RwSignal<RunningState>,
+    pub calendar: CalendarSignals,
     pub resources: ResourceSignals,
 }
 
@@ -29,6 +36,11 @@ impl StateSignals {
                 precision: RwSignal::new(Precision::default()),
             },
             running_state: RwSignal::new(RunningState::default()),
+            calendar: CalendarSignals {
+                day: RwSignal::new(0),
+                season: RwSignal::new(SeasonKind::Spring),
+                year: RwSignal::new(0),
+            },
             resources: ResourceSignals {
                 catnip: RwSignal::new(0.0),
             },
@@ -47,11 +59,26 @@ impl StateManager {
         match notification {
             Initialized => debug!("World initialized."),
             StateChanged(state) => {
-                if let Some(running_state) = state.time.running_state {
-                    self.signals.running_state.set(running_state);
+                if let Some(time) = state.time {
+                    if let Some(running_state) = time.running_state {
+                        self.signals.running_state.set(running_state);
+                    }
                 }
-                if let Some(catnip) = state.resource.amounts.get_state(&Kind::Catnip) {
-                    self.signals.resources.catnip.set(*catnip);
+                if let Some(resources) = state.resources {
+                    if let Some(catnip) = resources.amounts.get_state(&Kind::Catnip) {
+                        self.signals.resources.catnip.set(*catnip);
+                    }
+                }
+                if let Some(calendar) = state.calendar {
+                    if let Some(day) = calendar.day {
+                        self.signals.calendar.day.set(day);
+                    }
+                    if let Some(season) = calendar.season {
+                        self.signals.calendar.season.set(season);
+                    }
+                    if let Some(year) = calendar.year {
+                        self.signals.calendar.year.set(year);
+                    }
                 }
             }
         }

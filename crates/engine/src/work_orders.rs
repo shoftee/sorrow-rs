@@ -1,6 +1,5 @@
 use bevy::{
-    app::{App, Plugin, Update},
-    log::error,
+    app::{App, FixedUpdate, Plugin},
     prelude::{Event, EventReader, IntoSystemConfigs},
 };
 
@@ -29,7 +28,7 @@ pub struct PendingWorkOrder(pub WorkOrderType);
 impl Plugin for WorkOrdersPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PendingWorkOrder>()
-            .add_systems(Update, process_work_orders.in_set(schedule::Main));
+            .add_systems(FixedUpdate, process_work_orders.in_set(schedule::Main));
     }
 }
 
@@ -41,14 +40,12 @@ fn process_work_orders(
 
     for work_order in pending_work_orders.read() {
         match work_order.0 {
-            WorkOrderType::GatherCatnip => match transactions.get_mut(StateKind::Catnip.into()) {
-                Ok((mut debit, _)) => {
-                    *debit += 1.0;
-                }
-                Err(err) => {
-                    error!("Couldn't get catnip data: {:?}", err);
-                }
-            },
+            WorkOrderType::GatherCatnip => {
+                let (mut debit, _) = transactions
+                    .get_mut(StateKind::Catnip.into())
+                    .expect("Catnip not found :(");
+                *debit += 1.0;
+            }
         }
     }
 }

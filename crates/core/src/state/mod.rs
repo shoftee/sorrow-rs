@@ -1,3 +1,4 @@
+pub mod calendar;
 pub mod options;
 pub mod precision;
 pub mod resources;
@@ -11,8 +12,9 @@ use strum::IntoEnumIterator;
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct PartialState {
-    pub time: time::PartialTimeState,
-    pub resource: resources::ResourceState,
+    pub time: Option<time::PartialTimeState>,
+    pub resources: Option<resources::ResourceState>,
+    pub calendar: Option<calendar::PartialCalendarState>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
