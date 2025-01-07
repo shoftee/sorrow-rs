@@ -1,4 +1,4 @@
-use gloo_worker::{Spawnable, WorkerBridge};
+use sorrow_worker::{Spawnable, WorkerBridge};
 
 use sorrow_core::communication::{Intent, Notification};
 

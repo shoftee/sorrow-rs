@@ -18,8 +18,8 @@ pub fn start() {
 }
 
 fn register() {
-    use gloo_worker::Registrable;
     use rpc::Rpc;
+    use sorrow_worker::Registrable;
 
     Rpc::registrar().register();
 }

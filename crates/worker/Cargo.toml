@@ -1,0 +1,26 @@
+[package]
+authors = ["Rust and WebAssembly Working Group", "shoftee <shoftee@gmail.com>"]
+description = "A fork of the gloo_worker in https://github.com/rustwasm/gloo because they didn't suit the needs of sorrow-rs."
+license = "MIT OR Apache-2.0"
+name = "sorrow-worker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bincode = "1"
+js-sys = "0.3"
+serde = { version = "1", features = ["derive"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = { version = "0.4" }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "Blob",
+    "BlobPropertyBag",
+    "DedicatedWorkerGlobalScope",
+    "MessageEvent",
+    "Url",
+    "Worker",
+    "WorkerOptions",
+]

@@ -14,11 +14,11 @@ path = "src/lib.rs"
 
 [dependencies]
 sorrow-core.workspace = true
+sorrow-worker.workspace = true
 wasm-bindgen.workspace = true
 tracing.workspace = true
 
 bevy = { version = "0.15", default-features = false }
-gloo-worker = "0.5"
 web-sys = { version = "0.3", default-features = false }
 strum = { version = "0.26" }
 fixed = { version = "1.28" }

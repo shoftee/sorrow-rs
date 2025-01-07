@@ -10,7 +10,6 @@ use bevy::{
         NonSendMut, Query, Ref, ResMut,
     },
 };
-use gloo_worker::{HandlerId, Worker, WorkerScope};
 use sorrow_core::{
     communication::{Intent, Notification, TimeControl},
     state::{
@@ -20,6 +19,7 @@ use sorrow_core::{
         PartialState,
     },
 };
+use sorrow_worker::{HandlerId, Worker, WorkerScope};
 
 use crate::{
     calendar::{Day, Season, Year},
