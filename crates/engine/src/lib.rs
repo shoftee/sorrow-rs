@@ -7,10 +7,7 @@ mod runner;
 mod simulation;
 mod work_orders;
 
-use bevy::{app::FixedUpdate, prelude::IntoSystemSetConfigs};
-use calendar::CalendarPlugin;
 pub use endpoint::Endpoint;
-use simulation::SimulationPlugin;
 
 pub fn start() {
     run_bevy();
@@ -25,14 +22,20 @@ fn register() {
 }
 
 fn run_bevy() {
+    use std::time::Duration;
+
+    use bevy::app::{App, FixedUpdate};
     use bevy::log::LogPlugin;
+    use bevy::prelude::IntoSystemSetConfigs;
+
+    use calendar::CalendarPlugin;
     use resources::ResourcesPlugin;
     use rpc::RpcPlugin;
     use runner::TimeoutRunnerPlugin;
-    use std::time::Duration;
+    use simulation::SimulationPlugin;
     use work_orders::WorkOrdersPlugin;
 
-    bevy::app::App::new()
+    App::new()
         .add_plugins(TimeoutRunnerPlugin::new(Duration::from_millis(20)))
         .add_plugins(LogPlugin::default())
         .add_plugins(SimulationPlugin)
