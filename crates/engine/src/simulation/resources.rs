@@ -105,13 +105,13 @@ fn resolve_deltas(mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<K
     for (delta, mut debit, mut credit) in resources.iter_mut() {
         let delta = delta.0;
         if delta.is_infinite() {
-            info!("Encountered infinite delta value.");
+            info!("Encountered infinite delta value");
             continue;
         }
         match delta.signum() {
             -1.0 => *credit += delta,
             1.0 => *debit += delta,
-            _ => panic!("Encountered NaN-valued delta value."),
+            _ => panic!("Encountered NaN-valued delta value"),
         };
     }
 }

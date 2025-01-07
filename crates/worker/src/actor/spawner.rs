@@ -25,7 +25,7 @@ fn window() -> web_sys::Window {
 fn create_worker(path: &str) -> DedicatedWorker {
     let js_shim_url = Url::new_with_base(
         path,
-        &window().location().href().expect("failed to read href."),
+        &window().location().href().expect("failed to read href"),
     )
     .expect("failed to create url for javascript entrypoint")
     .to_string();

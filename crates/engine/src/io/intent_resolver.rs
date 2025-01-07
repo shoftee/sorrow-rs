@@ -46,9 +46,6 @@ fn resolve_intents(
             Intent::TimeControl(time_control) => {
                 let mut time = PartialTimeState::default();
                 match time_control {
-                    TimeControl::SetAcceleration(a) => {
-                        time.acceleration = Some(*a);
-                    }
                     TimeControl::Pause => {
                         time.running_state = Some(RunningState::Paused);
                     }

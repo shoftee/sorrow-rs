@@ -11,7 +11,6 @@ pub enum Intent {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum TimeControl {
-    SetAcceleration(crate::state::time::Acceleration),
     Start,
     Pause,
 }

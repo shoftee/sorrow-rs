@@ -57,15 +57,13 @@ impl Plugin for TimeoutRunnerPlugin {
             let tick_app = {
                 let exit = exit.clone();
                 let closure = closure.clone();
-                move || {
-                    match tick(duration) {
-                        Ok(delay) => {
-                            set_timeout(closure.borrow().as_ref().unwrap(), delay.unwrap_or(asap));
-                        }
-                        Err(code) => {
-                            exit.replace(code);
-                        }
-                    };
+                move || match tick(duration) {
+                    Ok(delay) => {
+                        set_timeout(closure.borrow().as_ref().unwrap(), delay.unwrap_or(asap));
+                    }
+                    Err(code) => {
+                        exit.replace(code);
+                    }
                 }
             };
 
@@ -80,10 +78,10 @@ impl Plugin for TimeoutRunnerPlugin {
 fn set_timeout(callback: &Closure<dyn FnMut()>, duration: Duration) {
     js_sys::global()
         .dyn_into::<WorkerGlobalScope>()
-        .expect("Should return WorkerGlobalScope.")
+        .expect("can't find WorkerGlobalScope")
         .set_timeout_with_callback_and_timeout_and_arguments_0(
             callback.as_ref().unchecked_ref(),
             duration.as_millis() as i32,
         )
-        .expect("Should register `setTimeout`.");
+        .expect("can't register `setTimeout`");
 }

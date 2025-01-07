@@ -59,7 +59,7 @@ where
                 if let Ok(key) = data.get(entity) {
                     index.inner.insert(key.clone(), entity);
                 } else {
-                    bevy::log::warn!("Could not find entity to add to index.")
+                    bevy::log::warn!("Could not find entity to add to index")
                 }
             },
         )
@@ -69,7 +69,7 @@ where
                 if let Ok(key) = data.get(entity) {
                     index.inner.remove(key);
                 } else {
-                    bevy::log::warn!("Could not find entity to remove from index.")
+                    bevy::log::warn!("Could not find entity to remove from index")
                 }
             },
         );
@@ -95,7 +95,7 @@ where
 //         let entity = self
 //             .lookup
 //             .get(&key)
-//             .expect("Expected indexed entity, found None instead.");
+//             .expect("Expected indexed entity, found None instead");
 //         self.query.get(*entity).ok()
 //     }
 
@@ -131,7 +131,7 @@ where
         let entity = self
             .lookup
             .get(&key)
-            .expect("Expected indexed entity, found None instead.");
+            .expect("Expected indexed entity, found None instead");
         self.query.get_mut(*entity).ok()
     }
 }

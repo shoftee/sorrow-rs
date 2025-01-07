@@ -96,7 +96,7 @@ impl sorrow_worker::Worker for Worker {
     }
 
     fn update(&mut self, _: &WorkerScope<Self>, _: Self::Message) {
-        panic!("This worker does not support update().");
+        panic!("This worker does not support update()");
     }
 }
 
