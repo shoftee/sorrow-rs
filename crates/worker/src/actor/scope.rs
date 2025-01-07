@@ -49,9 +49,8 @@ where
 /// This struct holds a reference to a component and to a global scheduler.
 pub struct WorkerScope<W: Worker> {
     worker_state: Shared<WorkerState<W>>,
-    post_msg: Rc<dyn Fn(FromWorker<W>)>,
-
     external_state: W::ExternalState,
+    post_msg: Rc<dyn Fn(FromWorker<W>)>,
 }
 
 impl<W: Worker> fmt::Debug for WorkerScope<W> {

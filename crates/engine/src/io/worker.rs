@@ -1,44 +1,67 @@
-use std::sync::mpsc::{channel, Receiver, SendError, Sender, TryRecvError};
-
 use bevy::{
     app::{First, Last, Plugin},
     prelude::{EventWriter, Events, IntoSystemConfigs, NonSend, ResMut},
 };
-use sorrow_core::communication::{Intent, Notification};
-use sorrow_worker::{HandlerId, Registrable, WorkerScope};
+use sorrow_core::{
+    communication::{Intent, Notification},
+    utils::Shared,
+};
+use sorrow_worker::{HandlerId, Registrable, WorkerDestroyHandle, WorkerScope};
 use tracing::warn;
 
 use super::{InputEvent, OutputEvent};
 
-#[derive(Clone)]
 pub struct Dispatcher {
-    notification_channel: Sender<Notification>,
-    intent_channel: Sender<Intent>,
+    inputs: Vec<Intent>,
+    outputs: Vec<Notification>,
+    scope: Option<WorkerScope<Worker>>,
+    handler_id: Option<HandlerId>,
 }
 
 impl Dispatcher {
-    #[tracing::instrument(level = "trace", fields(notification), skip_all)]
-    pub fn respond(&self, notification: Notification) {
-        match self.notification_channel.send(notification) {
-            Ok(_) => {}
-            Err(error) => panic!("Could not send notification to UI: {error}"),
+    fn created(&mut self, scope: WorkerScope<Worker>) {
+        self.scope = Some(scope.clone());
+    }
+
+    fn connected(&mut self, id: HandlerId) {
+        self.handler_id = Some(id);
+    }
+
+    fn disconnected(&mut self) {
+        self.handler_id = None;
+    }
+
+    fn received(&mut self, msg: Intent) {
+        self.inputs.push(msg)
+    }
+
+    fn destroyed(&mut self) {
+        self.scope = None;
+    }
+
+    fn send_responses(&mut self) {
+        if let (Some(scope), Some(handler_id)) = (self.scope.clone(), self.handler_id) {
+            for output in self.outputs.drain(..) {
+                scope.respond(handler_id, output);
+            }
+        } else {
+            panic!("Could not send responses because there was no connection");
         }
     }
 }
 
 pub struct Worker {
     scope: WorkerScope<Worker>,
-    handler_id: Option<HandlerId>,
 }
 
 impl Worker {
-    fn dispatcher(&self) -> &Dispatcher {
+    fn dispatcher(&self) -> &Shared<Dispatcher> {
         self.scope.external_state()
     }
 }
 
 impl sorrow_worker::Worker for Worker {
-    type ExternalState = Dispatcher;
+    type ExternalState = Shared<Dispatcher>;
 
     type Message = ();
 
@@ -47,27 +70,29 @@ impl sorrow_worker::Worker for Worker {
     type Output = Notification;
 
     fn create(scope: &WorkerScope<Self>) -> Self {
+        scope.external_state().borrow_mut().created(scope.clone());
         Self {
             scope: scope.clone(),
-            handler_id: None,
         }
     }
 
     #[tracing::instrument(level = "trace", fields(id), skip_all)]
     fn connected(&mut self, _: &WorkerScope<Self>, id: HandlerId) {
-        self.handler_id = Some(id);
+        self.dispatcher().borrow_mut().connected(id);
     }
 
     #[tracing::instrument(level = "trace", fields(id), skip_all)]
     fn disconnected(&mut self, _: &WorkerScope<Self>, _: HandlerId) {
-        self.handler_id = None;
+        self.dispatcher().borrow_mut().disconnected();
     }
 
     #[tracing::instrument(level = "trace", fields(msg), skip_all)]
     fn received(&mut self, _: &WorkerScope<Self>, msg: Self::Input, _: HandlerId) {
-        if let Err(SendError(_)) = self.dispatcher().intent_channel.send(msg) {
-            warn!("Could not send intent to backend");
-        }
+        self.dispatcher().borrow_mut().received(msg);
+    }
+
+    fn destroy(&mut self, _: &WorkerScope<Self>, _: WorkerDestroyHandle<Self>) {
+        self.dispatcher().borrow_mut().destroyed();
     }
 
     fn update(&mut self, _: &WorkerScope<Self>, _: Self::Message) {
@@ -89,32 +114,26 @@ pub struct WorkerPlugin;
 
 impl Plugin for WorkerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        let (notification_sender, notification_receiver) = channel();
-        let (intent_sender, intent_receiver) = channel();
-        Worker::registrar().register_with(Dispatcher {
-            notification_channel: notification_sender.clone(),
-            intent_channel: intent_sender.clone(),
+        let dispatcher = Shared::new(Dispatcher {
+            inputs: Vec::<Intent>::new(),
+            outputs: Vec::<Notification>::new(),
+            handler_id: None,
+            scope: None,
         });
+        Worker::registrar().register_with(dispatcher.clone());
 
-        app.insert_non_send_resource(notification_receiver)
-            .insert_non_send_resource(intent_receiver)
+        app.insert_non_send_resource(dispatcher)
             .add_systems(First, receive_inputs.in_set(schedule::Inputs))
             .add_systems(Last, send_outputs.in_set(schedule::Outputs));
     }
 }
 
-fn receive_inputs(mut inputs: EventWriter<InputEvent>, intent_receiver: NonSend<Receiver<Intent>>) {
-    loop {
-        match intent_receiver.try_recv() {
-            Ok(item) => inputs.send(InputEvent(item)),
-            Err(TryRecvError::Empty) => break,
-            Err(e) => panic!("Could not receive further inputs: {e}"),
-        };
-    }
+fn receive_inputs(mut inputs: EventWriter<InputEvent>, dispatcher: NonSend<Shared<Dispatcher>>) {
+    inputs.send_batch(dispatcher.borrow_mut().inputs.drain(..).map(InputEvent));
 }
 
-fn send_outputs(mut outputs: ResMut<Events<OutputEvent>>, dispatcher: NonSend<Dispatcher>) {
-    for OutputEvent(response) in outputs.drain() {
-        dispatcher.respond(response);
-    }
+fn send_outputs(mut outputs: ResMut<Events<OutputEvent>>, dispatcher: NonSend<Shared<Dispatcher>>) {
+    let mut dispatcher = dispatcher.borrow_mut();
+    dispatcher.outputs.extend(outputs.drain().map(|e| e.0));
+    dispatcher.send_responses();
 }
