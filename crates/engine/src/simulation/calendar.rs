@@ -4,7 +4,7 @@ use bevy::{
 };
 use sorrow_core::state::calendar::SeasonKind;
 
-use crate::simulation::Ticker;
+use crate::simulation::ticker::Ticker;
 
 #[derive(Component)]
 struct DayTicker;

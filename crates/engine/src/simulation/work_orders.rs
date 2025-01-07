@@ -5,7 +5,7 @@ use bevy::{
 
 use crate::{
     index::IndexedQueryMut,
-    resources::{Credit, Debit, Kind},
+    simulation::resources::{Credit, Debit, Kind},
 };
 
 pub mod schedule {

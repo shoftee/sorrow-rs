@@ -7,7 +7,7 @@ use sorrow_core::{
     state::{calendar::PartialCalendarState, resources::ResourceState, PartialState},
 };
 
-use crate::{
+use crate::simulation::{
     calendar::{Day, Season, Year},
     resources::{Amount, Kind},
 };

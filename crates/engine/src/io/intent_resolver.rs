@@ -11,7 +11,7 @@ use sorrow_core::{
 };
 use tracing::warn;
 
-use crate::work_orders::PendingWorkOrder;
+use crate::simulation::work_orders::{PendingWorkOrder, WorkOrderType};
 
 use super::{InputEvent, OutputEvent};
 
@@ -41,9 +41,7 @@ fn resolve_intents(
                 outputs.send(OutputEvent(Notification::Initialized));
             }
             Intent::GatherCatnip => {
-                work_orders.send(PendingWorkOrder(
-                    crate::work_orders::WorkOrderType::GatherCatnip,
-                ));
+                work_orders.send(PendingWorkOrder(WorkOrderType::GatherCatnip));
             }
             Intent::TimeControl(time_control) => {
                 let mut time = PartialTimeState::default();

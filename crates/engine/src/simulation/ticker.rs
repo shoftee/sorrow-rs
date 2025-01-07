@@ -66,9 +66,9 @@ pub mod schedule {
     pub struct Main;
 }
 
-pub struct SimulationPlugin;
+pub struct TickerPlugin;
 
-impl Plugin for SimulationPlugin {
+impl Plugin for TickerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(TimePlugin)
             .insert_resource(Time::<Fixed>::from_hz(5.0))
