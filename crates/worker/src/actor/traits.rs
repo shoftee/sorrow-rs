@@ -6,6 +6,8 @@ use crate::traits::{Registrable, Spawnable};
 
 /// Declares the behaviour of a worker.
 pub trait Worker: Sized {
+    type ExternalState: Clone;
+
     /// Update message type.
     type Message;
     /// Incoming message type.

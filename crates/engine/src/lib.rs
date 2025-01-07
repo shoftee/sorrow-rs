@@ -1,8 +1,8 @@
 mod calendar;
 mod endpoint;
 mod index;
+mod io;
 mod resources;
-mod rpc;
 mod runner;
 mod simulation;
 mod work_orders;
@@ -10,17 +10,6 @@ mod work_orders;
 pub use endpoint::Endpoint;
 
 pub fn start() {
-    run_bevy();
-    register();
-}
-
-fn register() {
-    use sorrow_worker::Registrable;
-
-    rpc::Worker::registrar().register();
-}
-
-fn run_bevy() {
     use std::time::Duration;
 
     use bevy::app::{App, FixedUpdate};
@@ -28,8 +17,8 @@ fn run_bevy() {
     use bevy::prelude::IntoSystemSetConfigs;
 
     use calendar::CalendarPlugin;
+    use io::InputOutputPlugin;
     use resources::ResourcesPlugin;
-    use rpc::RpcPlugin;
     use runner::TimeoutRunnerPlugin;
     use simulation::SimulationPlugin;
     use work_orders::WorkOrdersPlugin;
@@ -41,7 +30,7 @@ fn run_bevy() {
         .add_plugins(CalendarPlugin)
         .add_plugins(WorkOrdersPlugin)
         .add_plugins(ResourcesPlugin)
-        .add_plugins(RpcPlugin)
+        .add_plugins(InputOutputPlugin)
         .configure_sets(
             FixedUpdate,
             (

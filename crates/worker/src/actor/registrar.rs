@@ -51,8 +51,19 @@ where
         CODEC: Codec,
         W::Input: Serialize + for<'de> Deserialize<'de>,
         W::Output: Serialize + for<'de> Deserialize<'de>,
+        W::ExternalState: Default,
     {
-        let scope = WorkerScope::<W>::new::<CODEC>();
+        self.register_with(Default::default());
+    }
+
+    /// Executes an worker in the current environment with the provided external state.
+    pub fn register_with(&self, external_state: W::ExternalState)
+    where
+        CODEC: Codec,
+        W::Input: Serialize + for<'de> Deserialize<'de>,
+        W::Output: Serialize + for<'de> Deserialize<'de>,
+    {
+        let scope = WorkerScope::<W>::new::<CODEC>(external_state);
         let upd = WorkerLifecycleEvent::Create(scope.clone());
         scope.send(upd);
         let handler = move |msg: ToWorker<W>| {

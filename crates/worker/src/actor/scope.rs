@@ -48,8 +48,10 @@ where
 
 /// This struct holds a reference to a component and to a global scheduler.
 pub struct WorkerScope<W: Worker> {
-    state: Shared<WorkerState<W>>,
+    worker_state: Shared<WorkerState<W>>,
     post_msg: Rc<dyn Fn(FromWorker<W>)>,
+
+    external_state: W::ExternalState,
 }
 
 impl<W: Worker> fmt::Debug for WorkerScope<W> {
@@ -61,7 +63,8 @@ impl<W: Worker> fmt::Debug for WorkerScope<W> {
 impl<W: Worker> Clone for WorkerScope<W> {
     fn clone(&self) -> Self {
         WorkerScope {
-            state: self.state.clone(),
+            worker_state: self.worker_state.clone(),
+            external_state: self.external_state.clone(),
             post_msg: self.post_msg.clone(),
         }
     }
@@ -72,7 +75,7 @@ where
     W: Worker + 'static,
 {
     /// Create worker scope
-    pub(crate) fn new<CODEC>() -> Self
+    pub(crate) fn new<CODEC>(external_state: W::ExternalState) -> Self
     where
         CODEC: Codec,
         W::Output: Serialize + for<'de> Deserialize<'de>,
@@ -81,16 +84,20 @@ where
             DedicatedWorker::worker_self().post_packed_message::<_, CODEC>(msg)
         };
 
-        let state = Rc::new(RefCell::new(WorkerState::new()));
         WorkerScope {
+            worker_state: Rc::new(RefCell::new(WorkerState::new())),
             post_msg: Rc::new(post_msg),
-            state,
+            external_state,
         }
+    }
+
+    pub fn external_state(&self) -> &W::ExternalState {
+        &self.external_state
     }
 
     /// Schedule message for sending to worker
     pub(crate) fn send(&self, event: WorkerLifecycleEvent<W>) {
-        let state = self.state.clone();
+        let state = self.worker_state.clone();
 
         // We can implement a custom scheduler,
         // but it's easier to borrow the one from wasm-bindgen-futures.

@@ -2,7 +2,7 @@ use sorrow_worker::{Spawnable, WorkerBridge};
 
 use sorrow_core::communication::{Intent, Notification};
 
-use super::rpc::Worker;
+use super::io::Worker;
 
 pub struct Endpoint(WorkerBridge<Worker>);
 
