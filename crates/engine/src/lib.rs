@@ -15,10 +15,9 @@ pub fn start() {
 }
 
 fn register() {
-    use rpc::Rpc;
     use sorrow_worker::Registrable;
 
-    Rpc::registrar().register();
+    rpc::Worker::registrar().register();
 }
 
 fn run_bevy() {

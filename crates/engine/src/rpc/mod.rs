@@ -1,7 +1,6 @@
-use std::sync::{
-    mpsc::{channel, Receiver, Sender},
-    LazyLock,
-};
+mod worker;
+
+pub use worker::Worker;
 
 use bevy::{
     app::{First, Last, Plugin},
@@ -19,133 +18,13 @@ use sorrow_core::{
         PartialState,
     },
 };
-use sorrow_worker::{HandlerId, Worker, WorkerScope};
+use worker::Dispatcher;
 
 use crate::{
     calendar::{Day, Season, Year},
     resources::{Amount, Kind},
     work_orders::PendingWorkOrder,
 };
-
-enum RemoteEvent {
-    Created(WorkerScope<Rpc>),
-    Connected(HandlerId),
-    Disconnected(HandlerId),
-    Received(Intent),
-}
-
-struct RemoteEventChannel {
-    sender: Sender<RemoteEvent>,
-    receiver: Receiver<RemoteEvent>,
-}
-
-static mut REMOTE_EVENT_CHANNEL: LazyLock<RemoteEventChannel> = LazyLock::new(|| {
-    let (sender, receiver) = channel::<RemoteEvent>();
-    RemoteEventChannel { sender, receiver }
-});
-
-pub struct Rpc {
-    sender: Sender<RemoteEvent>,
-}
-
-impl Rpc {
-    fn dispatch(&self, event: RemoteEvent) {
-        self.sender
-            .send(event)
-            .expect("Receiver has closed the channel.");
-    }
-}
-
-impl Worker for Rpc {
-    type Message = ();
-
-    type Input = Intent;
-
-    type Output = Notification;
-
-    fn create(scope: &WorkerScope<Self>) -> Self {
-        let sender = unsafe {
-            #[allow(static_mut_refs)]
-            REMOTE_EVENT_CHANNEL.sender.clone()
-        };
-
-        let rpc = Self { sender };
-        rpc.dispatch(RemoteEvent::Created(scope.clone()));
-        rpc
-    }
-
-    #[tracing::instrument(level = "trace", fields(id), skip_all)]
-    fn connected(&mut self, _: &WorkerScope<Self>, id: HandlerId) {
-        self.dispatch(RemoteEvent::Connected(id));
-    }
-
-    #[tracing::instrument(level = "trace", fields(id), skip_all)]
-    fn disconnected(&mut self, _: &WorkerScope<Self>, id: HandlerId) {
-        self.dispatch(RemoteEvent::Disconnected(id));
-    }
-
-    #[tracing::instrument(level = "trace", fields(msg), skip_all)]
-    fn received(&mut self, _: &WorkerScope<Self>, msg: Self::Input, _: HandlerId) {
-        self.dispatch(RemoteEvent::Received(msg));
-    }
-
-    fn update(&mut self, _: &WorkerScope<Self>, _: Self::Message) {
-        panic!("This worker does not support update().");
-    }
-}
-
-pub struct Dispatcher {
-    scope: Option<WorkerScope<Rpc>>,
-    handler_id: Option<HandlerId>,
-    inbox: Vec<Intent>,
-}
-
-impl Dispatcher {
-    fn new() -> Self {
-        Self {
-            scope: None,
-            handler_id: None,
-            inbox: Vec::new(),
-        }
-    }
-
-    fn receive_all(&mut self) {
-        unsafe {
-            #[allow(static_mut_refs)]
-            for event in REMOTE_EVENT_CHANNEL.receiver.try_iter() {
-                match event {
-                    RemoteEvent::Created(scope) => {
-                        debug_assert!(self.scope.is_none(), "Worker is already created");
-                        self.scope = Some(scope.clone());
-                    }
-                    RemoteEvent::Connected(id) => {
-                        debug_assert!(self.handler_id.is_none(), "Bridge is already connected");
-                        self.handler_id = Some(id);
-                    }
-                    RemoteEvent::Disconnected(id) => {
-                        debug_assert_eq!(
-                            self.handler_id.expect("Bridge was already disconnected."),
-                            id,
-                            "Disconnected bridge had an unexpected ID."
-                        );
-                        self.handler_id = None;
-                    }
-                    RemoteEvent::Received(intent) => {
-                        self.inbox.push(intent);
-                    }
-                }
-            }
-        };
-    }
-
-    #[tracing::instrument(level = "trace", fields(notification), skip_all)]
-    fn respond(&self, notification: Notification) {
-        match (&self.scope, self.handler_id) {
-            (Some(scope), Some(id)) => scope.respond(id, notification),
-            _ => panic!("Respond was called on an uninitialized dispatcher."),
-        }
-    }
-}
 
 #[derive(Event)]
 struct InputEvent(Intent);
@@ -167,7 +46,7 @@ pub struct RpcPlugin;
 
 impl Plugin for RpcPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_non_send_resource(Dispatcher::new())
+        app.insert_non_send_resource(worker::Dispatcher::new())
             .insert_non_send_resource(PartialState::default())
             .add_event::<InputEvent>()
             .add_event::<OutputEvent>()
@@ -191,7 +70,7 @@ fn receive_remote_events(mut dispatcher: NonSendMut<Dispatcher>) {
 }
 
 fn process_inbox(mut inputs: EventWriter<InputEvent>, mut dispatcher: NonSendMut<Dispatcher>) {
-    let events = dispatcher.inbox.drain(..).map(InputEvent);
+    let events = dispatcher.drain_inbox().map(InputEvent);
     inputs.send_batch(events);
 }
 
