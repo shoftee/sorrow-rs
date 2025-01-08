@@ -4,12 +4,19 @@
 
 @tailwind utilities;
 
-html, body {
+html,
+body {
   height: 100dvh;
 }
 
 body {
   @apply select-none;
+}
+
+@layer base {
+  a {
+    @apply text-blue-500 underline hover:no-underline;
+  }
 }
 
 @layer utilities {
@@ -20,9 +27,10 @@ body {
   .grid-top-nav-layout {
     @apply grid;
 
-    grid-template: "navigation navigation navigation " auto
-                   "resources  controls   environment" minmax(0, 1fr)
-                   / 3.5fr 5fr 3.5fr;
+    grid-template:
+      "navigation navigation navigation " auto
+      "resources  controls   environment" minmax(0, 1fr)
+      / 3.5fr 5fr 3.5fr;
   }
 
   .navigation-area {
