@@ -107,14 +107,12 @@ pub trait Roundable {
 
 impl Roundable for f64 {
     fn round_with_precision(self, precision: Precision) -> f64 {
-        let precision: usize = precision.into();
-        let scale = precision.pow(10) as f64;
+        let scale = 10i32.pow(precision.into()) as f64;
         (self * scale * (1f64 + f64::EPSILON)).round() / scale
     }
 
     fn trunc_with_precision(self, precision: Precision) -> f64 {
-        let precision: usize = precision.into();
-        let scale = precision.pow(10) as f64;
+        let scale = 10i32.pow(precision.into()) as f64;
         (self * scale * (1f64 + f64::EPSILON)).trunc() / scale
     }
 }
