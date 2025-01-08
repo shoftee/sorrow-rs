@@ -12,6 +12,6 @@ publish.workspace = true
 serde.workspace = true
 
 time = { version = "0.3", features = ["wasm-bindgen"] }
-partially = { version = "0.2", features = ["derive"] }
+serde_with = { version = "3.12", features = ["macros"] }
 strum = { version = "0.26", features = ["derive"] }
 ahash = "0.8"
