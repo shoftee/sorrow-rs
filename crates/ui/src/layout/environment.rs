@@ -51,7 +51,7 @@ fn Calendar() -> impl IntoView {
     });
 
     view! {
-        <div>"Day "{day}", "{season}", "{year}</div>
+        <div>"Year "{year}" – "{season}", day "{day}</div>
     }
 }
 
