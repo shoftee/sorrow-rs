@@ -1,12 +1,12 @@
-use std::{cell::LazyCell, sync::LazyLock};
+use std::rc::Rc;
 
 use leptos::prelude::*;
+use send_wrapper::SendWrapper;
 use sorrow_core::{
     communication::{Intent, Notification},
     state::{calendar::SeasonKind, precision::Precision, resources::Kind, time::RunningState},
 };
 use sorrow_engine::Endpoint;
-use tracing::debug;
 
 pub struct OptionSignals {
     pub precision: RwSignal<Precision>,
@@ -46,38 +46,32 @@ impl StateSignals {
             },
         }
     }
-}
 
-struct StateManager {
-    signals: StateSignals,
-}
-
-impl StateManager {
     fn accept(&self, notification: Notification) {
         use Notification::*;
 
         match notification {
-            Initialized => debug!("World initialized."),
+            Initialized => tracing::debug!("World initialized."),
             StateChanged(state) => {
                 if let Some(time) = state.time {
                     if let Some(running_state) = time.running_state {
-                        self.signals.running_state.set(running_state);
+                        self.running_state.set(running_state);
                     }
                 }
                 if let Some(resources) = state.resources {
                     if let Some(catnip) = resources.amounts.get_state(&Kind::Catnip) {
-                        self.signals.resources.catnip.set(*catnip);
+                        self.resources.catnip.set(*catnip);
                     }
                 }
                 if let Some(calendar) = state.calendar {
                     if let Some(day) = calendar.day {
-                        self.signals.calendar.day.set(day);
+                        self.calendar.day.set(day);
                     }
                     if let Some(season) = calendar.season {
-                        self.signals.calendar.season.set(season);
+                        self.calendar.season.set(season);
                     }
                     if let Some(year) = calendar.year {
-                        self.signals.calendar.year.set(year);
+                        self.calendar.year.set(year);
                     }
                 }
             }
@@ -85,30 +79,33 @@ impl StateManager {
     }
 }
 
-static STATE_MANAGER: LazyLock<StateManager> = LazyLock::new(|| StateManager {
-    signals: StateSignals::new(),
-});
-
-static mut ENDPOINT: LazyCell<Endpoint> = LazyCell::new(|| {
-    Endpoint::new(
-        move |notification| STATE_MANAGER.accept(notification),
-        "./engine.js",
-    )
-});
-
 pub fn provide_state_signals_context() {
-    provide_context(&STATE_MANAGER.signals);
-    send_command(Intent::Load);
+    let signals = Rc::new(StateSignals::new());
+    provide_context(SendWrapper::new(signals.clone()));
 }
 
-pub fn send_command(command: Intent) {
-    #[allow(static_mut_refs)]
-    // SAFETY: This is the UI part of a WASM app, we only have one thread.
-    unsafe {
-        ENDPOINT.send(command);
-    }
+pub fn provide_endpoint_context() {
+    let signals = use_state_signals();
+    let endpoint = Rc::new(Endpoint::new(
+        move |notification| signals.accept(notification),
+        "./engine.js",
+    ));
+    let endpoint_wrapped = SendWrapper::new(endpoint.clone());
+    provide_context(endpoint_wrapped);
+
+    endpoint.send(Intent::Load);
 }
 
-pub fn use_state_signals<'a>() -> &'a StateSignals {
-    use_context().expect("state signals not provided in context")
+pub fn use_endpoint() -> SendWrapper<Rc<Endpoint>> {
+    use_context::<SendWrapper<Rc<Endpoint>>>().expect("endpoint not provided in context")
+}
+
+pub fn use_state_signals() -> SendWrapper<Rc<StateSignals>> {
+    use_context::<SendWrapper<Rc<StateSignals>>>().expect("state signals not provided in context")
+}
+
+pub fn with_state_signal<S>(
+    with: impl Fn(SendWrapper<Rc<StateSignals>>) -> RwSignal<S>,
+) -> RwSignal<S> {
+    with(use_state_signals())
 }

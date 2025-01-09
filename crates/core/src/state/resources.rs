@@ -1,10 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::state_key;
-
 use super::StateTable;
 
-state_key! {
+crate::state_key! {
     pub enum Kind {
         Catnip,
     }

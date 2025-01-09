@@ -2,15 +2,12 @@ use leptos::prelude::*;
 
 use crate::conditional::*;
 use crate::number_view::*;
-
-use crate::state::use_state_signals;
+use crate::state;
 
 #[component]
 pub fn ResourcesContainer() -> impl IntoView {
-    let state_signals = use_state_signals();
-
-    let catnip = Signal::derive(move || state_signals.resources.catnip.get());
-    let has_resources = Signal::derive(move || catnip.get() > 0.0);
+    let catnip_amount = state::with_state_signal(|s| s.resources.catnip).read_only();
+    let has_resources = Signal::derive(move || catnip_amount.get() > 0.0);
 
     let expanded_rw = RwSignal::new(true);
 
@@ -23,7 +20,7 @@ pub fn ResourcesContainer() -> impl IntoView {
                             <ResourceExpander expanded=expanded_rw />
                             <Conditional>
                                 <Main slot condition=expanded_rw>
-                                    <li class="list-group-item small">"catnip " <DecimalView value=catnip /></li>
+                                    <li class="list-group-item small">"catnip " <DecimalView value=catnip_amount /></li>
                                 </Main>
                             </Conditional>
                         </ul>

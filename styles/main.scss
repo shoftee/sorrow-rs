@@ -164,10 +164,6 @@ button,
   border-radius: 0.25rem;
 }
 
-.number {
-  font-family: var(--bs-font-monospace);
-}
-
 .resources-list {
   .expander {
     @include flex-row();

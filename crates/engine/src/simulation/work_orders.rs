@@ -2,6 +2,8 @@ use bevy::{
     app::{App, FixedUpdate, Plugin},
     prelude::{Event, EventReader, IntoSystemConfigs},
 };
+use sorrow_core::state::buildings;
+use tracing::warn;
 
 use crate::{
     index::IndexedQueryMut,
@@ -20,6 +22,7 @@ pub struct WorkOrdersPlugin;
 
 pub enum WorkOrderType {
     GatherCatnip,
+    Build(buildings::Kind),
 }
 
 #[derive(Event)]
@@ -38,13 +41,16 @@ fn process_work_orders(
 ) {
     use sorrow_core::state::resources::Kind as StateKind;
 
-    for work_order in pending_work_orders.read() {
-        match work_order.0 {
+    for item in pending_work_orders.read() {
+        match item.0 {
             WorkOrderType::GatherCatnip => {
                 let (mut debit, _) = transactions
                     .get_mut(StateKind::Catnip.into())
                     .expect("Catnip not found :(");
                 *debit += 1.0;
+            }
+            WorkOrderType::Build(kind) => {
+                warn!("Don't know how to build {kind:?}");
             }
         }
     }

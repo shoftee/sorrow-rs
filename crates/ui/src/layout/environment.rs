@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use sorrow_core::{communication::*, state::time::RunningState};
 
-use crate::state::{send_command, use_state_signals};
+use crate::{components::Button, state};
 
 #[component]
 pub fn EnvironmentContainer() -> impl IntoView {
@@ -9,11 +9,9 @@ pub fn EnvironmentContainer() -> impl IntoView {
         <section class="environment-area unscroll-y flex flex-col gap-2">
             <Calendar />
             <div>"You are a kitten in a catnip forest."</div>
-            <div class="flex flex-col">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-outline-secondary">"Clear log"</button>
-                    <PawseButton />
-                </div>
+            <div class="btn-group">
+                <ClearLog />
+                <PawseButton />
             </div>
             <div class="overflow-y-hidden flex-grow flex flex-col text-sm fade-down-to-transparent space-y-4">
                 <EpochSection />
@@ -23,26 +21,14 @@ pub fn EnvironmentContainer() -> impl IntoView {
 }
 
 #[component]
-fn EpochSection() -> impl IntoView {
-    view! {
-        <div class="epoch-section">
-            <div class="epoch-title">"Epoch Title"</div>
-            <div class="epoch-event">"Epoch Event"</div>
-        </div>
-    }
-}
-
-#[component]
 fn Calendar() -> impl IntoView {
-    let state = use_state_signals();
-
-    let day = Memo::new(move |_| state.calendar.day.get());
-    let year = Memo::new(move |_| state.calendar.year.get());
+    let day = Memo::new(move |_| state::with_state_signal(|s| s.calendar.day).get());
+    let year = Memo::new(move |_| state::with_state_signal(|s| s.calendar.year).get());
 
     let season = Memo::new(move |_| {
         use sorrow_core::state::calendar::SeasonKind::*;
 
-        match state.calendar.season.get() {
+        match state::with_state_signal(|s| s.calendar.season).get() {
             Spring => "Spring",
             Summer => "Summer",
             Autumn => "Autumn",
@@ -56,22 +42,38 @@ fn Calendar() -> impl IntoView {
 }
 
 #[component]
+fn ClearLog() -> impl IntoView {
+    view! {
+        <button type="button" class="btn btn-outline-secondary">"Clear log"</button>
+    }
+}
+
+#[component]
 fn PawseButton() -> impl IntoView {
-    let state = use_state_signals();
+    let running_state = state::with_state_signal(|s| s.running_state);
+    let pawsed = Memo::new(move |_| matches!(running_state.get(), RunningState::Paused));
 
-    let pawsed = Memo::new(move |_| matches!(state.running_state.get(), RunningState::Paused));
-
-    let toggle = move |_| {
-        send_command(if pawsed.get() {
+    let new_intent = Signal::derive(move || {
+        if pawsed.get() {
             Intent::TimeControl(TimeControl::Start)
         } else {
             Intent::TimeControl(TimeControl::Pause)
-        });
-    };
+        }
+    });
 
     view! {
-        <button type="button" class="btn btn-outline-secondary" class:active=pawsed on:click=toggle>{
+        <Button class:active=pawsed intent=new_intent>{
             move || if pawsed.get() { "Unpawse" } else { "Pawse" }
-        }</button>
+        }</Button>
+    }
+}
+
+#[component]
+fn EpochSection() -> impl IntoView {
+    view! {
+        <div class="epoch-section">
+            <div class="epoch-title">"Epoch Title"</div>
+            <div class="epoch-event">"Epoch Event"</div>
+        </div>
     }
 }

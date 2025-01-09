@@ -16,6 +16,7 @@ path = "src/lib.rs"
 sorrow-core.workspace = true
 sorrow-worker.workspace = true
 wasm-bindgen.workspace = true
+send_wrapper.workspace = true
 tracing.workspace = true
 
 bevy = { version = "0.15", default-features = false }

@@ -20,6 +20,18 @@ body {
 }
 
 @layer utilities {
+  .btn {
+    @apply py-1.5 px-3;
+  }
+
+  .controls .btn {
+    @apply w-full;
+  }
+
+  .number {
+    @apply font-mono;
+  }
+
   .unscroll-y {
     @apply h-full overflow-y-auto;
   }

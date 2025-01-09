@@ -7,7 +7,7 @@ use leptos::{
 
 use crate::{
     formatter::{Formatter, ShowSign},
-    state::use_state_signals,
+    state::{self},
 };
 
 fn number<I: IntoView>(inner: I) -> HtmlElement<Span, (Class<&'static str>,), (I,)> {
@@ -29,9 +29,9 @@ pub fn IntegerView(
 #[component]
 pub fn DecimalView(
     #[prop(optional)] show_sign: ShowSign,
-    #[prop(into)] value: Signal<f64>,
+    #[prop(into)] value: ReadSignal<f64>,
 ) -> impl IntoView {
-    let signals = use_state_signals();
+    let precision = state::with_state_signal(|s| s.options.precision);
 
-    number(move || Formatter::format(value.get(), show_sign, signals.options.precision.get()))
+    number(move || Formatter::format(value.get(), show_sign, precision.get()))
 }

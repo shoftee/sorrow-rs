@@ -18,6 +18,7 @@ sorrow-engine.workspace = true
 tracing.workspace = true
 
 leptos.workspace = true
+send_wrapper.workspace = true
 wasm-bindgen.workspace = true
 
 leptos_meta = "0.7"

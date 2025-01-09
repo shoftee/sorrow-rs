@@ -3,6 +3,7 @@ pub mod options;
 pub mod precision;
 pub mod resources;
 pub mod time;
+pub mod buildings;
 
 use std::{collections::HashMap, hash::Hash};
 

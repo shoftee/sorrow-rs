@@ -43,6 +43,9 @@ fn resolve_intents(
             Intent::GatherCatnip => {
                 work_orders.send(PendingWorkOrder(WorkOrderType::GatherCatnip));
             }
+            Intent::Build(kind) => {
+                work_orders.send(PendingWorkOrder(WorkOrderType::Build(*kind)));
+            }
             Intent::TimeControl(time_control) => {
                 let mut time = PartialTimeState::default();
                 match time_control {
