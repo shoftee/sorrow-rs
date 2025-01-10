@@ -9,7 +9,7 @@ pub fn EnvironmentContainer() -> impl IntoView {
         <section class="environment-area unscroll-y flex flex-col gap-2">
             <Calendar />
             <div>"You are a kitten in a catnip forest."</div>
-            <div class="btn-group">
+            <div class="flex flex-row gap-2 *:flex-auto">
                 <ClearLog />
                 <PawseButton />
             </div>
@@ -44,7 +44,7 @@ fn Calendar() -> impl IntoView {
 #[component]
 fn ClearLog() -> impl IntoView {
     view! {
-        <button type="button" class="btn btn-outline-secondary">"Clear log"</button>
+        <button type="button" class="btn">"Clear log"</button>
     }
 }
 
