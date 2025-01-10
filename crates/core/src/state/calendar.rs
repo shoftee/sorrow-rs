@@ -9,7 +9,6 @@ pub enum SeasonKind {
 }
 
 #[derive(Serialize, Deserialize, Default, Debug)]
-#[serde_with::skip_serializing_none]
 pub struct PartialCalendarState {
     pub day: Option<i16>,
     pub season: Option<SeasonKind>,

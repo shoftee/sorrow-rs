@@ -8,11 +8,9 @@ pub mod buildings;
 use std::{collections::HashMap, hash::Hash};
 
 use serde::{Deserialize, Serialize};
-use serde_with::skip_serializing_none;
 use strum::IntoEnumIterator;
 
 #[derive(Serialize, Deserialize, Default, Debug)]
-#[skip_serializing_none]
 pub struct PartialState {
     pub time: Option<time::PartialTimeState>,
     pub resources: Option<resources::ResourceState>,

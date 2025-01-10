@@ -8,7 +8,6 @@ pub enum RunningState {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-#[serde_with::skip_serializing_none]
 pub struct PartialTimeState {
     pub running_state: Option<RunningState>,
 }
