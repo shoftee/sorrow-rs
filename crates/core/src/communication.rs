@@ -19,5 +19,5 @@ pub enum TimeControl {
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Notification {
     Initialized,
-    StateChanged(crate::state::PartialState),
+    StateChanged(Box<crate::state::PartialState>),
 }

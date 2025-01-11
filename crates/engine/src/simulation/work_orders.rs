@@ -3,12 +3,13 @@ use bevy::{
     prelude::{Event, EventReader, IntoSystemConfigs},
 };
 use sorrow_core::state::buildings;
-use tracing::warn;
 
 use crate::{
     index::IndexedQueryMut,
-    simulation::resources::{Credit, Debit, Kind},
+    simulation::resources::{Credit, Debit},
 };
+
+use super::buildings::Level;
 
 pub mod schedule {
     use bevy::prelude::SystemSet;
@@ -37,21 +38,24 @@ impl Plugin for WorkOrdersPlugin {
 
 fn process_work_orders(
     mut pending_work_orders: EventReader<PendingWorkOrder>,
-    mut transactions: IndexedQueryMut<Kind, (&mut Debit, &mut Credit)>,
+    mut resource_tx: IndexedQueryMut<super::resources::Kind, (&mut Debit, &mut Credit)>,
+    mut buildings: IndexedQueryMut<super::buildings::Kind, &mut Level>,
 ) {
-    use sorrow_core::state::resources::Kind as StateKind;
+    use sorrow_core::state::buildings::Kind as BuildingKind;
+    use sorrow_core::state::resources::Kind as ResourceKind;
 
     for item in pending_work_orders.read() {
         match item.0 {
             WorkOrderType::GatherCatnip => {
-                let (mut debit, _) = transactions
-                    .get_mut(StateKind::Catnip.into())
-                    .expect("Catnip not found :(");
+                let (mut debit, _) = resource_tx.get_mut(ResourceKind::Catnip.into()).unwrap();
                 *debit += 1.0;
             }
-            WorkOrderType::Build(kind) => {
-                warn!("Don't know how to build {kind:?}");
-            }
+            WorkOrderType::Build(kind) => match kind {
+                BuildingKind::CatnipField => {
+                    let mut level = buildings.get_mut(BuildingKind::CatnipField.into()).unwrap();
+                    *level += 1;
+                }
+            },
         }
     }
 }

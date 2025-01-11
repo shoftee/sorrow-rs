@@ -1,3 +1,4 @@
+pub mod buildings;
 pub mod calendar;
 pub mod resources;
 pub mod ticker;
@@ -8,6 +9,7 @@ use bevy::{
     prelude::IntoSystemSetConfigs,
 };
 
+use buildings::BuildingsPlugin;
 use calendar::CalendarPlugin;
 use resources::ResourcesPlugin;
 use ticker::TickerPlugin;
@@ -21,6 +23,7 @@ impl Plugin for SimulationPlugin {
             .add_plugins(CalendarPlugin)
             .add_plugins(WorkOrdersPlugin)
             .add_plugins(ResourcesPlugin)
+            .add_plugins(BuildingsPlugin)
             .configure_sets(
                 FixedUpdate,
                 (

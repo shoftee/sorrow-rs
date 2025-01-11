@@ -3,11 +3,9 @@ use tracing_wasm::WASMLayerConfig;
 mod events;
 mod formatter;
 mod layout;
-mod number_view;
 mod state;
 
 mod components;
-mod conditional;
 
 pub fn start() {
     tracing_wasm::set_as_global_default_with_config(WASMLayerConfig::default());
@@ -23,7 +21,7 @@ fn mount() {
     mount_to_body(|| {
         provide_meta_context();
         self::events::provide_keyboard_events_context();
-        self::state::provide_state_signals_context();
+        self::state::provide_global_store();
         self::state::provide_endpoint_context();
 
         view! {

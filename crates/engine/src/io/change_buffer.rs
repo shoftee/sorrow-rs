@@ -4,12 +4,16 @@ use bevy::{
 };
 use sorrow_core::{
     communication::Notification,
-    state::{calendar::PartialCalendarState, resources::ResourceState, PartialState},
+    state::{
+        buildings::BuildingState, calendar::PartialCalendarState, resources::ResourceState,
+        PartialState,
+    },
 };
 
 use crate::simulation::{
+    buildings::{self, Level},
     calendar::{Day, Season, Year},
-    resources::{Amount, Kind},
+    resources::{self, Amount},
 };
 
 use super::OutputEvent;
@@ -32,7 +36,8 @@ impl Plugin for ChangeBufferPlugin {
 
 fn detect_changes(
     mut state: NonSendMut<PartialState>,
-    resources: Query<(&Kind, Ref<Amount>)>,
+    resources: Query<(&resources::Kind, Ref<Amount>)>,
+    buildings: Query<(&buildings::Kind, Ref<Level>)>,
     calendar: Query<(Ref<Day>, Ref<Season>, Ref<Year>)>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
@@ -49,6 +54,22 @@ fn detect_changes(
 
         if has_resource_changes {
             state.resources = Some(resource_state);
+        }
+    }
+
+    {
+        let mut has_building_changes = false;
+        let mut building_state = BuildingState::default();
+        for (kind, level) in buildings.iter() {
+            if level.is_changed() {
+                let level_state = building_state.levels.get_state_mut(&kind.0);
+                *level_state = Some((*level).into());
+                has_building_changes = true;
+            }
+        }
+
+        if has_building_changes {
+            state.buildings = Some(building_state);
         }
     }
 
@@ -80,6 +101,6 @@ fn detect_changes(
 
     if state.is_changed() {
         let changed = std::mem::take(state.as_mut());
-        outputs.send(OutputEvent(Notification::StateChanged(changed)));
+        outputs.send(OutputEvent(Notification::StateChanged(Box::new(changed))));
     }
 }

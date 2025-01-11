@@ -1,3 +1,6 @@
+pub mod conditional;
+pub mod numbers;
+
 use leptos::prelude::*;
 use leptos::{component, IntoView};
 use sorrow_core::communication::Intent;

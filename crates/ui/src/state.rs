@@ -1,93 +1,114 @@
 use std::rc::Rc;
 
 use leptos::prelude::*;
+use reactive_stores::Store;
 use send_wrapper::SendWrapper;
+use sorrow_core::state as core_state;
 use sorrow_core::{
     communication::{Intent, Notification},
-    state::{calendar::SeasonKind, precision::Precision, resources::Kind, time::RunningState},
+    state::{calendar::SeasonKind, precision::Precision, time::RunningState},
 };
 use sorrow_engine::Endpoint;
 
-pub struct OptionSignals {
-    pub precision: RwSignal<Precision>,
+#[derive(Store)]
+pub struct Preferences {
+    pub precision: Precision,
 }
 
-pub struct ResourceSignals {
-    pub catnip: RwSignal<f64>,
+#[derive(Store)]
+pub struct Resources {
+    pub catnip: f64,
 }
 
-pub struct CalendarSignals {
-    pub day: RwSignal<i16>,
-    pub season: RwSignal<SeasonKind>,
-    pub year: RwSignal<usize>,
+#[derive(Store)]
+pub struct Buildings {
+    pub catnip_fields: u32,
 }
 
-pub struct StateSignals {
-    pub options: OptionSignals,
-    pub running_state: RwSignal<RunningState>,
-    pub calendar: CalendarSignals,
-    pub resources: ResourceSignals,
+#[derive(Store)]
+pub struct Calendar {
+    pub day: i16,
+    pub season: SeasonKind,
+    pub year: usize,
 }
 
-impl StateSignals {
+#[derive(Store)]
+pub struct GlobalStore {
+    pub preferences: Preferences,
+    pub running_state: RunningState,
+    pub calendar: Calendar,
+    pub buildings: Buildings,
+    pub resources: Resources,
+}
+
+impl GlobalStore {
     fn new() -> Self {
         Self {
-            options: OptionSignals {
-                precision: RwSignal::new(Precision::default()),
+            preferences: Preferences {
+                precision: Precision::default(),
             },
-            running_state: RwSignal::new(RunningState::default()),
-            calendar: CalendarSignals {
-                day: RwSignal::new(0),
-                season: RwSignal::new(SeasonKind::Spring),
-                year: RwSignal::new(0),
+            running_state: RunningState::default(),
+            buildings: Buildings { catnip_fields: 0 },
+            calendar: Calendar {
+                day: 0,
+                season: SeasonKind::Spring,
+                year: 0,
             },
-            resources: ResourceSignals {
-                catnip: RwSignal::new(0.0),
-            },
+            resources: Resources { catnip: 0.0 },
         }
     }
+}
 
-    fn accept(&self, notification: Notification) {
-        use Notification::*;
+fn accept(store: Store<GlobalStore>, notification: Notification) {
+    use Notification::*;
 
-        match notification {
-            Initialized => tracing::debug!("World initialized."),
-            StateChanged(state) => {
-                if let Some(time) = state.time {
-                    if let Some(running_state) = time.running_state {
-                        self.running_state.set(running_state);
-                    }
+    match notification {
+        Initialized => tracing::debug!("World initialized."),
+        StateChanged(state) => {
+            if let Some(time) = state.time {
+                if let Some(running_state) = time.running_state {
+                    store.running_state().set(running_state);
                 }
-                if let Some(resources) = state.resources {
-                    if let Some(catnip) = resources.amounts.get_state(&Kind::Catnip) {
-                        self.resources.catnip.set(*catnip);
-                    }
+            }
+            if let Some(buildings) = state.buildings {
+                if let Some(catnip_fields) = buildings
+                    .levels
+                    .get_state(&core_state::buildings::Kind::CatnipField)
+                {
+                    store.buildings().catnip_fields().set(*catnip_fields);
                 }
-                if let Some(calendar) = state.calendar {
-                    if let Some(day) = calendar.day {
-                        self.calendar.day.set(day);
-                    }
-                    if let Some(season) = calendar.season {
-                        self.calendar.season.set(season);
-                    }
-                    if let Some(year) = calendar.year {
-                        self.calendar.year.set(year);
-                    }
+            }
+            if let Some(resources) = state.resources {
+                if let Some(catnip) = resources
+                    .amounts
+                    .get_state(&core_state::resources::Kind::Catnip)
+                {
+                    store.resources().catnip().set(*catnip);
+                }
+            }
+            if let Some(calendar) = state.calendar {
+                if let Some(day) = calendar.day {
+                    store.calendar().day().set(day);
+                }
+                if let Some(season) = calendar.season {
+                    store.calendar().season().set(season);
+                }
+                if let Some(year) = calendar.year {
+                    store.calendar().year().set(year);
                 }
             }
         }
     }
 }
 
-pub fn provide_state_signals_context() {
-    let signals = Rc::new(StateSignals::new());
-    provide_context(SendWrapper::new(signals.clone()));
+pub fn provide_global_store() {
+    provide_context(Store::new(GlobalStore::new()));
 }
 
 pub fn provide_endpoint_context() {
-    let signals = use_state_signals();
+    let global_store = use_global_store();
     let endpoint = Rc::new(Endpoint::new(
-        move |notification| signals.accept(notification),
+        move |notification| accept(global_store, notification),
         "./engine.js",
     ));
     let endpoint_wrapped = SendWrapper::new(endpoint.clone());
@@ -97,15 +118,9 @@ pub fn provide_endpoint_context() {
 }
 
 pub fn use_endpoint() -> SendWrapper<Rc<Endpoint>> {
-    use_context::<SendWrapper<Rc<Endpoint>>>().expect("endpoint not provided in context")
+    expect_context::<SendWrapper<Rc<Endpoint>>>()
 }
 
-pub fn use_state_signals() -> SendWrapper<Rc<StateSignals>> {
-    use_context::<SendWrapper<Rc<StateSignals>>>().expect("state signals not provided in context")
-}
-
-pub fn with_state_signal<S>(
-    with: impl Fn(SendWrapper<Rc<StateSignals>>) -> RwSignal<S>,
-) -> RwSignal<S> {
-    with(use_state_signals())
+pub fn use_global_store() -> Store<GlobalStore> {
+    expect_context::<Store<GlobalStore>>()
 }

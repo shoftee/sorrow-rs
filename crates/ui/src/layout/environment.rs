@@ -1,7 +1,10 @@
 use leptos::prelude::*;
 use sorrow_core::{communication::*, state::time::RunningState};
 
-use crate::{components::Button, state};
+use crate::{
+    components::Button,
+    state::{use_global_store, CalendarStoreFields, GlobalStoreStoreFields},
+};
 
 #[component]
 pub fn EnvironmentContainer() -> impl IntoView {
@@ -22,19 +25,20 @@ pub fn EnvironmentContainer() -> impl IntoView {
 
 #[component]
 fn Calendar() -> impl IntoView {
-    let day = Memo::new(move |_| state::with_state_signal(|s| s.calendar.day).get());
-    let year = Memo::new(move |_| state::with_state_signal(|s| s.calendar.year).get());
+    let store = use_global_store().calendar();
 
+    let day = Memo::new(move |_| store.day().get());
     let season = Memo::new(move |_| {
         use sorrow_core::state::calendar::SeasonKind::*;
 
-        match state::with_state_signal(|s| s.calendar.season).get() {
+        match store.season().get() {
             Spring => "Spring",
             Summer => "Summer",
             Autumn => "Autumn",
             Winter => "Winter",
         }
     });
+    let year = Memo::new(move |_| store.year().get());
 
     view! {
         <div>"Year "{year}" – "{season}", day "{day}</div>
@@ -50,7 +54,8 @@ fn ClearLog() -> impl IntoView {
 
 #[component]
 fn PawseButton() -> impl IntoView {
-    let running_state = state::with_state_signal(|s| s.running_state);
+    let store = use_global_store();
+    let running_state = Memo::new(move |_| store.running_state().get());
     let pawsed = Memo::new(move |_| matches!(running_state.get(), RunningState::Paused));
 
     let new_intent = Signal::derive(move || {

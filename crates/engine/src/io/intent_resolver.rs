@@ -56,10 +56,12 @@ fn resolve_intents(
                         time.running_state = Some(RunningState::Running);
                     }
                 };
-                outputs.send(OutputEvent(Notification::StateChanged(PartialState {
-                    time: Some(time),
-                    ..Default::default()
-                })));
+                outputs.send(OutputEvent(Notification::StateChanged(Box::new(
+                    PartialState {
+                        time: Some(time),
+                        ..Default::default()
+                    },
+                ))));
             }
             unknown => {
                 warn!("Received unknown intent: {unknown:?}")

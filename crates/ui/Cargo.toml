@@ -23,3 +23,4 @@ wasm-bindgen.workspace = true
 
 leptos_meta = "0.7"
 tracing-wasm = "0.2"
+reactive_stores = "0.1"

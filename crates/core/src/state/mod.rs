@@ -1,9 +1,9 @@
+pub mod buildings;
 pub mod calendar;
 pub mod options;
 pub mod precision;
 pub mod resources;
 pub mod time;
-pub mod buildings;
 
 use std::{collections::HashMap, hash::Hash};
 
@@ -14,6 +14,7 @@ use strum::IntoEnumIterator;
 pub struct PartialState {
     pub time: Option<time::PartialTimeState>,
     pub resources: Option<resources::ResourceState>,
+    pub buildings: Option<buildings::BuildingState>,
     pub calendar: Option<calendar::PartialCalendarState>,
 }
 
