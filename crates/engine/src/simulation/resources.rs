@@ -80,11 +80,13 @@ impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(LookupIndexPlugin::<Kind>::new())
             .add_systems(Startup, spawn_resources)
-            .add_systems(FixedUpdate, clear_transactions.in_set(schedule::Prepare))
             .add_systems(
                 FixedUpdate,
-                (resolve_deltas, resolve_transactions).in_set(schedule::Resolve),
-            );
+                (clear_transactions, add_deltas_as_transactions)
+                    .chain()
+                    .in_set(schedule::Prepare),
+            )
+            .add_systems(FixedUpdate, commit_transactions.in_set(schedule::Resolve));
     }
 }
 
@@ -101,7 +103,7 @@ fn clear_transactions(mut transactions: Query<(&mut Debit, &mut Credit), With<Ki
     }
 }
 
-fn resolve_deltas(mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<Kind>>) {
+fn add_deltas_as_transactions(mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<Kind>>) {
     for (delta, mut debit, mut credit) in resources.iter_mut() {
         let delta = delta.0;
         if delta.is_infinite() {
@@ -116,7 +118,7 @@ fn resolve_deltas(mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<K
     }
 }
 
-fn resolve_transactions(
+fn commit_transactions(
     mut resources: Query<(&mut Amount, &Debit, &Credit, Option<&Capacity>), With<Kind>>,
 ) {
     for (mut amount, debit, credit, capacity) in resources.iter_mut() {
