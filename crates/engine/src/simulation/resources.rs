@@ -4,10 +4,10 @@ use bevy::{
     app::{Plugin, Startup},
     prelude::*,
 };
-use sorrow_core::state::resources::Kind as StateKind;
 use strum::IntoEnumIterator;
 
-use crate::index::LookupIndexPlugin;
+use super::buildings;
+use crate::index::{IndexedQuery, LookupIndexPlugin};
 
 pub mod schedule {
     use bevy::prelude::SystemSet;
@@ -22,10 +22,10 @@ pub mod schedule {
 pub struct ResourcesPlugin;
 
 #[derive(Component, Clone, Copy, Hash, PartialEq, Eq, Debug)]
-pub struct Kind(pub StateKind);
+pub struct Kind(pub sorrow_core::state::resources::Kind);
 
-impl From<StateKind> for Kind {
-    fn from(value: StateKind) -> Self {
+impl From<sorrow_core::state::resources::Kind> for Kind {
+    fn from(value: sorrow_core::state::resources::Kind) -> Self {
         Self(value)
     }
 }
@@ -82,7 +82,11 @@ impl Plugin for ResourcesPlugin {
             .add_systems(Startup, spawn_resources)
             .add_systems(
                 FixedUpdate,
-                (clear_transactions, add_deltas_as_transactions)
+                (
+                    clear_transactions,
+                    recalculate_deltas,
+                    add_deltas_as_transactions,
+                )
                     .chain()
                     .in_set(schedule::Prepare),
             )
@@ -91,7 +95,7 @@ impl Plugin for ResourcesPlugin {
 }
 
 fn spawn_resources(mut cmd: Commands) {
-    for kind in <StateKind as IntoEnumIterator>::iter() {
+    for kind in <sorrow_core::state::resources::Kind as IntoEnumIterator>::iter() {
         cmd.spawn((Kind(kind), Amount(0.0), Delta(0.0)));
     }
 }
@@ -100,6 +104,22 @@ fn clear_transactions(mut transactions: Query<(&mut Debit, &mut Credit), With<Ki
     for (mut debit, mut credit) in transactions.iter_mut() {
         debit.0 = 0.0;
         credit.0 = 0.0;
+    }
+}
+
+fn recalculate_deltas(
+    mut resources: Query<(&Kind, &mut Delta)>,
+    buildings: IndexedQuery<buildings::Kind, &buildings::Level>,
+) {
+    for (kind, mut delta) in resources.iter_mut() {
+        match kind.0 {
+            sorrow_core::state::resources::Kind::Catnip => {
+                let catnip_fields =
+                    buildings.item(sorrow_core::state::buildings::Kind::CatnipField.into());
+                let level: u32 = (*catnip_fields).into();
+                delta.0 = 0.125 * level as f64;
+            }
+        };
     }
 }
 

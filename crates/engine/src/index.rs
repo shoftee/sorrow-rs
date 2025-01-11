@@ -91,7 +91,6 @@ where
     K: Component + Eq + Hash + Clone,
     D: 'static + QueryData,
 {
-    #[expect(dead_code)]
     pub fn item(&self, key: K) -> <<D as QueryData>::ReadOnly as WorldQuery>::Item<'_> {
         self.get_item(key).unwrap()
     }
