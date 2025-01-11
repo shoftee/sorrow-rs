@@ -5,7 +5,10 @@ pub mod precision;
 pub mod resources;
 pub mod time;
 
-use std::{collections::HashMap, hash::Hash};
+use std::{
+    collections::{hash_map::Iter, HashMap},
+    hash::Hash,
+};
 
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
@@ -38,6 +41,30 @@ where
     pub fn get_state_mut(&mut self, key: &K) -> &mut Option<V> {
         self.0.get_mut(key).unwrap()
     }
+
+    pub fn iter(&self) -> StateTableIter<K, V> {
+        StateTableIter {
+            inner: self.0.iter(),
+        }
+    }
+}
+
+pub struct StateTableIter<'a, K, V>
+where
+    K: Eq + Hash + IntoEnumIterator,
+{
+    inner: Iter<'a, K, Option<V>>,
+}
+
+impl<'a, K, V> Iterator for StateTableIter<'a, K, V>
+where
+    K: Eq + Hash + IntoEnumIterator,
+{
+    type Item = (&'a K, &'a Option<V>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
 }
 
 impl<K, V> Default for StateTable<K, V>
@@ -64,5 +91,11 @@ macro_rules! state_key {
             ::strum::EnumIter,
         )]
         $vis enum $ident $tt
+
+        impl $ident {
+            $vis fn iter() -> <$ident as ::strum::IntoEnumIterator>::Iterator {
+                <$ident as ::strum::IntoEnumIterator>::iter()
+            }
+        }
     };
 }

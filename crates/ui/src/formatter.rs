@@ -95,7 +95,6 @@ impl Formatter {
 pub enum ShowSign {
     #[default]
     NegativeOnly,
-    #[expect(dead_code)]
     Always,
 }
 

@@ -52,11 +52,17 @@ impl SubAssign<f64> for Amount {
     }
 }
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Debug)]
 pub struct Capacity(f64);
 
-#[derive(Component, Debug, Default)]
-pub struct Delta(pub f64);
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Delta(f64);
+
+impl From<Delta> for f64 {
+    fn from(value: Delta) -> Self {
+        value.0
+    }
+}
 
 #[derive(Component, Debug, Default)]
 pub struct Debit(f64);
@@ -82,15 +88,12 @@ impl Plugin for ResourcesPlugin {
             .add_systems(Startup, spawn_resources)
             .add_systems(
                 FixedUpdate,
-                (
-                    clear_transactions,
-                    recalculate_deltas,
-                    add_deltas_as_transactions,
-                )
+                (clear_transactions, add_deltas_as_transactions)
                     .chain()
                     .in_set(schedule::Prepare),
             )
-            .add_systems(FixedUpdate, commit_transactions.in_set(schedule::Resolve));
+            .add_systems(FixedUpdate, commit_transactions.in_set(schedule::Resolve))
+            .add_systems(FixedPostUpdate, recalculate_deltas);
     }
 }
 

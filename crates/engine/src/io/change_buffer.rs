@@ -13,7 +13,7 @@ use sorrow_core::{
 use crate::simulation::{
     buildings::{self, Level},
     calendar::{Day, Season, Year},
-    resources::{self, Amount},
+    resources::{self, Amount, Delta},
 };
 
 use super::OutputEvent;
@@ -36,7 +36,7 @@ impl Plugin for ChangeBufferPlugin {
 
 fn detect_changes(
     mut state: NonSendMut<PartialState>,
-    resources: Query<(&resources::Kind, Ref<Amount>)>,
+    resources: Query<(&resources::Kind, Ref<Amount>, Ref<Delta>)>,
     buildings: Query<(&buildings::Kind, Ref<Level>)>,
     calendar: Query<(Ref<Day>, Ref<Season>, Ref<Year>)>,
     mut outputs: EventWriter<OutputEvent>,
@@ -44,10 +44,15 @@ fn detect_changes(
     {
         let mut has_resource_changes = false;
         let mut resource_state = ResourceState::default();
-        for (kind, amount) in resources.iter() {
+        for (kind, amount, delta) in resources.iter() {
             if amount.is_changed() {
                 let amount_state = resource_state.amounts.get_state_mut(&kind.0);
                 *amount_state = Some((*amount).into());
+                has_resource_changes = true;
+            }
+            if delta.is_changed() {
+                let delta_state = resource_state.deltas.get_state_mut(&kind.0);
+                *delta_state = Some((*delta).into());
                 has_resource_changes = true;
             }
         }

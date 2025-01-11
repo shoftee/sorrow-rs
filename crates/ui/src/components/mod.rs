@@ -5,7 +5,7 @@ use leptos::prelude::*;
 use leptos::{component, IntoView};
 use sorrow_core::communication::Intent;
 
-use crate::state::use_endpoint;
+use crate::endpoint::use_endpoint;
 
 #[component]
 pub fn Button(#[prop(into)] intent: Signal<Intent>, children: ChildrenFn) -> impl IntoView {

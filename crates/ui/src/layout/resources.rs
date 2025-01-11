@@ -1,12 +1,27 @@
 use leptos::prelude::*;
+use reactive_stores::Store;
+use sorrow_core::state::resources::Kind;
 
 use crate::components::{conditional::*, numbers::DecimalView};
-use crate::state::{use_global_store, GlobalStoreStoreFields, ResourcesStoreFields};
+use crate::formatter::ShowSign;
+use crate::state::{use_global_store, GlobalStoreStoreFields, ResourceStoreFields};
 
 #[component]
 pub fn ResourcesContainer() -> impl IntoView {
-    let catnip_amount = Memo::new(move |_| use_global_store().resources().catnip().get());
-    let has_resources = Memo::new(move |_| catnip_amount.get() > 0.0);
+    let resources = Signal::derive(|| {
+        use_global_store()
+            .resources()
+            .read()
+            .iter()
+            .map(|(_, v)| *v)
+            .collect::<Vec<_>>()
+    });
+    let has_resources = Memo::new(move |_| {
+        resources
+            .get()
+            .iter()
+            .any(|resource| resource.amount().get() > 0.0)
+    });
 
     let expanded_rw = RwSignal::new(true);
 
@@ -19,10 +34,9 @@ pub fn ResourcesContainer() -> impl IntoView {
                             <ResourceExpander expanded=expanded_rw />
                             <Conditional>
                                 <Main slot condition=expanded_rw>
-                                    <li class="list-group-item small">
-                                        "catnip "
-                                        <DecimalView value=catnip_amount />
-                                    </li>
+                                    <For each={move || resources.get()} key=|item| item.kind().get() let:child>
+                                        <ResourceItem item=child />
+                                    </For>
                                 </Main>
                             </Conditional>
                         </ul>
@@ -37,8 +51,28 @@ pub fn ResourcesContainer() -> impl IntoView {
 }
 
 #[component]
+fn ResourceItem(#[prop(into)] item: Store<crate::state::Resource>) -> impl IntoView {
+    let label = match item.kind().get() {
+        Kind::Catnip => "catnip",
+    };
+
+    let amount = Memo::new(move |_| item.amount().get());
+    let delta = Memo::new(move |_| item.delta().get());
+
+    view! {
+        <li class="list-group-item small">
+            {label}
+            " "
+            <DecimalView value=amount />
+            " "
+            <DecimalView value=delta show_sign=ShowSign::Always />
+        </li>
+    }
+}
+
+#[component]
 fn ResourceExpander(expanded: RwSignal<bool>) -> impl IntoView {
-    let collapsed = Signal::derive(move || !expanded.get());
+    let collapsed = Memo::new(move |_| !expanded.get());
 
     view! {
         <button

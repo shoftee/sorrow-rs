@@ -15,10 +15,11 @@ path = "src/lib.rs"
 [dependencies]
 sorrow-core.workspace = true
 sorrow-engine.workspace = true
-tracing.workspace = true
 
+ahash.workspace = true
 leptos.workspace = true
 send_wrapper.workspace = true
+tracing.workspace = true
 wasm-bindgen.workspace = true
 
 leptos_meta = "0.7"

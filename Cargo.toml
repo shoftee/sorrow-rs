@@ -22,6 +22,7 @@ sorrow-engine = { path = "crates/engine" }
 sorrow-ui = { path = "crates/ui" }
 sorrow-worker = { path = "crates/worker" }
 
+ahash = "0.8"
 console_error_panic_hook = "0.1"
 leptos = { version = "0.7", features = ["csr", "tracing"] }
 send_wrapper = "0.6"
