@@ -47,12 +47,12 @@ fn process_work_orders(
     for item in pending_work_orders.read() {
         match item.0 {
             WorkOrderType::GatherCatnip => {
-                let (mut debit, _) = resource_tx.get_mut(ResourceKind::Catnip.into()).unwrap();
+                let (mut debit, _) = resource_tx.item_mut(ResourceKind::Catnip.into());
                 *debit += 1.0;
             }
             WorkOrderType::Build(kind) => match kind {
                 BuildingKind::CatnipField => {
-                    let mut level = buildings.get_mut(BuildingKind::CatnipField.into()).unwrap();
+                    let mut level = buildings.item_mut(BuildingKind::CatnipField.into());
                     *level += 1;
                 }
             },

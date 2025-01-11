@@ -76,41 +76,47 @@ where
     }
 }
 
-// #[derive(SystemParam)]
-// pub struct IndexedQuery<'w, 's, K, D>
-// where
-//     K: Component + Eq + Hash + Clone,
-//     D: 'static + QueryData,
-// {
-//     lookup: Res<'w, LookupIndex<K>>,
-//     query: Query<'w, 's, D, With<K>>,
-// }
+#[derive(SystemParam)]
+pub struct IndexedQuery<'w, 's, K, D>
+where
+    K: Component + Eq + Hash + Clone,
+    D: 'static + QueryData,
+{
+    lookup: Res<'w, LookupIndex<K>>,
+    query: Query<'w, 's, D, With<K>>,
+}
 
-// impl<K, D> IndexedQuery<'_, '_, K, D>
-// where
-//     K: Component + Eq + Hash + Clone,
-//     D: 'static + QueryData,
-// {
-//     pub fn get(&self, key: K) -> Option<<<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>> {
-//         let entity = self
-//             .lookup
-//             .get(&key)
-//             .expect("Expected indexed entity, found None instead");
-//         self.query.get(*entity).ok()
-//     }
+impl<K, D> IndexedQuery<'_, '_, K, D>
+where
+    K: Component + Eq + Hash + Clone,
+    D: 'static + QueryData,
+{
+    #[expect(dead_code)]
+    pub fn item(&self, key: K) -> <<D as QueryData>::ReadOnly as WorldQuery>::Item<'_> {
+        self.get_item(key).unwrap()
+    }
 
-//     pub fn get_all_indexed(
-//         &self,
-//     ) -> impl Iterator<Item = <<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>> {
-//         self.lookup
-//             .inner
-//             .values()
-//             .filter_map(|v| match self.query.get(*v) {
-//                 Ok(value) => Some(value),
-//                 _ => None,
-//             })
-//     }
-// }
+    pub fn get_item(&self, key: K) -> Option<<<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>> {
+        let entity = self
+            .lookup
+            .get(&key)
+            .expect("Expected indexed entity, found None instead");
+        self.query.get(*entity).ok()
+    }
+
+    #[expect(dead_code)]
+    pub fn get_all_indexed(
+        &self,
+    ) -> impl Iterator<Item = <<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>> {
+        self.lookup
+            .inner
+            .values()
+            .filter_map(|v| match self.query.get(*v) {
+                Ok(value) => Some(value),
+                _ => None,
+            })
+    }
+}
 
 #[derive(SystemParam)]
 pub struct IndexedQueryMut<'w, 's, K, D>
@@ -127,7 +133,11 @@ where
     K: Component + Eq + Hash + Clone,
     D: 'static + QueryData,
 {
-    pub fn get_mut(&mut self, key: K) -> Option<<D as WorldQuery>::Item<'_>> {
+    pub fn item_mut(&mut self, key: K) -> <D as WorldQuery>::Item<'_> {
+        self.get_item_mut(key).unwrap()
+    }
+
+    pub fn get_item_mut(&mut self, key: K) -> Option<<D as WorldQuery>::Item<'_>> {
         let entity = self
             .lookup
             .get(&key)
