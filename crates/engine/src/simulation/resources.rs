@@ -134,15 +134,13 @@ fn calculate(current: f64, debit: f64, credit: f64, capacity: Option<f64>) -> Op
     // subtract losses first
     new_amount -= credit;
 
-    {
-        let capacity = capacity.unwrap_or(f64::MAX);
-        if new_amount < capacity {
-            // new resources are gained only when under capacity
-            new_amount += debit;
+    let capacity = capacity.unwrap_or(f64::MAX);
+    if new_amount < capacity {
+        // new resources are gained only when under capacity
+        new_amount += debit;
 
-            // but they only go up to capacity at most
-            new_amount = f64::min(new_amount, capacity);
-        }
+        // but they only go up to capacity at most
+        new_amount = f64::min(new_amount, capacity);
     }
 
     // negative resource amount is non-sense (for now...)
