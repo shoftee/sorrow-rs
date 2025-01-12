@@ -13,14 +13,6 @@ use std::{
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 
-#[derive(Serialize, Deserialize, Default, Debug)]
-pub struct PartialState {
-    pub time: Option<time::PartialTimeState>,
-    pub resources: Option<resources::ResourceState>,
-    pub buildings: Option<buildings::BuildingState>,
-    pub calendar: Option<calendar::PartialCalendarState>,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StateTable<K, V>(HashMap<K, Option<V>, ahash::RandomState>)
 where

@@ -9,7 +9,7 @@ pub struct Endpoint(WorkerBridge<Worker>);
 impl Endpoint {
     pub fn new<F>(cb: F, path: &str) -> Self
     where
-        F: 'static + Fn(Notification),
+        F: 'static + Fn(Vec<Notification>),
     {
         Self(Worker::spawner().callback(cb).spawn(path))
     }

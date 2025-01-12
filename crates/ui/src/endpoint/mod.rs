@@ -27,18 +27,24 @@ pub fn use_endpoint() -> SendWrapper<Rc<Endpoint>> {
     expect_context::<SendWrapper<Rc<Endpoint>>>()
 }
 
-fn accept(store: Store<GlobalStore>, notification: Notification) {
+fn accept(store: Store<GlobalStore>, notifications: Vec<Notification>) {
     use Notification::*;
 
-    match notification {
-        Initialized => tracing::debug!("World initialized."),
-        StateChanged(state) => {
-            if let Some(time) = state.time {
-                if let Some(running_state) = time.running_state {
-                    store.running_state().set(running_state);
+    for notification in notifications {
+        match notification {
+            Initialized => tracing::debug!("World initialized."),
+            CalendarChanged(calendar) => {
+                if let Some(day) = calendar.day {
+                    store.calendar().day().set(day);
+                }
+                if let Some(season) = calendar.season {
+                    store.calendar().season().set(season);
+                }
+                if let Some(year) = calendar.year {
+                    store.calendar().year().set(year);
                 }
             }
-            if let Some(buildings) = state.buildings {
+            BuildingsChanged(buildings) => {
                 if let Some(catnip_fields) = buildings
                     .levels
                     .get_state(&sorrow_core::state::buildings::Kind::CatnipField)
@@ -46,7 +52,7 @@ fn accept(store: Store<GlobalStore>, notification: Notification) {
                     store.buildings().catnip_fields().set(*catnip_fields);
                 }
             }
-            if let Some(resources) = state.resources {
+            ResourcesChanged(resources) => {
                 for (kind, amount) in resources.amounts.iter() {
                     if let Some(amount) = amount {
                         store
@@ -66,15 +72,9 @@ fn accept(store: Store<GlobalStore>, notification: Notification) {
                     }
                 }
             }
-            if let Some(calendar) = state.calendar {
-                if let Some(day) = calendar.day {
-                    store.calendar().day().set(day);
-                }
-                if let Some(season) = calendar.season {
-                    store.calendar().season().set(season);
-                }
-                if let Some(year) = calendar.year {
-                    store.calendar().year().set(year);
+            TimeChanged(time) => {
+                if let Some(running_state) = time.running_state {
+                    store.running_state().set(running_state);
                 }
             }
         }

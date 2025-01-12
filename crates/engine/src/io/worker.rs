@@ -41,9 +41,7 @@ impl Dispatcher {
 
     fn send_responses(&mut self) {
         if let (Some(scope), Some(handler_id)) = (self.scope.clone(), self.handler_id) {
-            for output in self.outputs.drain(..) {
-                scope.respond(handler_id, output);
-            }
+            scope.respond(handler_id, self.outputs.drain(..).collect());
         } else {
             panic!("Could not send responses because there was no connection");
         }
@@ -67,7 +65,7 @@ impl sorrow_worker::Worker for Worker {
 
     type Input = Intent;
 
-    type Output = Notification;
+    type Output = Vec<Notification>;
 
     fn create(scope: &WorkerScope<Self>) -> Self {
         scope.external_state().borrow_mut().created(scope.clone());

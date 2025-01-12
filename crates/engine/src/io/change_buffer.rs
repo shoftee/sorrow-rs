@@ -1,13 +1,10 @@
 use bevy::{
     app::{Last, Plugin},
-    prelude::{DetectChanges, EventWriter, IntoSystemConfigs, NonSendMut, Query, Ref},
+    prelude::{DetectChanges, EventWriter, IntoSystemConfigs, Query, Ref},
 };
 use sorrow_core::{
     communication::Notification,
-    state::{
-        buildings::BuildingState, calendar::PartialCalendarState, resources::ResourceState,
-        PartialState,
-    },
+    state::{buildings::BuildingState, calendar::PartialCalendarState, resources::ResourceState},
 };
 
 use crate::simulation::{
@@ -29,55 +26,66 @@ pub struct ChangeBufferPlugin;
 
 impl Plugin for ChangeBufferPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_non_send_resource(PartialState::default())
-            .add_systems(Last, detect_changes.in_set(schedule::Main));
+        app.add_systems(
+            Last,
+            (
+                detect_resource_changes,
+                detect_building_changes,
+                detect_calendar_changes,
+            )
+                .chain()
+                .in_set(schedule::Main),
+        );
     }
 }
 
-fn detect_changes(
-    mut state: NonSendMut<PartialState>,
+fn detect_resource_changes(
     resources: Query<(&resources::Kind, Ref<Amount>, Ref<Delta>)>,
+    mut outputs: EventWriter<OutputEvent>,
+) {
+    let mut has_resource_changes = false;
+    let mut resource_state = ResourceState::default();
+    for (kind, amount, delta) in resources.iter() {
+        if amount.is_changed() {
+            let amount_state = resource_state.amounts.get_state_mut(&kind.0);
+            *amount_state = Some((*amount).into());
+            has_resource_changes = true;
+        }
+        if delta.is_changed() {
+            let delta_state = resource_state.deltas.get_state_mut(&kind.0);
+            *delta_state = Some((*delta).into());
+            has_resource_changes = true;
+        }
+    }
+
+    if has_resource_changes {
+        outputs.send(OutputEvent(Notification::ResourcesChanged(resource_state)));
+    }
+}
+
+fn detect_building_changes(
     buildings: Query<(&buildings::Kind, Ref<Level>)>,
+    mut outputs: EventWriter<OutputEvent>,
+) {
+    let mut has_building_changes = false;
+    let mut building_state = BuildingState::default();
+    for (kind, level) in buildings.iter() {
+        if level.is_changed() {
+            let level_state = building_state.levels.get_state_mut(&kind.0);
+            *level_state = Some((*level).into());
+            has_building_changes = true;
+        }
+    }
+
+    if has_building_changes {
+        outputs.send(OutputEvent(Notification::BuildingsChanged(building_state)));
+    }
+}
+
+fn detect_calendar_changes(
     calendar: Query<(Ref<Day>, Ref<Season>, Ref<Year>)>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
-    {
-        let mut has_resource_changes = false;
-        let mut resource_state = ResourceState::default();
-        for (kind, amount, delta) in resources.iter() {
-            if amount.is_changed() {
-                let amount_state = resource_state.amounts.get_state_mut(&kind.0);
-                *amount_state = Some((*amount).into());
-                has_resource_changes = true;
-            }
-            if delta.is_changed() {
-                let delta_state = resource_state.deltas.get_state_mut(&kind.0);
-                *delta_state = Some((*delta).into());
-                has_resource_changes = true;
-            }
-        }
-
-        if has_resource_changes {
-            state.resources = Some(resource_state);
-        }
-    }
-
-    {
-        let mut has_building_changes = false;
-        let mut building_state = BuildingState::default();
-        for (kind, level) in buildings.iter() {
-            if level.is_changed() {
-                let level_state = building_state.levels.get_state_mut(&kind.0);
-                *level_state = Some((*level).into());
-                has_building_changes = true;
-            }
-        }
-
-        if has_building_changes {
-            state.buildings = Some(building_state);
-        }
-    }
-
     if let Ok(calendar) = calendar.get_single() {
         let mut has_calendar_changes = false;
         let mut calendar_state = PartialCalendarState::default();
@@ -100,12 +108,7 @@ fn detect_changes(
         }
 
         if has_calendar_changes {
-            state.calendar = Some(calendar_state);
+            outputs.send(OutputEvent(Notification::CalendarChanged(calendar_state)));
         }
-    }
-
-    if state.is_changed() {
-        let changed = std::mem::take(state.as_mut());
-        outputs.send(OutputEvent(Notification::StateChanged(Box::new(changed))));
     }
 }

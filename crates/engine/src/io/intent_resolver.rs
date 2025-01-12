@@ -4,10 +4,7 @@ use bevy::{
 };
 use sorrow_core::{
     communication::{Intent, Notification, TimeControl},
-    state::{
-        time::{PartialTimeState, RunningState},
-        PartialState,
-    },
+    state::time::{PartialTimeState, RunningState},
 };
 use tracing::warn;
 
@@ -47,21 +44,18 @@ fn resolve_intents(
                 work_orders.send(PendingWorkOrder(WorkOrderType::Build(*kind)));
             }
             Intent::TimeControl(time_control) => {
-                let mut time = PartialTimeState::default();
                 match time_control {
                     TimeControl::Pause => {
-                        time.running_state = Some(RunningState::Paused);
+                        outputs.send(OutputEvent(Notification::TimeChanged(PartialTimeState {
+                            running_state: Some(RunningState::Paused),
+                        })));
                     }
                     TimeControl::Start => {
-                        time.running_state = Some(RunningState::Running);
+                        outputs.send(OutputEvent(Notification::TimeChanged(PartialTimeState {
+                            running_state: Some(RunningState::Running),
+                        })));
                     }
                 };
-                outputs.send(OutputEvent(Notification::StateChanged(Box::new(
-                    PartialState {
-                        time: Some(time),
-                        ..Default::default()
-                    },
-                ))));
             }
             unknown => {
                 warn!("Received unknown intent: {unknown:?}")
