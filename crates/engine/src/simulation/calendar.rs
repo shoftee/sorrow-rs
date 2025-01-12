@@ -1,10 +1,16 @@
 use bevy::{
     app::{App, FixedUpdate, Plugin, Startup},
-    prelude::{Commands, Component, IntoSystemConfigs, Single, With},
+    prelude::*,
 };
-use sorrow_core::state::calendar::SeasonKind;
+use sorrow_core::{
+    communication::Notification,
+    state::calendar::{PartialCalendarState, SeasonKind},
+};
 
-use crate::simulation::ticker::Ticker;
+use crate::{
+    io::{BufferChanges, OutputEvent},
+    simulation::ticker::Ticker,
+};
 
 #[derive(Component)]
 struct DayTicker;
@@ -33,7 +39,8 @@ pub struct CalendarPlugin;
 impl Plugin for CalendarPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn)
-            .add_systems(FixedUpdate, advance_calendar.in_set(schedule::Main));
+            .add_systems(FixedUpdate, advance_calendar.in_set(schedule::Main))
+            .add_systems(BufferChanges, detect_calendar_changes);
     }
 }
 
@@ -77,5 +84,36 @@ fn advance_calendar(
     if is_new_year {
         let year = &mut calendar.2;
         year.0 += 1;
+    }
+}
+
+fn detect_calendar_changes(
+    calendar: Query<(Ref<Day>, Ref<Season>, Ref<Year>)>,
+    mut outputs: EventWriter<OutputEvent>,
+) {
+    if let Ok(calendar) = calendar.get_single() {
+        let mut has_calendar_changes = false;
+        let mut calendar_state = PartialCalendarState::default();
+        let day = &calendar.0;
+        if day.is_changed() {
+            calendar_state.day = Some(day.0);
+            has_calendar_changes = true;
+        }
+
+        let season = &calendar.1;
+        if season.is_changed() {
+            calendar_state.season = Some(season.0);
+            has_calendar_changes = true;
+        }
+
+        let year = &calendar.2;
+        if year.is_changed() {
+            calendar_state.year = Some(year.0);
+            has_calendar_changes = true;
+        }
+
+        if has_calendar_changes {
+            outputs.send(OutputEvent(Notification::CalendarChanged(calendar_state)));
+        }
     }
 }

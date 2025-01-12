@@ -4,10 +4,13 @@ use bevy::{
     app::{Plugin, Startup},
     prelude::*,
 };
-use strum::IntoEnumIterator;
+use sorrow_core::communication::Notification;
 
 use super::buildings;
-use crate::index::{IndexedQuery, LookupIndexPlugin};
+use crate::{
+    index::{IndexedQuery, LookupIndexPlugin},
+    io::{BufferChanges, OutputEvent},
+};
 
 pub mod schedule {
     use bevy::prelude::SystemSet;
@@ -102,12 +105,13 @@ impl Plugin for ResourcesPlugin {
             .add_systems(
                 FixedPostUpdate,
                 recalculate_deltas.in_set(schedule::Recalculate),
-            );
+            )
+            .add_systems(BufferChanges, detect_resource_changes);
     }
 }
 
 fn spawn_resources(mut cmd: Commands) {
-    for kind in <sorrow_core::state::resources::Kind as IntoEnumIterator>::iter() {
+    for kind in sorrow_core::state::resources::Kind::iter() {
         cmd.spawn((Kind(kind), Amount(0.0), Delta(0.0)));
     }
 }
@@ -185,5 +189,29 @@ fn recalculate_deltas(
                 delta.0 = 0.125 * level as f64;
             }
         };
+    }
+}
+
+fn detect_resource_changes(
+    resources: Query<(&Kind, Ref<Amount>, Ref<Delta>)>,
+    mut outputs: EventWriter<OutputEvent>,
+) {
+    let mut has_resource_changes = false;
+    let mut resource_state = sorrow_core::state::resources::ResourceState::default();
+    for (kind, amount, delta) in resources.iter() {
+        if amount.is_changed() {
+            let amount_state = resource_state.amounts.get_state_mut(&kind.0);
+            *amount_state = Some((*amount).into());
+            has_resource_changes = true;
+        }
+        if delta.is_changed() {
+            let delta_state = resource_state.deltas.get_state_mut(&kind.0);
+            *delta_state = Some((*delta).into());
+            has_resource_changes = true;
+        }
+    }
+
+    if has_resource_changes {
+        outputs.send(OutputEvent(Notification::ResourcesChanged(resource_state)));
     }
 }
