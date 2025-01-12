@@ -36,6 +36,12 @@ impl From<sorrow_core::state::resources::Kind> for Kind {
     }
 }
 
+impl From<Kind> for sorrow_core::state::resources::Kind {
+    fn from(value: Kind) -> Self {
+        value.0
+    }
+}
+
 #[derive(Component, Debug, Clone, Copy)]
 #[require(Debit, Credit)]
 pub struct Amount(f64);
@@ -58,7 +64,7 @@ impl SubAssign<f64> for Amount {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone, Copy)]
 pub struct Capacity(f64);
 
 #[derive(Component, Debug, Clone, Copy)]
@@ -70,8 +76,14 @@ impl From<Delta> for f64 {
     }
 }
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Debug, Default, Clone, Copy)]
 pub struct Debit(f64);
+
+impl From<Debit> for f64 {
+    fn from(value: Debit) -> Self {
+        value.0
+    }
+}
 
 impl AddAssign<f64> for Debit {
     fn add_assign(&mut self, rhs: f64) {
@@ -79,8 +91,14 @@ impl AddAssign<f64> for Debit {
     }
 }
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Debug, Default, Clone, Copy)]
 pub struct Credit(f64);
+
+impl From<Credit> for f64 {
+    fn from(value: Credit) -> Self {
+        value.0
+    }
+}
 
 impl AddAssign<f64> for Credit {
     fn add_assign(&mut self, rhs: f64) {

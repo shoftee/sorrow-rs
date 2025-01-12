@@ -104,7 +104,7 @@ where
     }
 
     #[expect(dead_code)]
-    pub fn get_all_indexed(
+    pub fn iter_values(
         &self,
     ) -> impl Iterator<Item = <<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>> {
         self.lookup
@@ -142,5 +142,17 @@ where
             .get(&key)
             .expect("Expected indexed entity, found None instead");
         self.query.get_mut(*entity).ok()
+    }
+
+    pub fn iter(
+        &self,
+    ) -> impl Iterator<Item = (&K, <<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>)> {
+        self.lookup
+            .inner
+            .iter()
+            .filter_map(|(k, v)| match self.query.get(*v) {
+                Ok(value) => Some((k, value)),
+                _ => None,
+            })
     }
 }
