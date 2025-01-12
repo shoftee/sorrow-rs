@@ -16,7 +16,10 @@ pub mod schedule {
     pub struct Prepare;
 
     #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
-    pub struct Resolve;
+    pub struct Commit;
+
+    #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Recalculate;
 }
 
 pub struct ResourcesPlugin;
@@ -88,12 +91,18 @@ impl Plugin for ResourcesPlugin {
             .add_systems(Startup, spawn_resources)
             .add_systems(
                 FixedUpdate,
-                (clear_transactions, add_deltas_as_transactions)
+                (clear_debits_and_credits, add_deltas_to_debit_or_credit)
                     .chain()
                     .in_set(schedule::Prepare),
             )
-            .add_systems(FixedUpdate, commit_transactions.in_set(schedule::Resolve))
-            .add_systems(FixedPostUpdate, recalculate_deltas);
+            .add_systems(
+                FixedUpdate,
+                commit_credits_and_debits.in_set(schedule::Commit),
+            )
+            .add_systems(
+                FixedPostUpdate,
+                recalculate_deltas.in_set(schedule::Recalculate),
+            );
     }
 }
 
@@ -103,30 +112,16 @@ fn spawn_resources(mut cmd: Commands) {
     }
 }
 
-fn clear_transactions(mut transactions: Query<(&mut Debit, &mut Credit), With<Kind>>) {
+fn clear_debits_and_credits(mut transactions: Query<(&mut Debit, &mut Credit), With<Kind>>) {
     for (mut debit, mut credit) in transactions.iter_mut() {
         debit.0 = 0.0;
         credit.0 = 0.0;
     }
 }
 
-fn recalculate_deltas(
-    mut resources: Query<(&Kind, &mut Delta)>,
-    buildings: IndexedQuery<buildings::Kind, &buildings::Level>,
+fn add_deltas_to_debit_or_credit(
+    mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<Kind>>,
 ) {
-    for (kind, mut delta) in resources.iter_mut() {
-        match kind.0 {
-            sorrow_core::state::resources::Kind::Catnip => {
-                let catnip_fields =
-                    buildings.item(sorrow_core::state::buildings::Kind::CatnipField.into());
-                let level: u32 = (*catnip_fields).into();
-                delta.0 = 0.125 * level as f64;
-            }
-        };
-    }
-}
-
-fn add_deltas_as_transactions(mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<Kind>>) {
     for (delta, mut debit, mut credit) in resources.iter_mut() {
         let delta = delta.0;
         if delta.is_infinite() {
@@ -141,7 +136,7 @@ fn add_deltas_as_transactions(mut resources: Query<(&Delta, &mut Debit, &mut Cre
     }
 }
 
-fn commit_transactions(
+fn commit_credits_and_debits(
     mut resources: Query<(&mut Amount, &Debit, &Credit, Option<&Capacity>), With<Kind>>,
 ) {
     for (mut amount, debit, credit, capacity) in resources.iter_mut() {
@@ -174,5 +169,21 @@ fn calculate(current: f64, debit: f64, credit: f64, capacity: Option<f64>) -> Op
         Some(new_amount)
     } else {
         None
+    }
+}
+
+fn recalculate_deltas(
+    mut resources: Query<(&Kind, &mut Delta)>,
+    buildings: IndexedQuery<buildings::Kind, &buildings::Level>,
+) {
+    for (kind, mut delta) in resources.iter_mut() {
+        match kind.0 {
+            sorrow_core::state::resources::Kind::Catnip => {
+                let catnip_fields =
+                    buildings.item(sorrow_core::state::buildings::Kind::CatnipField.into());
+                let level: u32 = (*catnip_fields).into();
+                delta.0 = 0.125 * level as f64;
+            }
+        };
     }
 }

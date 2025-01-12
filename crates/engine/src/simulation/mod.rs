@@ -5,7 +5,7 @@ pub mod ticker;
 pub mod work_orders;
 
 use bevy::{
-    app::{App, FixedUpdate, Plugin},
+    app::{App, FixedPostUpdate, FixedUpdate, Plugin},
     prelude::IntoSystemSetConfigs,
 };
 
@@ -31,9 +31,10 @@ impl Plugin for SimulationPlugin {
                     calendar::schedule::Main,
                     resources::schedule::Prepare,
                     work_orders::schedule::Main,
-                    resources::schedule::Resolve,
+                    resources::schedule::Commit,
                 )
                     .chain(),
-            );
+            )
+            .configure_sets(FixedPostUpdate, resources::schedule::Recalculate);
     }
 }
