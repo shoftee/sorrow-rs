@@ -23,8 +23,13 @@ pub struct WorkOrdersPlugin;
 
 #[derive(Event)]
 pub enum WorkOrder {
-    GatherCatnip,
+    Craft(RecipeType),
     Construct(buildings::Kind),
+}
+
+pub enum RecipeType {
+    GatherCatnip,
+    RefineCatnip,
 }
 
 impl Plugin for WorkOrdersPlugin {
@@ -43,11 +48,16 @@ fn process_work_orders(
     use sorrow_core::state::resources::Kind as ResourceKind;
 
     for work_order in work_orders.read() {
-        match work_order {
-            WorkOrder::GatherCatnip => {
-                let (mut debit, _) = resource_tx.item_mut(ResourceKind::Catnip.into());
-                *debit += 1.0;
-            }
+        match &work_order {
+            WorkOrder::Craft(recipe) => match recipe {
+                RecipeType::GatherCatnip => {
+                    let (mut debit, _) = resource_tx.item_mut(ResourceKind::Catnip.into());
+                    *debit += 1.0;
+                }
+                RecipeType::RefineCatnip => {
+                    tracing::warn!("Don't know how to refine catnip yet...");
+                }
+            },
             WorkOrder::Construct(kind) => match kind {
                 BuildingKind::CatnipField => {
                     let mut level = buildings.item_mut(BuildingKind::CatnipField.into());

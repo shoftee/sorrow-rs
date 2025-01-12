@@ -6,9 +6,8 @@ use sorrow_core::{
     communication::{Intent, Notification, TimeControl},
     state::time::{PartialTimeState, RunningState},
 };
-use tracing::warn;
 
-use crate::simulation::work_orders::WorkOrder;
+use crate::simulation::work_orders::{RecipeType, WorkOrder};
 
 use super::{InputEvent, OutputEvent};
 
@@ -38,7 +37,10 @@ fn resolve_intents(
                 outputs.send(OutputEvent(Notification::Initialized));
             }
             Intent::GatherCatnip => {
-                work_orders.send(WorkOrder::GatherCatnip);
+                work_orders.send(WorkOrder::Craft(RecipeType::GatherCatnip));
+            }
+            Intent::RefineCatnip => {
+                work_orders.send(WorkOrder::Craft(RecipeType::RefineCatnip));
             }
             Intent::Construct(kind) => {
                 work_orders.send(WorkOrder::Construct(*kind));
@@ -56,9 +58,6 @@ fn resolve_intents(
                         })));
                     }
                 };
-            }
-            unknown => {
-                warn!("Received unknown intent: {unknown:?}")
             }
         };
     }
