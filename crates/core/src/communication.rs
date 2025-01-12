@@ -7,7 +7,7 @@ pub enum Intent {
     TimeControl(TimeControl),
     GatherCatnip,
     RefineCatnip,
-    Build(crate::state::buildings::Kind),
+    Construct(crate::state::buildings::Kind),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]

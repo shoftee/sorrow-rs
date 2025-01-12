@@ -40,8 +40,8 @@ fn resolve_intents(
             Intent::GatherCatnip => {
                 work_orders.send(PendingWorkOrder(WorkOrderType::GatherCatnip));
             }
-            Intent::Build(kind) => {
-                work_orders.send(PendingWorkOrder(WorkOrderType::Build(*kind)));
+            Intent::Construct(kind) => {
+                work_orders.send(PendingWorkOrder(WorkOrderType::Construct(*kind)));
             }
             Intent::TimeControl(time_control) => {
                 match time_control {

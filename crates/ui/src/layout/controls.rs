@@ -44,7 +44,7 @@ fn BuildingButton(kind: buildings::Kind) -> impl IntoView {
     };
 
     view! {
-        <Button intent=Intent::Build(kind)>
+        <Button intent=Intent::Construct(kind)>
             {label}" "{number_span(move || level.get())}
         </Button>
     }

@@ -23,7 +23,7 @@ pub struct WorkOrdersPlugin;
 
 pub enum WorkOrderType {
     GatherCatnip,
-    Build(buildings::Kind),
+    Construct(buildings::Kind),
 }
 
 #[derive(Event)]
@@ -50,7 +50,7 @@ fn process_work_orders(
                 let (mut debit, _) = resource_tx.item_mut(ResourceKind::Catnip.into());
                 *debit += 1.0;
             }
-            WorkOrderType::Build(kind) => match kind {
+            WorkOrderType::Construct(kind) => match kind {
                 BuildingKind::CatnipField => {
                     let mut level = buildings.item_mut(BuildingKind::CatnipField.into());
                     *level += 1;
