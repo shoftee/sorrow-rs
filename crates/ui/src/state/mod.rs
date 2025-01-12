@@ -1,4 +1,5 @@
-use ahash::HashMap;
+use std::collections::BTreeMap;
+
 use leptos::prelude::*;
 use reactive_stores::Store;
 use sorrow_core::state as core_state;
@@ -34,27 +35,23 @@ pub struct GlobalStore {
     pub running_state: RunningState,
     pub calendar: Calendar,
     pub buildings: Buildings,
-    pub resources: HashMap<core_state::resources::Kind, Store<Resource>>,
+    pub resources: BTreeMap<core_state::resources::Kind, Store<Resource>>,
 }
 
 impl GlobalStore {
     fn new() -> Self {
-        fn resources_map() -> std::collections::HashMap<
+        fn resources_map() -> std::collections::BTreeMap<
             sorrow_core::state::resources::Kind,
             Store<crate::state::Resource>,
-            ahash::RandomState,
         > {
-            let mut result = HashMap::with_hasher(ahash::RandomState::new());
-            result.extend(
-                core_state::resources::Kind::iter()
-                    .map(|kind| Resource {
-                        kind,
-                        amount: 0.0,
-                        delta: 0.0,
-                    })
-                    .map(|v| (v.kind, Store::new(v))),
-            );
-            result
+            core_state::resources::Kind::iter()
+                .map(|kind| Resource {
+                    kind,
+                    amount: 0.0,
+                    delta: 0.0,
+                })
+                .map(|v| (v.kind, Store::new(v)))
+                .collect()
         }
         Self {
             preferences: Preferences {

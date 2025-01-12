@@ -77,6 +77,8 @@ macro_rules! state_key {
             ::serde::Deserialize,
             ::std::cmp::PartialEq,
             ::std::cmp::Eq,
+            ::std::cmp::PartialOrd,
+            ::std::cmp::Ord,
             ::std::hash::Hash,
             ::core::clone::Clone,
             ::core::marker::Copy,
