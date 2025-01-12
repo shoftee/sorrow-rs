@@ -188,6 +188,9 @@ fn recalculate_deltas(
                 let level: u32 = (*catnip_fields).into();
                 delta.0 = 0.125 * level as f64;
             }
+            sorrow_core::state::resources::Kind::Wood => {
+                // no wood gain yet
+            }
         };
     }
 }

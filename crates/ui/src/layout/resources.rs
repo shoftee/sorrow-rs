@@ -54,6 +54,7 @@ pub fn ResourcesContainer() -> impl IntoView {
 fn ResourceItem(#[prop(into)] item: Store<crate::state::Resource>) -> impl IntoView {
     let label = match item.kind().get() {
         Kind::Catnip => "catnip",
+        Kind::Wood => "wood",
     };
 
     let amount = Memo::new(move |_| item.amount().get());

@@ -5,6 +5,7 @@ use super::StateTable;
 crate::state_key! {
     pub enum Kind {
         Catnip,
+        Wood,
     }
 }
 
