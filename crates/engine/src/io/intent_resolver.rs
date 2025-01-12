@@ -8,7 +8,7 @@ use sorrow_core::{
 };
 use tracing::warn;
 
-use crate::simulation::work_orders::{PendingWorkOrder, WorkOrderType};
+use crate::simulation::work_orders::WorkOrder;
 
 use super::{InputEvent, OutputEvent};
 
@@ -29,7 +29,7 @@ impl Plugin for IntentResolverPlugin {
 
 fn resolve_intents(
     mut inputs: EventReader<InputEvent>,
-    mut work_orders: EventWriter<PendingWorkOrder>,
+    mut work_orders: EventWriter<WorkOrder>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
     for InputEvent(message) in inputs.read() {
@@ -38,10 +38,10 @@ fn resolve_intents(
                 outputs.send(OutputEvent(Notification::Initialized));
             }
             Intent::GatherCatnip => {
-                work_orders.send(PendingWorkOrder(WorkOrderType::GatherCatnip));
+                work_orders.send(WorkOrder::GatherCatnip);
             }
             Intent::Construct(kind) => {
-                work_orders.send(PendingWorkOrder(WorkOrderType::Construct(*kind)));
+                work_orders.send(WorkOrder::Construct(*kind));
             }
             Intent::TimeControl(time_control) => {
                 match time_control {

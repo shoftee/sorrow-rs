@@ -21,36 +21,34 @@ pub mod schedule {
 #[derive(Default)]
 pub struct WorkOrdersPlugin;
 
-pub enum WorkOrderType {
+#[derive(Event)]
+pub enum WorkOrder {
     GatherCatnip,
     Construct(buildings::Kind),
 }
 
-#[derive(Event)]
-pub struct PendingWorkOrder(pub WorkOrderType);
-
 impl Plugin for WorkOrdersPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PendingWorkOrder>()
+        app.add_event::<WorkOrder>()
             .add_systems(FixedUpdate, process_work_orders.in_set(schedule::Main));
     }
 }
 
 fn process_work_orders(
-    mut pending_work_orders: EventReader<PendingWorkOrder>,
+    mut work_orders: EventReader<WorkOrder>,
     mut resource_tx: IndexedQueryMut<super::resources::Kind, (&mut Debit, &mut Credit)>,
     mut buildings: IndexedQueryMut<super::buildings::Kind, &mut Level>,
 ) {
     use sorrow_core::state::buildings::Kind as BuildingKind;
     use sorrow_core::state::resources::Kind as ResourceKind;
 
-    for item in pending_work_orders.read() {
-        match item.0 {
-            WorkOrderType::GatherCatnip => {
+    for work_order in work_orders.read() {
+        match work_order {
+            WorkOrder::GatherCatnip => {
                 let (mut debit, _) = resource_tx.item_mut(ResourceKind::Catnip.into());
                 *debit += 1.0;
             }
-            WorkOrderType::Construct(kind) => match kind {
+            WorkOrder::Construct(kind) => match kind {
                 BuildingKind::CatnipField => {
                     let mut level = buildings.item_mut(BuildingKind::CatnipField.into());
                     *level += 1;
