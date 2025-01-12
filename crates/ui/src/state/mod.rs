@@ -46,13 +46,13 @@ impl GlobalStore {
         > {
             let mut result = HashMap::with_hasher(ahash::RandomState::new());
             result.extend(
-                vec![Resource {
-                    kind: core_state::resources::Kind::Catnip,
-                    amount: 0.0,
-                    delta: 0.0,
-                }]
-                .into_iter()
-                .map(|v| (v.kind, Store::new(v))),
+                core_state::resources::Kind::iter()
+                    .map(|kind| Resource {
+                        kind,
+                        amount: 0.0,
+                        delta: 0.0,
+                    })
+                    .map(|v| (v.kind, Store::new(v))),
             );
             result
         }
