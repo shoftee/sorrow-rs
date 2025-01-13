@@ -24,7 +24,7 @@ impl From<StateKind> for Kind {
 }
 
 #[derive(Component, Debug, Clone, Copy)]
-pub struct Level(u32);
+pub struct Level(pub u32);
 
 impl From<Level> for u32 {
     fn from(value: Level) -> Self {
