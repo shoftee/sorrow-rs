@@ -44,7 +44,7 @@ impl From<Kind> for sorrow_core::state::resources::Kind {
 
 #[derive(Component, Debug, Clone, Copy)]
 #[require(Debit, Credit)]
-pub struct Amount(f64);
+pub struct Amount(pub f64);
 
 impl From<Amount> for f64 {
     fn from(val: Amount) -> Self {
@@ -77,7 +77,7 @@ impl From<Delta> for f64 {
 }
 
 #[derive(Component, Debug, Default, Clone, Copy)]
-pub struct Debit(f64);
+pub struct Debit(pub f64);
 
 impl From<Debit> for f64 {
     fn from(value: Debit) -> Self {
@@ -92,7 +92,7 @@ impl AddAssign<f64> for Debit {
 }
 
 #[derive(Component, Debug, Default, Clone, Copy)]
-pub struct Credit(f64);
+pub struct Credit(pub f64);
 
 impl From<Credit> for f64 {
     fn from(value: Credit) -> Self {
