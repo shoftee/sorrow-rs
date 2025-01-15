@@ -22,4 +22,5 @@
         "strings": true
     },
     "css.validate": false,
+    "editor.inlayHints.enabled": "off",
 }
