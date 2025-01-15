@@ -35,6 +35,13 @@ impl Plugin for SimulationPlugin {
                 )
                     .chain(),
             )
-            .configure_sets(FixedPostUpdate, resources::schedule::Recalculate);
+            .configure_sets(
+                FixedPostUpdate,
+                (
+                    work_orders::schedule::Recalculate,
+                    resources::schedule::Recalculate,
+                )
+                    .chain(),
+            );
     }
 }

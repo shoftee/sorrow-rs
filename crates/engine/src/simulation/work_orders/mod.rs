@@ -1,9 +1,10 @@
 mod logic;
 
 use bevy::{
-    app::{App, FixedUpdate, Plugin, Startup},
+    app::{App, FixedPostUpdate, FixedUpdate, Plugin, Startup},
     prelude::{
-        BuildChildren, Children, Commands, Component, Event, EventReader, IntoSystemConfigs, Query,
+        BuildChildren, Changed, Children, Commands, Component, Event, EventReader,
+        IntoSystemConfigs, Query, With,
     },
 };
 use sorrow_core::state::buildings::Kind as BuildingKind;
@@ -25,6 +26,9 @@ pub mod schedule {
 
     #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
     pub struct Main;
+
+    #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Recalculate;
 }
 
 #[derive(Event)]
@@ -34,16 +38,25 @@ pub enum WorkOrder {
 }
 
 #[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
-enum Recipe {
-    Resource(RecipeKind),
-    Building(BuildingKind),
-}
+struct CraftingRecipe(pub RecipeKind);
+
+#[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
+struct BuildingRecipe(pub BuildingKind);
 
 #[derive(Component, Debug, Copy, Clone, PartialEq, Eq)]
 struct Ingredient(pub ResourceKind);
 
 #[derive(Component, Debug)]
+struct RequiredAmount(pub f64);
+
+#[derive(Component, Debug)]
+struct BaseAmount(pub f64);
+
+#[derive(Component, Debug)]
 struct CraftedResource(pub ResourceKind);
+
+#[derive(Component, Debug)]
+struct CraftedAmount(pub f64);
 
 #[derive(Component, Debug, Copy, Clone)]
 struct PriceRatio(pub f64);
@@ -53,26 +66,36 @@ pub struct WorkOrdersPlugin;
 
 impl Plugin for WorkOrdersPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(LookupIndexPlugin::<Recipe>::new())
-            .add_event::<WorkOrder>()
+        app.add_event::<WorkOrder>()
+            .add_plugins(LookupIndexPlugin::<CraftingRecipe>::new())
+            .add_plugins(LookupIndexPlugin::<BuildingRecipe>::new())
             .add_systems(Startup, spawn_recipes)
-            .add_systems(FixedUpdate, process_work_orders.in_set(schedule::Main));
+            .add_systems(FixedUpdate, process_work_orders.in_set(schedule::Main))
+            .add_systems(
+                FixedPostUpdate,
+                recalculate_recipe_costs.in_set(schedule::Recalculate),
+            );
     }
 }
 
 fn spawn_recipes(mut cmd: Commands) {
-    cmd.spawn(Recipe::Resource(RecipeKind::GatherCatnip))
-        .with_child((CraftedResource(ResourceKind::Catnip), Amount(1.0)));
+    cmd.spawn(CraftingRecipe(RecipeKind::GatherCatnip))
+        .with_child((CraftedResource(ResourceKind::Catnip), CraftedAmount(1.0)));
 
-    cmd.spawn(Recipe::Resource(RecipeKind::RefineCatnip))
-        .with_child((Ingredient(ResourceKind::Catnip), Amount(100.0)))
-        .with_child((CraftedResource(ResourceKind::Wood), Amount(1.0)));
+    cmd.spawn(CraftingRecipe(RecipeKind::RefineCatnip))
+        .with_child((
+            Ingredient(ResourceKind::Catnip),
+            RequiredAmount(100.0),
+            BaseAmount(100.0),
+        ))
+        .with_child((CraftedResource(ResourceKind::Wood), CraftedAmount(1.0)));
 
-    cmd.spawn((
-        Recipe::Building(BuildingKind::CatnipField),
-        PriceRatio(1.12),
-    ))
-    .with_child((Ingredient(ResourceKind::Catnip), Amount(10.0)));
+    cmd.spawn((BuildingRecipe(BuildingKind::CatnipField), PriceRatio(1.12)))
+        .with_child((
+            Ingredient(ResourceKind::Catnip),
+            RequiredAmount(10.0),
+            BaseAmount(10.0),
+        ));
 }
 
 fn process_work_orders(
@@ -82,9 +105,10 @@ fn process_work_orders(
         (&Amount, &mut Debit, &mut Credit, Option<&Capacity>),
     >,
     mut buildings: IndexedQueryMut<super::buildings::Kind, &mut Level>,
-    recipes: IndexedQuery<Recipe, (Option<&PriceRatio>, &Children)>,
-    ingredients: Query<(&Ingredient, &Amount)>,
-    crafted_resources: Query<(&CraftedResource, &Amount)>,
+    crafting_recipes: IndexedQuery<CraftingRecipe, &Children>,
+    building_recipes: IndexedQuery<BuildingRecipe, &Children>,
+    ingredients: Query<(&Ingredient, &RequiredAmount)>,
+    crafted_resources: Query<(&CraftedResource, &CraftedAmount)>,
 ) {
     let mut deltas = logic::DeltaSetStack::new();
     for (kind, (_, debit, credit, _)) in resources.iter() {
@@ -97,9 +121,9 @@ fn process_work_orders(
 
         let mut is_fulfilled: bool = true;
         match &item {
-            WorkOrder::Craft(recipe_kind) => {
-                let (_, children) = recipes.item(Recipe::Resource(*recipe_kind));
-                let ingredients = ingredients.iter_many(children);
+            WorkOrder::Craft(kind) => {
+                let ingredient_entities = crafting_recipes.item(CraftingRecipe(*kind));
+                let ingredients = ingredients.iter_many(ingredient_entities);
 
                 for (kind, amount) in ingredients {
                     deltas.add_credit(kind.0, amount.0);
@@ -113,21 +137,17 @@ fn process_work_orders(
                 }
 
                 if is_fulfilled {
-                    let crafted_resources = crafted_resources.iter_many(children);
+                    let crafted_resources = crafted_resources.iter_many(ingredient_entities);
                     for (crafted_resource, amount) in crafted_resources {
                         deltas.add_debit(crafted_resource.0, amount.0);
                     }
                 }
             }
             WorkOrder::Construct(kind) => {
-                let mut level = buildings.item_mut((*kind).into());
+                let ingredient_entities = building_recipes.item(BuildingRecipe(*kind));
 
-                let (price_ratio, children) = recipes.item(Recipe::Building(*kind));
-                let price_ratio = price_ratio.map(|r| r.0).unwrap_or(1.0);
-
-                for (kind, amount) in ingredients.iter_many(children) {
-                    let adjusted_for_level = amount.0 * price_ratio.powi(level.0 as i32);
-                    deltas.add_credit(kind.0, adjusted_for_level);
+                for (kind, amount) in ingredients.iter_many(ingredient_entities) {
+                    deltas.add_credit(kind.0, amount.0);
 
                     let (amount, debit, credit, _) = resources.item_mut(kind.0.into());
                     let total = amount.0 + debit.0 - credit.0;
@@ -138,6 +158,7 @@ fn process_work_orders(
                 }
 
                 if is_fulfilled {
+                    let mut level = buildings.item_mut((*kind).into());
                     *level += 1;
                 }
             }
@@ -154,5 +175,19 @@ fn process_work_orders(
         let (_, mut current_debit, mut current_credit, _) = resources.item_mut((*kind).into());
         *current_debit += *debit;
         *current_credit += *credit;
+    }
+}
+
+fn recalculate_recipe_costs(
+    buildings: Query<(&super::buildings::Kind, &Level), Changed<Level>>,
+    building_recipes: IndexedQuery<BuildingRecipe, (&PriceRatio, &Children)>,
+    mut amounts_query: Query<(&mut RequiredAmount, &BaseAmount), With<Ingredient>>,
+) {
+    for (building, level) in buildings.iter() {
+        let (ratio, ingredient_entities) = building_recipes.item(BuildingRecipe(building.0));
+        let mut amounts = amounts_query.iter_many_mut(ingredient_entities);
+        while let Some((mut required_amount, base_amount)) = amounts.fetch_next() {
+            required_amount.0 = base_amount.0 * (ratio.0.powi(level.0 as i32));
+        }
     }
 }
