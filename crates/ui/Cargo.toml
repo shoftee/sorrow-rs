@@ -17,11 +17,11 @@ sorrow-core.workspace = true
 sorrow-engine.workspace = true
 
 ahash.workspace = true
-leptos.workspace = true
 send_wrapper.workspace = true
 tracing.workspace = true
 wasm-bindgen.workspace = true
 
+leptos = { version = "0.7", features = ["csr"] }
 leptos_meta = "0.7"
 tracing-wasm = "0.2"
 reactive_stores = "0.1"
