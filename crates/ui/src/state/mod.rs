@@ -18,6 +18,12 @@ pub struct Resource {
 }
 
 #[derive(Store)]
+pub struct Fulfillment {
+    pub kind: core_state::recipes::Kind,
+    pub fulfillment: core_state::recipes::Fulfillment,
+}
+
+#[derive(Store)]
 pub struct Buildings {
     pub catnip_fields: u32,
 }
@@ -35,22 +41,38 @@ pub struct GlobalStore {
     pub running_state: RunningState,
     pub calendar: Calendar,
     pub buildings: Buildings,
+    pub fulfillments: BTreeMap<core_state::recipes::Kind, Store<Fulfillment>>,
     pub resources: BTreeMap<core_state::resources::Kind, Store<Resource>>,
 }
 
 impl GlobalStore {
     fn new() -> Self {
-        fn resources_map() -> std::collections::BTreeMap<
-            sorrow_core::state::resources::Kind,
-            Store<crate::state::Resource>,
-        > {
+        fn resources_map() -> BTreeMap<core_state::resources::Kind, Store<crate::state::Resource>> {
             core_state::resources::Kind::iter()
-                .map(|kind| Resource {
-                    kind,
-                    amount: 0.0,
-                    delta: 0.0,
+                .map(|kind| {
+                    (
+                        kind,
+                        Store::new(Resource {
+                            kind,
+                            amount: 0.0,
+                            delta: 0.0,
+                        }),
+                    )
                 })
-                .map(|v| (v.kind, Store::new(v)))
+                .collect()
+        }
+        fn fulfillments_map(
+        ) -> BTreeMap<core_state::recipes::Kind, Store<crate::state::Fulfillment>> {
+            core_state::recipes::Kind::iter()
+                .map(|kind| {
+                    (
+                        kind,
+                        Store::new(Fulfillment {
+                            kind,
+                            fulfillment: core_state::recipes::Fulfillment::Unfulfilled,
+                        }),
+                    )
+                })
                 .collect()
         }
         Self {
@@ -59,6 +81,7 @@ impl GlobalStore {
             },
             running_state: RunningState::default(),
             buildings: Buildings { catnip_fields: 0 },
+            fulfillments: fulfillments_map(),
             calendar: Calendar {
                 day: 0,
                 season: SeasonKind::Spring,

@@ -4,7 +4,9 @@ use bevy::{
     app::{Plugin, Startup},
     prelude::*,
 };
-use sorrow_core::communication::Notification;
+
+use sorrow_core::state::resources::Kind as ResourceKind;
+use sorrow_core::{communication::Notification, state::recipes::Crafting};
 
 use super::buildings;
 use crate::{
@@ -28,19 +30,22 @@ pub mod schedule {
 pub struct ResourcesPlugin;
 
 #[derive(Component, Clone, Copy, Hash, PartialEq, Eq, Debug)]
-pub struct Kind(pub sorrow_core::state::resources::Kind);
+pub struct Kind(pub ResourceKind);
 
-impl From<sorrow_core::state::resources::Kind> for Kind {
-    fn from(value: sorrow_core::state::resources::Kind) -> Self {
+impl From<ResourceKind> for Kind {
+    fn from(value: ResourceKind) -> Self {
         Self(value)
     }
 }
 
-impl From<Kind> for sorrow_core::state::resources::Kind {
+impl From<Kind> for ResourceKind {
     fn from(value: Kind) -> Self {
         value.0
     }
 }
+
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Crafted(pub Crafting);
 
 #[derive(Component, Debug, Clone, Copy)]
 #[require(Debit, Credit)]
@@ -65,7 +70,7 @@ impl SubAssign<f64> for Amount {
 }
 
 #[derive(Component, Debug, Clone, Copy)]
-pub struct Capacity(f64);
+pub struct Capacity(pub f64);
 
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Delta(f64);
@@ -129,9 +134,13 @@ impl Plugin for ResourcesPlugin {
 }
 
 fn spawn_resources(mut cmd: Commands) {
-    for kind in sorrow_core::state::resources::Kind::iter() {
-        cmd.spawn((Kind(kind), Amount(0.0), Delta(0.0)));
-    }
+    cmd.spawn((Kind(ResourceKind::Catnip), Amount(0.0), Delta(0.0)));
+    cmd.spawn((
+        Kind(ResourceKind::Wood),
+        Amount(0.0),
+        Delta(0.0),
+        Crafted(Crafting::RefineCatnip),
+    ));
 }
 
 fn clear_debits_and_credits(mut transactions: Query<(&mut Debit, &mut Credit), With<Kind>>) {
@@ -162,8 +171,7 @@ fn commit_credits_and_debits(
     mut resources: Query<(&mut Amount, &Debit, &Credit, Option<&Capacity>), With<Kind>>,
 ) {
     for (mut amount, debit, credit, capacity) in resources.iter_mut() {
-        let change = calculate(amount.0, debit.0, credit.0, capacity.map(|f| f.0));
-        if let Some(new_amount) = change {
+        if let Some(new_amount) = calculate(amount.0, debit.0, credit.0, capacity.map(|f| f.0)) {
             amount.0 = new_amount;
         }
     }

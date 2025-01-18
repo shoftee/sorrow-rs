@@ -3,12 +3,16 @@ use std::rc::Rc;
 use leptos::prelude::*;
 use reactive_stores::Store;
 use send_wrapper::SendWrapper;
-use sorrow_core::communication::{Intent, Notification};
+
+use sorrow_core::{
+    communication::{Intent, Notification},
+    state::recipes::Kind as RecipeKind,
+};
 use sorrow_engine::Endpoint;
 
 use crate::state::{
-    use_global_store, BuildingsStoreFields, CalendarStoreFields, GlobalStore,
-    GlobalStoreStoreFields, ResourceStoreFields,
+    use_global_store, BuildingsStoreFields, CalendarStoreFields, FulfillmentStoreFields,
+    GlobalStore, GlobalStoreStoreFields, ResourceStoreFields,
 };
 
 pub fn provide_endpoint_context() {
@@ -50,6 +54,26 @@ fn accept(store: Store<GlobalStore>, notifications: Vec<Notification>) {
                     .get_state(&sorrow_core::state::buildings::Kind::CatnipField)
                 {
                     store.buildings().catnip_fields().set(*catnip_fields);
+                }
+            }
+            FulfillmentsChanged(fulfillment) => {
+                for (kind, fulfillment) in fulfillment.building.iter() {
+                    if let Some(fulfillment) = fulfillment {
+                        store
+                            .fulfillments()
+                            .write_untracked()
+                            .entry(RecipeKind::Building(*kind))
+                            .and_modify(|e| e.fulfillment().set(*fulfillment));
+                    }
+                }
+                for (kind, fulfillment) in fulfillment.crafting.iter() {
+                    if let Some(fulfillment) = fulfillment {
+                        store
+                            .fulfillments()
+                            .write_untracked()
+                            .entry(RecipeKind::Crafting(*kind))
+                            .and_modify(|e| e.fulfillment().set(*fulfillment));
+                    }
                 }
             }
             ResourcesChanged(resources) => {

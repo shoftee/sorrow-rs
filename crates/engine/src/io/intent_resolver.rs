@@ -5,7 +5,7 @@ use bevy::{
 use sorrow_core::{
     communication::{Intent, Notification, TimeControl},
     state::{
-        recipes::Kind,
+        recipes::Crafting,
         time::{PartialTimeState, RunningState},
     },
 };
@@ -40,10 +40,10 @@ fn resolve_intents(
                 outputs.send(OutputEvent(Notification::Initialized));
             }
             Intent::GatherCatnip => {
-                work_orders.send(WorkOrder::Craft(Kind::GatherCatnip));
+                work_orders.send(WorkOrder::Craft(Crafting::GatherCatnip));
             }
             Intent::RefineCatnip => {
-                work_orders.send(WorkOrder::Craft(Kind::RefineCatnip));
+                work_orders.send(WorkOrder::Craft(Crafting::RefineCatnip));
             }
             Intent::Construct(kind) => {
                 work_orders.send(WorkOrder::Construct(*kind));

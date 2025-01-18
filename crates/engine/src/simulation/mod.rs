@@ -1,5 +1,6 @@
 pub mod buildings;
 pub mod calendar;
+pub mod fulfillment;
 pub mod resources;
 pub mod ticker;
 pub mod work_orders;
@@ -11,6 +12,7 @@ use bevy::{
 
 use buildings::BuildingsPlugin;
 use calendar::CalendarPlugin;
+use fulfillment::FulfillmentPlugin;
 use resources::ResourcesPlugin;
 use ticker::TickerPlugin;
 use work_orders::WorkOrdersPlugin;
@@ -24,6 +26,7 @@ impl Plugin for SimulationPlugin {
             .add_plugins(WorkOrdersPlugin)
             .add_plugins(ResourcesPlugin)
             .add_plugins(BuildingsPlugin)
+            .add_plugins(FulfillmentPlugin)
             .configure_sets(
                 FixedUpdate,
                 (
@@ -38,8 +41,8 @@ impl Plugin for SimulationPlugin {
             .configure_sets(
                 FixedPostUpdate,
                 (
-                    work_orders::schedule::Recalculate,
                     resources::schedule::Recalculate,
+                    fulfillment::schedule::Recalculate,
                 )
                     .chain(),
             );

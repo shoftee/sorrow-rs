@@ -21,6 +21,7 @@ pub enum Notification {
     Initialized,
     CalendarChanged(crate::state::calendar::PartialCalendarState),
     BuildingsChanged(crate::state::buildings::BuildingState),
+    FulfillmentsChanged(crate::state::recipes::FulfillmentState),
     ResourcesChanged(crate::state::resources::ResourceState),
     TimeChanged(crate::state::time::PartialTimeState),
 }

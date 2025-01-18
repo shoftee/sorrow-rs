@@ -103,8 +103,12 @@ where
         self.query.get(*entity).ok()
     }
 
+    pub fn keys(&self) -> impl Iterator<Item = &'_ K> {
+        self.lookup.inner.keys()
+    }
+
     #[expect(dead_code)]
-    pub fn iter_values(
+    pub fn values(
         &self,
     ) -> impl Iterator<Item = <<D as QueryData>::ReadOnly as WorldQuery>::Item<'_>> {
         self.lookup
