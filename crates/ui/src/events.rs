@@ -41,6 +41,7 @@ pub fn provide_keyboard_events_context() {
     provide_context(KeyboardEvents::new());
 }
 
+#[expect(dead_code)]
 pub fn use_keyboard_events() -> KeyboardEvents {
     use_context().expect("keyboard events not provided in context")
 }

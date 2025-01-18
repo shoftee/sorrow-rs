@@ -11,7 +11,7 @@ use sorrow_core::{
 use sorrow_engine::Endpoint;
 
 use crate::state::{
-    use_global_store, BuildingsStoreFields, CalendarStoreFields, FulfillmentStoreFields,
+    use_global_store, BuildingStoreFields, CalendarStoreFields, FulfillmentStoreFields,
     GlobalStore, GlobalStoreStoreFields, ResourceStoreFields,
 };
 
@@ -49,11 +49,14 @@ fn accept(store: Store<GlobalStore>, notifications: Vec<Notification>) {
                 }
             }
             BuildingsChanged(buildings) => {
-                if let Some(catnip_fields) = buildings
-                    .levels
-                    .get_state(&sorrow_core::state::buildings::Kind::CatnipField)
-                {
-                    store.buildings().catnip_fields().set(*catnip_fields);
+                for (kind, level) in buildings.levels.iter() {
+                    if let Some(level) = level {
+                        store
+                            .buildings()
+                            .write_untracked()
+                            .entry(*kind)
+                            .and_modify(|e| e.level().set(*level));
+                    }
                 }
             }
             FulfillmentsChanged(fulfillment) => {

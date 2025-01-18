@@ -24,8 +24,9 @@ pub struct Fulfillment {
 }
 
 #[derive(Store)]
-pub struct Buildings {
-    pub catnip_fields: u32,
+pub struct Building {
+    pub kind: core_state::buildings::Kind,
+    pub level: u32,
 }
 
 #[derive(Store)]
@@ -37,18 +38,26 @@ pub struct Calendar {
 
 #[derive(Store)]
 pub struct GlobalStore {
-    pub preferences: Preferences,
-    pub running_state: RunningState,
+    pub buildings: BTreeMap<core_state::buildings::Kind, Store<Building>>,
     pub calendar: Calendar,
-    pub buildings: Buildings,
     pub fulfillments: BTreeMap<core_state::recipes::Kind, Store<Fulfillment>>,
+    pub preferences: Preferences,
     pub resources: BTreeMap<core_state::resources::Kind, Store<Resource>>,
+    pub running_state: RunningState,
 }
 
 impl GlobalStore {
     fn new() -> Self {
-        fn resources_map() -> BTreeMap<core_state::resources::Kind, Store<crate::state::Resource>> {
-            core_state::resources::Kind::iter()
+        use core_state::buildings::Kind as BuildingKind;
+        use core_state::recipes::Kind as RecipeKind;
+        use core_state::resources::Kind as ResourceKind;
+        fn buildings_map() -> BTreeMap<BuildingKind, Store<crate::state::Building>> {
+            BuildingKind::iter()
+                .map(|kind| (kind, Store::new(Building { kind, level: 0 })))
+                .collect()
+        }
+        fn resources_map() -> BTreeMap<ResourceKind, Store<crate::state::Resource>> {
+            ResourceKind::iter()
                 .map(|kind| {
                     (
                         kind,
@@ -61,9 +70,8 @@ impl GlobalStore {
                 })
                 .collect()
         }
-        fn fulfillments_map(
-        ) -> BTreeMap<core_state::recipes::Kind, Store<crate::state::Fulfillment>> {
-            core_state::recipes::Kind::iter()
+        fn fulfillments_map() -> BTreeMap<RecipeKind, Store<crate::state::Fulfillment>> {
+            RecipeKind::iter()
                 .map(|kind| {
                     (
                         kind,
@@ -76,18 +84,18 @@ impl GlobalStore {
                 .collect()
         }
         Self {
-            preferences: Preferences {
-                precision: Precision::default(),
-            },
-            running_state: RunningState::default(),
-            buildings: Buildings { catnip_fields: 0 },
-            fulfillments: fulfillments_map(),
+            buildings: buildings_map(),
             calendar: Calendar {
                 day: 0,
                 season: SeasonKind::Spring,
                 year: 0,
             },
+            fulfillments: fulfillments_map(),
+            preferences: Preferences {
+                precision: Precision::default(),
+            },
             resources: resources_map(),
+            running_state: RunningState::default(),
         }
     }
 }

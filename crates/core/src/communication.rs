@@ -5,8 +5,12 @@ pub enum Intent {
     /// Stub for initializing game session.
     Load,
     TimeControl(TimeControl),
-    GatherCatnip,
-    RefineCatnip,
+    QueueWorkOrder(WorkOrderKind),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum WorkOrderKind {
+    Craft(crate::state::recipes::Crafting),
     Construct(crate::state::buildings::Kind),
 }
 

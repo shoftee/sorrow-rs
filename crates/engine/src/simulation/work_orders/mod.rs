@@ -4,7 +4,7 @@ use bevy::{
     app::{App, FixedUpdate, Plugin},
     prelude::*,
 };
-use sorrow_core::state::{buildings::Kind as BuildingKind, recipes::Crafting as CraftingKind};
+use sorrow_core::communication::WorkOrderKind;
 
 use crate::{
     index::{IndexedQuery, IndexedQueryMut},
@@ -25,10 +25,7 @@ pub mod schedule {
 }
 
 #[derive(Event)]
-pub enum WorkOrder {
-    Craft(CraftingKind),
-    Construct(BuildingKind),
-}
+pub struct WorkOrder(pub sorrow_core::communication::WorkOrderKind);
 
 pub struct WorkOrdersPlugin;
 
@@ -60,9 +57,9 @@ fn process_work_orders(
         deltas.push_new();
 
         let mut is_fulfilled: bool = true;
-        match &item {
-            WorkOrder::Craft(kind) => {
-                let ingredient_entities = recipes.item(Recipe::Craft(*kind));
+        match &item.0 {
+            WorkOrderKind::Craft(crafting) => {
+                let ingredient_entities = recipes.item(Recipe::Craft(*crafting));
                 let ingredients = ingredients.iter_many(ingredient_entities);
 
                 for (kind, amount) in ingredients {
@@ -83,8 +80,8 @@ fn process_work_orders(
                     }
                 }
             }
-            WorkOrder::Construct(kind) => {
-                let ingredient_entities = recipes.item(Recipe::Building(*kind));
+            WorkOrderKind::Construct(building) => {
+                let ingredient_entities = recipes.item(Recipe::Building(*building));
 
                 for (kind, amount) in ingredients.iter_many(ingredient_entities) {
                     deltas.add_credit(kind.0, amount.0);
@@ -98,7 +95,7 @@ fn process_work_orders(
                 }
 
                 if is_fulfilled {
-                    let mut level = buildings.item_mut((*kind).into());
+                    let mut level = buildings.item_mut((*building).into());
                     *level += 1;
                 }
             }

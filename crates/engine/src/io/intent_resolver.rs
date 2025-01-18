@@ -4,10 +4,7 @@ use bevy::{
 };
 use sorrow_core::{
     communication::{Intent, Notification, TimeControl},
-    state::{
-        recipes::Crafting,
-        time::{PartialTimeState, RunningState},
-    },
+    state::time::{PartialTimeState, RunningState},
 };
 
 use crate::simulation::work_orders::WorkOrder;
@@ -39,14 +36,8 @@ fn resolve_intents(
             Intent::Load => {
                 outputs.send(OutputEvent(Notification::Initialized));
             }
-            Intent::GatherCatnip => {
-                work_orders.send(WorkOrder::Craft(Crafting::GatherCatnip));
-            }
-            Intent::RefineCatnip => {
-                work_orders.send(WorkOrder::Craft(Crafting::RefineCatnip));
-            }
-            Intent::Construct(kind) => {
-                work_orders.send(WorkOrder::Construct(*kind));
+            Intent::QueueWorkOrder(kind) => {
+                work_orders.send(WorkOrder(*kind));
             }
             Intent::TimeControl(time_control) => {
                 match time_control {
