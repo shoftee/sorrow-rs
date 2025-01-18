@@ -21,7 +21,7 @@ send_wrapper.workspace = true
 tracing.workspace = true
 wasm-bindgen.workspace = true
 
-leptos = { version = "0.7", features = ["csr"] }
+leptos = { version = "0.7", features = ["csr", "tracing"] }
 leptos_meta = "0.7"
 tracing-wasm = "0.2"
 reactive_stores = "0.1"
