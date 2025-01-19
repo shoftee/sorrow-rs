@@ -6,16 +6,16 @@ use bevy::{
 };
 use sorrow_core::{
     communication::Notification,
-    state::buildings::{BuildingState, Kind as StateKind},
+    state::buildings::{BuildingState, Kind as BuildingKind},
 };
 
 use crate::{index::LookupIndexPlugin, io::OutputEvent, schedules::BufferChanges};
 
 #[derive(Component, Clone, Copy, Hash, PartialEq, Eq, Debug)]
-pub struct Kind(pub StateKind);
+pub struct Building(pub BuildingKind);
 
-impl From<StateKind> for Kind {
-    fn from(value: StateKind) -> Self {
+impl From<BuildingKind> for Building {
+    fn from(value: BuildingKind) -> Self {
         Self(value)
     }
 }
@@ -39,18 +39,18 @@ pub struct BuildingsPlugin;
 
 impl Plugin for BuildingsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(LookupIndexPlugin::<Kind>::new())
+        app.add_plugins(LookupIndexPlugin::<Building>::new())
             .add_systems(Startup, spawn_buildings)
             .add_systems(BufferChanges, detect_building_changes);
     }
 }
 
 fn spawn_buildings(mut commands: Commands) {
-    commands.spawn((Kind(StateKind::CatnipField), Level(0)));
+    commands.spawn((Building(BuildingKind::CatnipField), Level(0)));
 }
 
 fn detect_building_changes(
-    buildings: Query<(&Kind, &Level), Changed<Level>>,
+    buildings: Query<(&Building, &Level), Changed<Level>>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
     let mut has_building_changes = false;

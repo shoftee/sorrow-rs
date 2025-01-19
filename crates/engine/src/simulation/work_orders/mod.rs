@@ -2,7 +2,7 @@ mod logic;
 
 use bevy::{
     app::{App, FixedUpdate, Plugin},
-    prelude::*,
+    prelude::{Children, Event, EventReader, IntoSystemConfigs, Query},
 };
 use sorrow_core::communication::WorkOrderKind;
 
@@ -12,9 +12,9 @@ use crate::{
 };
 
 use super::{
-    buildings::Level,
+    buildings::{Building, Level},
     fulfillment::{CraftedAmount, CraftedResource, Ingredient, Recipe, RequiredAmount},
-    resources::{Amount, Capacity},
+    resources::{Amount, Capacity, Resource},
 };
 
 pub mod sets {
@@ -38,11 +38,8 @@ impl Plugin for WorkOrdersPlugin {
 
 fn process_work_orders(
     mut pending_work_orders: EventReader<WorkOrder>,
-    mut resources: IndexedQueryMut<
-        super::resources::Kind,
-        (&Amount, &mut Debit, &mut Credit, Option<&Capacity>),
-    >,
-    mut buildings: IndexedQueryMut<super::buildings::Kind, &mut Level>,
+    mut resources: IndexedQueryMut<Resource, (&Amount, &mut Debit, &mut Credit, Option<&Capacity>)>,
+    mut buildings: IndexedQueryMut<Building, &mut Level>,
     recipes: IndexedQuery<Recipe, &Children>,
     ingredients: Query<(&Ingredient, &RequiredAmount)>,
     crafted_resources: Query<(&CraftedResource, &CraftedAmount)>,

@@ -1,5 +1,8 @@
 use bevy::app::{FixedPostUpdate, Plugin, Startup};
-use bevy::prelude::*;
+use bevy::prelude::{
+    BuildChildren, Changed, Children, Commands, Component, EventWriter, IntoSystemConfigs,
+    ParamSet, Query, With,
+};
 use bevy::utils::HashMap;
 
 use sorrow_core::communication::Notification;
@@ -13,8 +16,8 @@ use crate::io::OutputEvent;
 use crate::schedules::BufferChanges;
 use crate::simulation::resources::Capacity;
 
-use super::buildings::Level;
-use super::resources::{Amount, Crafted};
+use super::buildings::{Building, Level};
+use super::resources::{Amount, Crafted, Resource};
 
 pub mod sets {
     use bevy::prelude::SystemSet;
@@ -125,7 +128,7 @@ fn spawn_recipes(mut cmd: Commands) {
 }
 
 fn recalculate_recipe_costs(
-    buildings: Query<(&super::buildings::Kind, &Level), Changed<Level>>,
+    buildings: Query<(&Building, &Level), Changed<Level>>,
     recipes: IndexedQuery<Recipe, (&PriceRatio, &Children)>,
     mut amounts_query: Query<(&mut RequiredAmount, &BaseAmount), With<Ingredient>>,
 ) {
@@ -145,17 +148,14 @@ fn recalculate_fulfillments(
         Query<(&Recipe, &mut Fulfillment)>,
     )>,
     requirements: Query<(&Ingredient, &RequiredAmount), With<Ingredient>>,
-    resources: IndexedQuery<super::resources::Kind, (&Amount, Option<&Capacity>, Option<&Crafted>)>,
+    resources: IndexedQuery<Resource, (&Amount, Option<&Capacity>, Option<&Crafted>)>,
 ) {
     fn recalculate_one(
         recipe: Recipe,
         calculated: &mut HashMap<Recipe, SFulfillment>,
         recipes: &IndexedQuery<Recipe, &Children>,
         requirements: &Query<(&Ingredient, &RequiredAmount), With<Ingredient>>,
-        resources: &IndexedQuery<
-            super::resources::Kind,
-            (&Amount, Option<&Capacity>, Option<&Crafted>),
-        >,
+        resources: &IndexedQuery<Resource, (&Amount, Option<&Capacity>, Option<&Crafted>)>,
     ) -> SFulfillment {
         let mut result = SFulfillment::Fulfilled;
         let children = recipes.item(recipe);
@@ -208,7 +208,7 @@ fn recalculate_fulfillments(
 fn recalculate_unlocks(
     mut recipes: Query<(&UnlockRatio, &mut Unlocked, &Children), With<Recipe>>,
     requirements: Query<(&Ingredient, &RequiredAmount), With<Ingredient>>,
-    resources: IndexedQuery<super::resources::Kind, &Amount>,
+    resources: IndexedQuery<Resource, &Amount>,
 ) {
     for (unlock_ratio, mut fulfillment, children) in recipes.iter_mut() {
         for (ingredient, required_amount) in requirements.iter_many(children) {

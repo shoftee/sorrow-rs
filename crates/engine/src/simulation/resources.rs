@@ -31,16 +31,16 @@ pub mod sets {
 pub struct ResourcesPlugin;
 
 #[derive(Component, Clone, Copy, Hash, PartialEq, Eq, Debug)]
-pub struct Kind(pub ResourceKind);
+pub struct Resource(pub ResourceKind);
 
-impl From<ResourceKind> for Kind {
+impl From<ResourceKind> for Resource {
     fn from(value: ResourceKind) -> Self {
         Self(value)
     }
 }
 
-impl From<Kind> for ResourceKind {
-    fn from(value: Kind) -> Self {
+impl From<Resource> for ResourceKind {
+    fn from(value: Resource) -> Self {
         value.0
     }
 }
@@ -114,7 +114,7 @@ impl AddAssign<f64> for Credit {
 
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(LookupIndexPlugin::<Kind>::new())
+        app.add_plugins(LookupIndexPlugin::<Resource>::new())
             .add_systems(Startup, spawn_resources)
             .add_systems(
                 FixedUpdate,
@@ -132,16 +132,16 @@ impl Plugin for ResourcesPlugin {
 }
 
 fn spawn_resources(mut cmd: Commands) {
-    cmd.spawn((Kind(ResourceKind::Catnip), Amount(0.0), Delta(0.0)));
+    cmd.spawn((Resource(ResourceKind::Catnip), Amount(0.0), Delta(0.0)));
     cmd.spawn((
-        Kind(ResourceKind::Wood),
+        Resource(ResourceKind::Wood),
         Amount(0.0),
         Delta(0.0),
         Crafted(Crafting::RefineCatnip),
     ));
 }
 
-fn clear_debits_and_credits(mut transactions: Query<(&mut Debit, &mut Credit), With<Kind>>) {
+fn clear_debits_and_credits(mut transactions: Query<(&mut Debit, &mut Credit), With<Resource>>) {
     for (mut debit, mut credit) in transactions.iter_mut() {
         debit.0 = 0.0;
         credit.0 = 0.0;
@@ -149,7 +149,7 @@ fn clear_debits_and_credits(mut transactions: Query<(&mut Debit, &mut Credit), W
 }
 
 fn add_deltas_to_debit_or_credit(
-    mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<Kind>>,
+    mut resources: Query<(&Delta, &mut Debit, &mut Credit), With<Resource>>,
 ) {
     for (delta, mut debit, mut credit) in resources.iter_mut() {
         let delta = delta.0;
@@ -166,7 +166,7 @@ fn add_deltas_to_debit_or_credit(
 }
 
 fn commit_credits_and_debits(
-    mut resources: Query<(&mut Amount, &Debit, &Credit, Option<&Capacity>), With<Kind>>,
+    mut resources: Query<(&mut Amount, &Debit, &Credit, Option<&Capacity>), With<Resource>>,
 ) {
     for (mut amount, debit, credit, capacity) in resources.iter_mut() {
         if let Some(new_amount) = calculate(amount.0, debit.0, credit.0, capacity.map(|f| f.0)) {
@@ -201,8 +201,8 @@ fn calculate(current: f64, debit: f64, credit: f64, capacity: Option<f64>) -> Op
 }
 
 fn recalculate_deltas(
-    mut resources: Query<(&Kind, &mut Delta)>,
-    buildings: IndexedQuery<buildings::Kind, &buildings::Level>,
+    mut resources: Query<(&Resource, &mut Delta)>,
+    buildings: IndexedQuery<buildings::Building, &buildings::Level>,
 ) {
     for (kind, mut delta) in resources.iter_mut() {
         match kind.0 {
@@ -220,7 +220,7 @@ fn recalculate_deltas(
 }
 
 fn detect_resource_changes(
-    resources: Query<(&Kind, Ref<Amount>, Ref<Delta>)>,
+    resources: Query<(&Resource, Ref<Amount>, Ref<Delta>)>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
     let mut has_resource_changes = false;
