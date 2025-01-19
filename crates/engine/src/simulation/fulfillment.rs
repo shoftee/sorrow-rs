@@ -28,28 +28,7 @@ pub mod sets {
 
 #[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[require(Fulfillment)]
-pub enum Recipe {
-    Building(BuildingKind),
-    Craft(sorrow_core::state::recipes::Crafting),
-}
-
-impl From<RecipeKind> for Recipe {
-    fn from(value: RecipeKind) -> Self {
-        match value {
-            RecipeKind::Building(kind) => Recipe::Building(kind),
-            RecipeKind::Crafting(kind) => Recipe::Craft(kind),
-        }
-    }
-}
-
-impl From<Recipe> for RecipeKind {
-    fn from(value: Recipe) -> Self {
-        match value {
-            Recipe::Craft(kind) => RecipeKind::Crafting(kind),
-            Recipe::Building(kind) => RecipeKind::Building(kind),
-        }
-    }
-}
+pub struct Recipe(pub RecipeKind);
 
 #[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Ingredient(pub ResourceKind);
@@ -97,14 +76,14 @@ impl Plugin for FulfillmentPlugin {
 }
 
 fn spawn_recipes(mut cmd: Commands) {
-    cmd.spawn(Recipe::Craft(
+    cmd.spawn(Recipe(RecipeKind::Crafting(
         sorrow_core::state::recipes::Crafting::GatherCatnip,
-    ))
+    )))
     .with_child((CraftedResource(ResourceKind::Catnip), CraftedAmount(1.0)));
 
-    cmd.spawn(Recipe::Craft(
+    cmd.spawn(Recipe(RecipeKind::Crafting(
         sorrow_core::state::recipes::Crafting::RefineCatnip,
-    ))
+    )))
     .with_child((
         Ingredient(ResourceKind::Catnip),
         BaseAmount(100.0),
@@ -113,7 +92,7 @@ fn spawn_recipes(mut cmd: Commands) {
     .with_child((CraftedResource(ResourceKind::Wood), CraftedAmount(1.0)));
 
     cmd.spawn((
-        Recipe::Building(BuildingKind::CatnipField),
+        Recipe(RecipeKind::Building(BuildingKind::CatnipField)),
         PriceRatio(1.12),
         UnlockRatio(0.3),
     ))
@@ -130,7 +109,7 @@ fn recalculate_recipe_costs(
     mut amounts_query: Query<(&mut RequiredAmount, &BaseAmount), With<Ingredient>>,
 ) {
     for (building, level) in buildings.iter() {
-        let (ratio, ingredient_entities) = recipes.item(Recipe::Building(building.0));
+        let (ratio, ingredient_entities) = recipes.item(Recipe(RecipeKind::Building(building.0)));
         let mut amounts = amounts_query.iter_many_mut(ingredient_entities);
         while let Some((mut required_amount, base_amount)) = amounts.fetch_next() {
             required_amount.0 = base_amount.0 * (ratio.0.powi(level.0 as i32));
@@ -160,7 +139,7 @@ fn recalculate_fulfillments(
             let (amount, capacity, crafted) = resources.item(ingredient.0.into());
             if let Some(crafted) = crafted {
                 result = recalculate_one(
-                    Recipe::Craft(crafted.0),
+                    Recipe(RecipeKind::Crafting(crafted.0)),
                     calculated,
                     recipes,
                     requirements,
@@ -225,8 +204,7 @@ fn detect_fulfillment_changes(
     let mut has_changes = false;
     let mut state = FulfillmentState::default();
     for (recipe, fulfillment) in fulfillments.iter() {
-        let recipe = (*recipe).into();
-        *state.fulfillments.get_state_mut(&recipe) = Some(fulfillment.0);
+        *state.fulfillments.get_state_mut(&recipe.0) = Some(fulfillment.0);
         has_changes = true;
     }
 

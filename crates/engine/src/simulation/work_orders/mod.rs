@@ -4,7 +4,7 @@ use bevy::{
     app::{App, FixedUpdate, Plugin},
     prelude::{Children, Event, EventReader, IntoSystemConfigs, Query},
 };
-use sorrow_core::communication::WorkOrderKind;
+use sorrow_core::{communication::WorkOrderKind, state::recipes::Kind as RecipeKind};
 
 use crate::{
     index::{IndexedQuery, IndexedQueryMut},
@@ -56,7 +56,7 @@ fn process_work_orders(
         let mut is_fulfilled: bool = true;
         match &item.0 {
             WorkOrderKind::Craft(crafting) => {
-                let ingredient_entities = recipes.item(Recipe::Craft(*crafting));
+                let ingredient_entities = recipes.item(Recipe(RecipeKind::Crafting(*crafting)));
                 let ingredients = ingredients.iter_many(ingredient_entities);
 
                 for (kind, amount) in ingredients {
@@ -78,7 +78,7 @@ fn process_work_orders(
                 }
             }
             WorkOrderKind::Construct(building) => {
-                let ingredient_entities = recipes.item(Recipe::Building(*building));
+                let ingredient_entities = recipes.item(Recipe(RecipeKind::Building(*building)));
 
                 for (kind, amount) in ingredients.iter_many(ingredient_entities) {
                     deltas.add_credit(kind.0, amount.0);

@@ -62,15 +62,12 @@ fn recalculate_visibility(
     resources: Query<(&Resource, &Unlocked), Changed<Unlocked>>,
 ) {
     let recipe_states = recipes.iter().map(|(recipe, unlocked)| {
-        let recipe_kind: sorrow_core::state::recipes::Kind = (*recipe).into();
-        let node_id: sorrow_core::state::ui::NodeId = recipe_kind.into();
-
+        let node_id: sorrow_core::state::ui::NodeId = recipe.0.into();
         (Node(node_id), unlocked)
     });
 
     let resource_states = resources.iter().map(|(resource, unlocked)| {
         let node_id: sorrow_core::state::ui::NodeId = resource.0.into();
-
         (Node(node_id), unlocked)
     });
 
