@@ -89,28 +89,28 @@ fn detect_calendar_changes(
     mut outputs: EventWriter<OutputEvent>,
 ) {
     if let Ok(calendar) = calendar.get_single() {
-        let mut has_calendar_changes = false;
-        let mut calendar_state = PartialCalendarState::default();
+        let mut has_changes = false;
+        let mut state = PartialCalendarState::default();
         let day = &calendar.0;
         if day.is_changed() {
-            calendar_state.day = Some(day.0);
-            has_calendar_changes = true;
+            state.day = Some(day.0);
+            has_changes = true;
         }
 
         let season = &calendar.1;
         if season.is_changed() {
-            calendar_state.season = Some(season.0);
-            has_calendar_changes = true;
+            state.season = Some(season.0);
+            has_changes = true;
         }
 
         let year = &calendar.2;
         if year.is_changed() {
-            calendar_state.year = Some(year.0);
-            has_calendar_changes = true;
+            state.year = Some(year.0);
+            has_changes = true;
         }
 
-        if has_calendar_changes {
-            outputs.send(OutputEvent(Notification::CalendarChanged(calendar_state)));
+        if has_changes {
+            outputs.send(OutputEvent(Notification::CalendarChanged(state)));
         }
     }
 }

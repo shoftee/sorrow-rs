@@ -53,15 +53,14 @@ fn detect_building_changes(
     buildings: Query<(&Building, &Level), Changed<Level>>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
-    let mut has_building_changes = false;
-    let mut building_state = BuildingState::default();
+    let mut has_changes = false;
+    let mut state = BuildingState::default();
     for (kind, level) in buildings.iter() {
-        let level_state = building_state.levels.get_state_mut(&kind.0);
-        *level_state = Some(level.0);
-        has_building_changes = true;
+        *state.levels.get_state_mut(&kind.0) = Some(level.0);
+        has_changes = true;
     }
 
-    if has_building_changes {
-        outputs.send(OutputEvent(Notification::BuildingsChanged(building_state)));
+    if has_changes {
+        outputs.send(OutputEvent(Notification::BuildingsChanged(state)));
     }
 }

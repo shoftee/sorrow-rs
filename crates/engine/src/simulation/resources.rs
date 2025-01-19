@@ -210,23 +210,21 @@ fn detect_resource_changes(
     resources: Query<(&Resource, Ref<Amount>, Ref<Delta>)>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
-    let mut has_resource_changes = false;
-    let mut resource_state = sorrow_core::state::resources::ResourceState::default();
+    let mut has_changes = false;
+    let mut state = sorrow_core::state::resources::ResourceState::default();
     for (kind, amount, delta) in resources.iter() {
         if amount.is_changed() {
-            let amount_state = resource_state.amounts.get_state_mut(&kind.0);
-            *amount_state = Some((*amount).into());
-            has_resource_changes = true;
+            *state.amounts.get_state_mut(&kind.0) = Some(amount.0);
+            has_changes = true;
         }
         if delta.is_changed() {
-            let delta_state = resource_state.deltas.get_state_mut(&kind.0);
-            *delta_state = Some((*delta).into());
-            has_resource_changes = true;
+            *state.deltas.get_state_mut(&kind.0) = Some(delta.0);
+            has_changes = true;
         }
     }
 
-    if has_resource_changes {
-        outputs.send(OutputEvent(Notification::ResourcesChanged(resource_state)));
+    if has_changes {
+        outputs.send(OutputEvent(Notification::ResourcesChanged(state)));
     }
 }
 
