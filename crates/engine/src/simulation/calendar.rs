@@ -7,10 +7,7 @@ use sorrow_core::{
     state::calendar::{PartialCalendarState, SeasonKind},
 };
 
-use crate::{
-    io::{BufferChanges, OutputEvent},
-    simulation::ticker::Ticker,
-};
+use crate::{io::OutputEvent, schedules::BufferChanges, simulation::ticker::Ticker};
 
 #[derive(Component)]
 struct DayTicker;

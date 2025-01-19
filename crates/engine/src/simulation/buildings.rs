@@ -9,10 +9,7 @@ use sorrow_core::{
     state::buildings::{BuildingState, Kind as StateKind},
 };
 
-use crate::{
-    index::LookupIndexPlugin,
-    io::{BufferChanges, OutputEvent},
-};
+use crate::{index::LookupIndexPlugin, io::OutputEvent, schedules::BufferChanges};
 
 #[derive(Component, Clone, Copy, Hash, PartialEq, Eq, Debug)]
 pub struct Kind(pub StateKind);
@@ -53,17 +50,15 @@ fn spawn_buildings(mut commands: Commands) {
 }
 
 fn detect_building_changes(
-    buildings: Query<(&Kind, Ref<Level>)>,
+    buildings: Query<(&Kind, &Level), Changed<Level>>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
     let mut has_building_changes = false;
     let mut building_state = BuildingState::default();
     for (kind, level) in buildings.iter() {
-        if level.is_changed() {
-            let level_state = building_state.levels.get_state_mut(&kind.0);
-            *level_state = Some((*level).into());
-            has_building_changes = true;
-        }
+        let level_state = building_state.levels.get_state_mut(&kind.0);
+        *level_state = Some(level.0);
+        has_building_changes = true;
     }
 
     if has_building_changes {

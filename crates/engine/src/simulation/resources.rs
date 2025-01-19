@@ -11,7 +11,8 @@ use sorrow_core::{communication::Notification, state::recipes::Crafting};
 use super::buildings;
 use crate::{
     index::{IndexedQuery, LookupIndexPlugin},
-    io::{BufferChanges, OutputEvent},
+    io::OutputEvent,
+    schedules::BufferChanges,
 };
 
 pub mod sets {

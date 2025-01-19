@@ -2,8 +2,28 @@ use std::collections::BTreeMap;
 
 use leptos::prelude::*;
 use reactive_stores::Store;
+
 use sorrow_core::state as core_state;
 use sorrow_core::state::{calendar::SeasonKind, precision::Precision, time::RunningState};
+
+#[derive(Store)]
+pub struct Building {
+    pub kind: core_state::buildings::Kind,
+    pub level: u32,
+}
+
+#[derive(Store)]
+pub struct Calendar {
+    pub day: i16,
+    pub season: core_state::calendar::SeasonKind,
+    pub year: usize,
+}
+
+#[derive(Store)]
+pub struct Fulfillment {
+    pub kind: core_state::recipes::Kind,
+    pub fulfillment: core_state::recipes::Fulfillment,
+}
 
 #[derive(Store)]
 pub struct Preferences {
@@ -18,22 +38,9 @@ pub struct Resource {
 }
 
 #[derive(Store)]
-pub struct Fulfillment {
-    pub kind: core_state::recipes::Kind,
-    pub fulfillment: core_state::recipes::Fulfillment,
-}
-
-#[derive(Store)]
-pub struct Building {
-    pub kind: core_state::buildings::Kind,
-    pub level: u32,
-}
-
-#[derive(Store)]
-pub struct Calendar {
-    pub day: i16,
-    pub season: SeasonKind,
-    pub year: usize,
+pub struct UiState {
+    pub id: core_state::ui::NodeId,
+    pub visible: bool,
 }
 
 #[derive(Store)]
@@ -44,6 +51,7 @@ pub struct GlobalStore {
     pub preferences: Preferences,
     pub resources: BTreeMap<core_state::resources::Kind, Store<Resource>>,
     pub running_state: RunningState,
+    pub ui: BTreeMap<core_state::ui::NodeId, Store<UiState>>,
 }
 
 impl GlobalStore {
@@ -51,12 +59,13 @@ impl GlobalStore {
         use core_state::buildings::Kind as BuildingKind;
         use core_state::recipes::Kind as RecipeKind;
         use core_state::resources::Kind as ResourceKind;
-        fn buildings_map() -> BTreeMap<BuildingKind, Store<crate::state::Building>> {
+
+        fn buildings_map() -> BTreeMap<BuildingKind, Store<Building>> {
             <BuildingKind as core_state::KeyIter>::key_iter()
                 .map(|kind| (kind, Store::new(Building { kind, level: 0 })))
                 .collect()
         }
-        fn resources_map() -> BTreeMap<ResourceKind, Store<crate::state::Resource>> {
+        fn resources_map() -> BTreeMap<ResourceKind, Store<Resource>> {
             <ResourceKind as core_state::KeyIter>::key_iter()
                 .map(|kind| {
                     (
@@ -70,7 +79,7 @@ impl GlobalStore {
                 })
                 .collect()
         }
-        fn fulfillments_map() -> BTreeMap<RecipeKind, Store<crate::state::Fulfillment>> {
+        fn fulfillments_map() -> BTreeMap<RecipeKind, Store<Fulfillment>> {
             <RecipeKind as core_state::KeyIter>::key_iter()
                 .map(|kind| {
                     (
@@ -78,6 +87,19 @@ impl GlobalStore {
                         Store::new(Fulfillment {
                             kind,
                             fulfillment: core_state::recipes::Fulfillment::Unfulfilled,
+                        }),
+                    )
+                })
+                .collect()
+        }
+        fn ui_map() -> BTreeMap<core_state::ui::NodeId, Store<UiState>> {
+            <core_state::ui::NodeId as core_state::KeyIter>::key_iter()
+                .map(|e| {
+                    (
+                        e,
+                        Store::new(UiState {
+                            id: e,
+                            visible: false,
                         }),
                     )
                 })
@@ -96,6 +118,7 @@ impl GlobalStore {
             },
             resources: resources_map(),
             running_state: RunningState::default(),
+            ui: ui_map(),
         }
     }
 }

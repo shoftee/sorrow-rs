@@ -5,6 +5,7 @@ pub mod precision;
 pub mod recipes;
 pub mod resources;
 pub mod time;
+pub mod ui;
 
 use std::{
     collections::{hash_map::Iter, HashMap},

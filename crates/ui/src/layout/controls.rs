@@ -1,11 +1,14 @@
 use leptos::prelude::*;
+
 use sorrow_core::communication::{Intent, WorkOrderKind};
 use sorrow_core::state::recipes::Crafting;
+use sorrow_core::state::ui::{BonfireNodeId, NodeId};
 use sorrow_core::state::{buildings, recipes};
 
 use crate::components::{numbers::number_span, Button};
 use crate::state::{
     use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreStoreFields,
+    UiStateStoreFields,
 };
 
 #[component]
@@ -19,16 +22,41 @@ pub fn ControlsContainer() -> impl IntoView {
 
 #[component]
 fn BonfireControls() -> impl IntoView {
-    let button_kinds = RwSignal::new(vec![
-        WorkOrderKind::Craft(Crafting::GatherCatnip),
-        WorkOrderKind::Craft(Crafting::RefineCatnip),
-        WorkOrderKind::Construct(buildings::Kind::CatnipField),
-    ]);
+    let bonfire_nodes = [
+        (
+            NodeId::Bonfire(BonfireNodeId::GatherCatnip),
+            WorkOrderKind::Craft(Crafting::GatherCatnip),
+        ),
+        (
+            NodeId::Bonfire(BonfireNodeId::RefineCatnip),
+            WorkOrderKind::Craft(Crafting::RefineCatnip),
+        ),
+        (
+            NodeId::Bonfire(BonfireNodeId::CatnipField),
+            WorkOrderKind::Construct(buildings::Kind::CatnipField),
+        ),
+    ];
+
+    let ui = use_global_store().ui();
+
+    let bonfire_buttons = Signal::derive(move || {
+        bonfire_nodes
+            .iter()
+            .filter_map(|(id, kind)| {
+                let visible = ui.read_untracked().get(id).unwrap().visible().get();
+                if visible {
+                    Some(*kind)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>()
+    });
 
     view! {
         <div class="controls grid grid-cols-2 gap-2">
             <For
-                each={move || button_kinds.get()}
+                each={move || bonfire_buttons.get()}
                 key={|state| *state}
                 let:item
             >

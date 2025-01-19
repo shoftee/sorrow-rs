@@ -3,8 +3,11 @@ mod index;
 mod io;
 mod runner;
 mod simulation;
+mod ui;
+mod schedules;
 
 pub use endpoint::Endpoint;
+use ui::UiPlugin;
 
 pub fn start() {
     use std::time::Duration;
@@ -21,5 +24,6 @@ pub fn start() {
         .add_plugins(LogPlugin::default())
         .add_plugins(SimulationPlugin)
         .add_plugins(InputOutputPlugin)
+        .add_plugins(UiPlugin)
         .run();
 }

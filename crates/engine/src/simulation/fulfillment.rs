@@ -9,7 +9,8 @@ use sorrow_core::state::recipes::{Fulfillment as SFulfillment, FulfillmentState}
 use sorrow_core::state::resources::Kind as ResourceKind;
 
 use crate::index::{IndexedQuery, LookupIndexPlugin};
-use crate::io::{BufferChanges, OutputEvent};
+use crate::io::OutputEvent;
+use crate::schedules::BufferChanges;
 use crate::simulation::resources::Capacity;
 
 use super::buildings::Level;
@@ -65,8 +66,15 @@ pub struct CraftedAmount(pub f64);
 #[derive(Component, Debug, Copy, Clone)]
 struct PriceRatio(pub f64);
 
-#[derive(Component, Default, Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Component, Debug, Copy, Clone)]
+#[require(Unlocked)]
+struct UnlockRatio(pub f64);
+
+#[derive(Component, Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Fulfillment(pub SFulfillment);
+
+#[derive(Component, Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Unlocked(pub bool);
 
 pub struct FulfillmentPlugin;
 
@@ -76,7 +84,11 @@ impl Plugin for FulfillmentPlugin {
             .add_systems(Startup, spawn_recipes)
             .add_systems(
                 FixedPostUpdate,
-                (recalculate_recipe_costs, recalculate_fulfillments)
+                (
+                    recalculate_recipe_costs,
+                    recalculate_fulfillments,
+                    recalculate_unlocks,
+                )
                     .chain()
                     .in_set(sets::Recalculate),
             )
@@ -103,6 +115,7 @@ fn spawn_recipes(mut cmd: Commands) {
     cmd.spawn((
         Recipe::Building(BuildingKind::CatnipField),
         PriceRatio(1.12),
+        UnlockRatio(0.3),
     ))
     .with_child((
         Ingredient(ResourceKind::Catnip),
@@ -192,18 +205,32 @@ fn recalculate_fulfillments(
     }
 }
 
+fn recalculate_unlocks(
+    mut recipes: Query<(&UnlockRatio, &mut Unlocked, &Children), With<Recipe>>,
+    requirements: Query<(&Ingredient, &RequiredAmount), With<Ingredient>>,
+    resources: IndexedQuery<super::resources::Kind, &Amount>,
+) {
+    for (unlock_ratio, mut fulfillment, children) in recipes.iter_mut() {
+        for (ingredient, required_amount) in requirements.iter_many(children) {
+            let amount = resources.item(ingredient.0.into());
+            if amount.0 >= (required_amount.0 * unlock_ratio.0) {
+                fulfillment.0 = true;
+                break;
+            }
+        }
+    }
+}
+
 fn detect_fulfillment_changes(
-    fulfillments: Query<(&Recipe, Ref<Fulfillment>)>,
+    fulfillments: Query<(&Recipe, &Fulfillment), Changed<Fulfillment>>,
     mut outputs: EventWriter<OutputEvent>,
 ) {
     let mut has_changes = false;
     let mut state = FulfillmentState::default();
     for (recipe, fulfillment) in fulfillments.iter() {
-        if fulfillment.is_changed() {
-            let recipe = (*recipe).into();
-            *state.fulfillments.get_state_mut(&recipe) = Some(fulfillment.0);
-            has_changes = true;
-        }
+        let recipe = (*recipe).into();
+        *state.fulfillments.get_state_mut(&recipe) = Some(fulfillment.0);
+        has_changes = true;
     }
 
     if has_changes {

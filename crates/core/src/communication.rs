@@ -28,4 +28,5 @@ pub enum Notification {
     FulfillmentsChanged(crate::state::recipes::FulfillmentState),
     ResourcesChanged(crate::state::resources::ResourceState),
     TimeChanged(crate::state::time::PartialTimeState),
+    VisibilityChanged(crate::state::ui::VisibilityState),
 }
