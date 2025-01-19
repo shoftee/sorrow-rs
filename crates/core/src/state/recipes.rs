@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::state_key;
 
-use super::StateTable;
+use super::{KeyIter, StateTable};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Kind {
@@ -10,15 +10,13 @@ pub enum Kind {
     Building(super::buildings::Kind),
 }
 
-impl Kind {
-    #[expect(clippy::type_complexity)]
-    pub fn iter() -> std::iter::Chain<
-        std::iter::Map<super::buildings::KindIter, impl FnMut(super::buildings::Kind) -> Kind>,
-        std::iter::Map<CraftingIter, impl FnMut(Crafting) -> Kind>,
-    > {
+impl KeyIter for Kind {
+    type Item = Kind;
+
+    fn key_iter() -> impl Iterator<Item = Self::Item> {
         Iterator::chain(
-            super::buildings::Kind::iter().map(Kind::Building),
-            Crafting::iter().map(Kind::Crafting),
+            super::buildings::Kind::key_iter().map(Kind::Building),
+            Crafting::key_iter().map(Kind::Crafting),
         )
     }
 }
@@ -40,6 +38,5 @@ pub enum Fulfillment {
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct FulfillmentState {
-    pub crafting: StateTable<Crafting, Fulfillment>,
-    pub building: StateTable<super::buildings::Kind, Fulfillment>,
+    pub fulfillments: StateTable<Kind, Fulfillment>,
 }

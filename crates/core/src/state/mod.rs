@@ -12,19 +12,18 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use strum::IntoEnumIterator;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StateTable<K, V>(HashMap<K, Option<V>, ahash::RandomState>)
 where
-    K: Eq + Hash + IntoEnumIterator;
+    K: Eq + Hash + KeyIter<Item = K>;
 
 impl<K, V> StateTable<K, V>
 where
-    K: Eq + Hash + IntoEnumIterator,
+    K: Eq + Hash + KeyIter<Item = K>,
 {
     pub fn new() -> Self {
-        Self(<K as IntoEnumIterator>::iter().map(|k| (k, None)).collect())
+        Self(<K as KeyIter>::key_iter().map(|k| (k, None)).collect())
     }
 
     pub fn get_state(&self, key: &K) -> &Option<V> {
@@ -44,14 +43,14 @@ where
 
 pub struct StateTableIter<'a, K, V>
 where
-    K: Eq + Hash + IntoEnumIterator,
+    K: Eq + Hash,
 {
     inner: Iter<'a, K, Option<V>>,
 }
 
 impl<'a, K, V> Iterator for StateTableIter<'a, K, V>
 where
-    K: Eq + Hash + IntoEnumIterator,
+    K: Eq + Hash,
 {
     type Item = (&'a K, &'a Option<V>);
 
@@ -62,11 +61,17 @@ where
 
 impl<K, V> Default for StateTable<K, V>
 where
-    K: Eq + Hash + IntoEnumIterator,
+    K: Eq + Hash + KeyIter<Item = K>,
 {
     fn default() -> Self {
         Self::new()
     }
+}
+
+pub trait KeyIter {
+    type Item;
+
+    fn key_iter() -> impl Iterator<Item = Self::Item>;
 }
 
 #[macro_export]
@@ -87,8 +92,10 @@ macro_rules! state_key {
         )]
         $vis enum $ident $tt
 
-        impl $ident {
-            $vis fn iter() -> <$ident as ::strum::IntoEnumIterator>::Iterator {
+        impl $crate::state::KeyIter for $ident {
+            type Item = $ident;
+
+            fn key_iter() -> impl Iterator<Item = Self::Item> {
                 <$ident as ::strum::IntoEnumIterator>::iter()
             }
         }

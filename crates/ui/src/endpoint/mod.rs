@@ -4,10 +4,7 @@ use leptos::prelude::*;
 use reactive_stores::Store;
 use send_wrapper::SendWrapper;
 
-use sorrow_core::{
-    communication::{Intent, Notification},
-    state::recipes::Kind as RecipeKind,
-};
+use sorrow_core::communication::{Intent, Notification};
 use sorrow_engine::Endpoint;
 
 use crate::state::{
@@ -48,8 +45,8 @@ fn accept(store: Store<GlobalStore>, notifications: Vec<Notification>) {
                     store.calendar().year().set(year);
                 }
             }
-            BuildingsChanged(buildings) => {
-                for (kind, level) in buildings.levels.iter() {
+            BuildingsChanged(state) => {
+                for (kind, level) in state.levels.iter() {
                     if let Some(level) = level {
                         store
                             .buildings()
@@ -59,28 +56,19 @@ fn accept(store: Store<GlobalStore>, notifications: Vec<Notification>) {
                     }
                 }
             }
-            FulfillmentsChanged(fulfillment) => {
-                for (kind, fulfillment) in fulfillment.building.iter() {
+            FulfillmentsChanged(state) => {
+                for (kind, fulfillment) in state.fulfillments.iter() {
                     if let Some(fulfillment) = fulfillment {
                         store
                             .fulfillments()
                             .write_untracked()
-                            .entry(RecipeKind::Building(*kind))
-                            .and_modify(|e| e.fulfillment().set(*fulfillment));
-                    }
-                }
-                for (kind, fulfillment) in fulfillment.crafting.iter() {
-                    if let Some(fulfillment) = fulfillment {
-                        store
-                            .fulfillments()
-                            .write_untracked()
-                            .entry(RecipeKind::Crafting(*kind))
+                            .entry(*kind)
                             .and_modify(|e| e.fulfillment().set(*fulfillment));
                     }
                 }
             }
-            ResourcesChanged(resources) => {
-                for (kind, amount) in resources.amounts.iter() {
+            ResourcesChanged(state) => {
+                for (kind, amount) in state.amounts.iter() {
                     if let Some(amount) = amount {
                         store
                             .resources()
@@ -89,7 +77,7 @@ fn accept(store: Store<GlobalStore>, notifications: Vec<Notification>) {
                             .and_modify(|e| e.amount().set(*amount));
                     }
                 }
-                for (kind, delta) in resources.deltas.iter() {
+                for (kind, delta) in state.deltas.iter() {
                     if let Some(delta) = delta {
                         store
                             .resources()

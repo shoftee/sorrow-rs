@@ -200,14 +200,8 @@ fn detect_fulfillment_changes(
     let mut state = FulfillmentState::default();
     for (recipe, fulfillment) in fulfillments.iter() {
         if fulfillment.is_changed() {
-            match recipe {
-                Recipe::Building(building) => {
-                    *state.building.get_state_mut(building) = Some(fulfillment.0)
-                }
-                Recipe::Craft(crafting) => {
-                    *state.crafting.get_state_mut(crafting) = Some(fulfillment.0)
-                }
-            };
+            let recipe = (*recipe).into();
+            *state.fulfillments.get_state_mut(&recipe) = Some(fulfillment.0);
             has_changes = true;
         }
     }

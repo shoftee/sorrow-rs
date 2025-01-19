@@ -52,12 +52,12 @@ impl GlobalStore {
         use core_state::recipes::Kind as RecipeKind;
         use core_state::resources::Kind as ResourceKind;
         fn buildings_map() -> BTreeMap<BuildingKind, Store<crate::state::Building>> {
-            BuildingKind::iter()
+            <BuildingKind as core_state::KeyIter>::key_iter()
                 .map(|kind| (kind, Store::new(Building { kind, level: 0 })))
                 .collect()
         }
         fn resources_map() -> BTreeMap<ResourceKind, Store<crate::state::Resource>> {
-            ResourceKind::iter()
+            <ResourceKind as core_state::KeyIter>::key_iter()
                 .map(|kind| {
                     (
                         kind,
@@ -71,7 +71,7 @@ impl GlobalStore {
                 .collect()
         }
         fn fulfillments_map() -> BTreeMap<RecipeKind, Store<crate::state::Fulfillment>> {
-            RecipeKind::iter()
+            <RecipeKind as core_state::KeyIter>::key_iter()
                 .map(|kind| {
                     (
                         kind,
