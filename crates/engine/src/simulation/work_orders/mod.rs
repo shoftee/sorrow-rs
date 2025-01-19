@@ -14,7 +14,7 @@ use crate::{
 use super::{
     buildings::{Building, Level},
     fulfillment::{CraftedAmount, CraftedResource, Ingredient, Recipe, RequiredAmount},
-    resources::{Amount, Capacity, Resource},
+    resources::{self, Amount, Capacity, Resource},
 };
 
 pub mod sets {
@@ -62,8 +62,8 @@ fn process_work_orders(
                 for (kind, amount) in ingredients {
                     deltas.add_credit(kind.0, amount.0);
 
-                    let (amount, debit, credit, _) = resources.item_mut(kind.0.into());
-                    let total = amount.0 + debit.0 - credit.0;
+                    let (amount, debit, credit, capacity) = resources.item_mut(kind.0.into());
+                    let total = resources::logic::total(amount, &debit, &credit, capacity);
                     if total - deltas.credit(kind.0) < 0.0 {
                         is_fulfilled = false;
                         break;
@@ -83,8 +83,8 @@ fn process_work_orders(
                 for (kind, amount) in ingredients.iter_many(ingredient_entities) {
                     deltas.add_credit(kind.0, amount.0);
 
-                    let (amount, debit, credit, _) = resources.item_mut(kind.0.into());
-                    let total = amount.0 + debit.0 - credit.0;
+                    let (amount, debit, credit, capacity) = resources.item_mut(kind.0.into());
+                    let total = resources::logic::total(amount, &debit, &credit, capacity);
                     if total - deltas.credit(kind.0) < 0.0 {
                         is_fulfilled = false;
                         break;

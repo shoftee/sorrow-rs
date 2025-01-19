@@ -170,34 +170,9 @@ fn commit_credits_and_debits(
     mut resources: Query<(&mut Amount, &Debit, &Credit, Option<&Capacity>), With<Resource>>,
 ) {
     for (mut amount, debit, credit, capacity) in resources.iter_mut() {
-        if let Some(new_amount) = calculate(amount.0, debit.0, credit.0, capacity.map(|f| f.0)) {
+        if let Some(new_amount) = logic::total_if_changed(&amount, debit, credit, capacity) {
             amount.0 = new_amount;
         }
-    }
-}
-
-fn calculate(current: f64, debit: f64, credit: f64, capacity: Option<f64>) -> Option<f64> {
-    let mut new_amount = current;
-    // subtract losses first
-    new_amount -= credit;
-
-    let capacity = capacity.unwrap_or(f64::MAX);
-    if new_amount < capacity {
-        // new resources are gained only when under capacity
-        new_amount += debit;
-
-        // but they only go up to capacity at most
-        new_amount = f64::min(new_amount, capacity);
-    }
-
-    // negative resource amount is non-sense (for now...)
-    new_amount = f64::max(new_amount, 0.0);
-
-    // check if the value actually changed
-    if (current - new_amount).abs() > f64::EPSILON {
-        Some(new_amount)
-    } else {
-        None
     }
 }
 
@@ -252,5 +227,50 @@ fn detect_resource_changes(
 
     if has_resource_changes {
         outputs.send(OutputEvent(Notification::ResourcesChanged(resource_state)));
+    }
+}
+
+pub mod logic {
+    use super::{Amount, Capacity, Credit, Debit};
+
+    pub fn total_if_changed(
+        current: &Amount,
+        debit: &Debit,
+        credit: &Credit,
+        capacity: Option<&Capacity>,
+    ) -> Option<f64> {
+        let new_amount = total(current, debit, credit, capacity);
+
+        // check if the value actually changed
+        if (current.0 - new_amount).abs() > f64::EPSILON {
+            Some(new_amount)
+        } else {
+            None
+        }
+    }
+
+    pub fn total(
+        current: &Amount,
+        debit: &Debit,
+        credit: &Credit,
+        capacity: Option<&Capacity>,
+    ) -> f64 {
+        let capacity = capacity.map(|c| c.0).unwrap_or(f64::MAX);
+
+        let mut new_amount = current.0;
+        // subtract losses first
+        new_amount -= credit.0;
+        if new_amount < capacity {
+            // new resources are gained only when under capacity
+            new_amount += debit.0;
+
+            // but they only go up to capacity at most
+            new_amount = f64::min(new_amount, capacity);
+        }
+
+        // negative resource amount is non-sense (for now...)
+        new_amount = f64::max(new_amount, 0.0);
+
+        new_amount
     }
 }
