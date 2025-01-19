@@ -8,7 +8,7 @@ use bevy::{
 use sorrow_core::state::resources::Kind as ResourceKind;
 use sorrow_core::{communication::Notification, state::recipes::Crafting};
 
-use super::buildings;
+use super::{buildings, Unlocked};
 use crate::{
     index::{IndexedQuery, LookupIndexPlugin},
     io::OutputEvent,
@@ -31,6 +31,7 @@ pub mod sets {
 pub struct ResourcesPlugin;
 
 #[derive(Component, Clone, Copy, Hash, PartialEq, Eq, Debug)]
+#[require(Unlocked)]
 pub struct Resource(pub ResourceKind);
 
 impl From<ResourceKind> for Resource {
@@ -125,7 +126,7 @@ impl Plugin for ResourcesPlugin {
             .add_systems(FixedUpdate, commit_credits_and_debits.in_set(sets::Commit))
             .add_systems(
                 FixedPostUpdate,
-                recalculate_deltas.in_set(sets::Recalculate),
+                (recalculate_unlocks, recalculate_deltas).in_set(sets::Recalculate),
             )
             .add_systems(BufferChanges, detect_resource_changes);
     }
@@ -216,6 +217,17 @@ fn recalculate_deltas(
                 // no wood gain yet
             }
         };
+    }
+}
+
+#[expect(clippy::type_complexity)]
+fn recalculate_unlocks(
+    mut resources: Query<(&Amount, &mut Unlocked), (With<Resource>, Changed<Amount>)>,
+) {
+    for (amount, mut unlocked) in resources.iter_mut() {
+        if amount.0 > 0.0 {
+            unlocked.0 = true;
+        }
     }
 }
 

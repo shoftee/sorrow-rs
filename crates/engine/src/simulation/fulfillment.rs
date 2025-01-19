@@ -70,14 +70,11 @@ pub struct CraftedAmount(pub f64);
 struct PriceRatio(pub f64);
 
 #[derive(Component, Debug, Copy, Clone)]
-#[require(Unlocked)]
+#[require(super::Unlocked)]
 struct UnlockRatio(pub f64);
 
 #[derive(Component, Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Fulfillment(pub SFulfillment);
-
-#[derive(Component, Default, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Unlocked(pub bool);
 
 pub struct FulfillmentPlugin;
 
@@ -206,15 +203,15 @@ fn recalculate_fulfillments(
 }
 
 fn recalculate_unlocks(
-    mut recipes: Query<(&UnlockRatio, &mut Unlocked, &Children), With<Recipe>>,
+    mut recipes: Query<(&UnlockRatio, &mut super::Unlocked, &Children), With<Recipe>>,
     requirements: Query<(&Ingredient, &RequiredAmount), With<Ingredient>>,
     resources: IndexedQuery<Resource, &Amount>,
 ) {
-    for (unlock_ratio, mut fulfillment, children) in recipes.iter_mut() {
+    for (unlock_ratio, mut unlocked, children) in recipes.iter_mut() {
         for (ingredient, required_amount) in requirements.iter_many(children) {
             let amount = resources.item(ingredient.0.into());
             if amount.0 >= (required_amount.0 * unlock_ratio.0) {
-                fulfillment.0 = true;
+                unlocked.0 = true;
                 break;
             }
         }

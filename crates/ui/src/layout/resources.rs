@@ -1,27 +1,42 @@
 use leptos::prelude::*;
 use reactive_stores::Store;
 use sorrow_core::state::resources::Kind;
+use sorrow_core::state::ui::{NodeId, ResourceNodeId};
+use sorrow_core::state::KeyIter;
 
 use crate::components::{conditional::*, numbers::DecimalView};
 use crate::formatter::ShowSign;
-use crate::state::{use_global_store, GlobalStoreStoreFields, ResourceStoreFields};
+use crate::state::{
+    use_global_store, GlobalStoreStoreFields, ResourceStoreFields, UiStateStoreFields,
+};
 
 #[component]
 pub fn ResourcesContainer() -> impl IntoView {
-    let resources = Signal::derive(|| {
-        use_global_store()
-            .resources()
-            .read()
-            .iter()
-            .map(|(_, v)| *v)
+    let resources = Signal::derive(move || {
+        ResourceNodeId::key_iter()
+            .filter_map(|id| {
+                if use_global_store()
+                    .ui()
+                    .read_untracked()
+                    .get(&NodeId::Resources(id))
+                    .unwrap()
+                    .visible()
+                    .get()
+                {
+                    Some(
+                        *use_global_store()
+                            .resources()
+                            .read_untracked()
+                            .get(&id.into())
+                            .unwrap(),
+                    )
+                } else {
+                    None
+                }
+            })
             .collect::<Vec<_>>()
     });
-    let has_resources = Memo::new(move |_| {
-        resources
-            .get()
-            .iter()
-            .any(|resource| resource.amount().get() > 0.0)
-    });
+    let has_resources = Memo::new(move |_| !resources.get().is_empty());
 
     let expanded_rw = RwSignal::new(true);
 

@@ -1,16 +1,21 @@
-use bevy::app::Plugin;
-use bevy::prelude::*;
+use bevy::{
+    app::{Plugin, Startup},
+    prelude::{Changed, Commands, Component, EventWriter, Query},
+};
 
 use sorrow_core::{
     communication::Notification,
-    state::ui::{BonfireNodeId, NodeId},
+    state::{
+        ui::{BonfireNodeId, NodeId},
+        KeyIter,
+    },
 };
 
 use crate::{
     index::{IndexedQueryMut, LookupIndexPlugin},
     io::OutputEvent,
     schedules::{BufferChanges, Recalculate},
-    simulation::fulfillment::{Recipe, Unlocked},
+    simulation::{fulfillment::Recipe, resources::Resource, Unlocked},
 };
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -28,37 +33,50 @@ impl Plugin for VisibilityPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(LookupIndexPlugin::<Node>::new())
             .add_systems(Startup, spawn_ui_nodes)
-            .add_systems(BufferChanges, detect_visibility_changes)
-            .add_systems(Recalculate, recalculate_visibility);
+            .add_systems(Recalculate, recalculate_visibility)
+            .add_systems(BufferChanges, detect_visibility_changes);
     }
 }
 
 fn spawn_ui_nodes(mut cmd: Commands) {
-    cmd.spawn((
-        Node(NodeId::Bonfire(BonfireNodeId::GatherCatnip)),
-        Visibility::Visible,
-    ));
-    cmd.spawn((
-        Node(NodeId::Bonfire(BonfireNodeId::RefineCatnip)),
-        Visibility::Visible,
-    ));
-    cmd.spawn((
-        Node(NodeId::Bonfire(BonfireNodeId::CatnipField)),
-        Visibility::Invisible,
-    ));
+    let bundles = NodeId::key_iter().map(|node_id| {
+        (
+            Node(node_id),
+            if matches!(
+                node_id,
+                NodeId::Bonfire(BonfireNodeId::GatherCatnip)
+                    | NodeId::Bonfire(BonfireNodeId::RefineCatnip)
+            ) {
+                Visibility::Visible
+            } else {
+                Visibility::Invisible
+            },
+        )
+    });
+    cmd.spawn_batch(bundles);
 }
 
 fn recalculate_visibility(
     mut visibilities: IndexedQueryMut<Node, &mut Visibility>,
     recipes: Query<(&Recipe, &Unlocked), Changed<Unlocked>>,
+    resources: Query<(&Resource, &Unlocked), Changed<Unlocked>>,
 ) {
-    for (recipe, unlocked) in recipes.iter() {
+    let recipe_states = recipes.iter().map(|(recipe, unlocked)| {
         let recipe_kind: sorrow_core::state::recipes::Kind = (*recipe).into();
         let node_id: sorrow_core::state::ui::NodeId = recipe_kind.into();
 
-        let mut visibility = visibilities.item_mut(Node(node_id));
+        (Node(node_id), unlocked)
+    });
+
+    let resource_states = resources.iter().map(|(resource, unlocked)| {
+        let node_id: sorrow_core::state::ui::NodeId = resource.0.into();
+
+        (Node(node_id), unlocked)
+    });
+
+    for (node, unlocked) in recipe_states.chain(resource_states) {
         if unlocked.0 {
-            *visibility = Visibility::Visible;
+            *visibilities.item_mut(node) = Visibility::Visible;
         }
     }
 }

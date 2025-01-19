@@ -5,10 +5,8 @@ pub mod resources;
 pub mod ticker;
 pub mod work_orders;
 
-use bevy::{
-    app::{App, FixedPostUpdate, FixedUpdate, Plugin},
-    prelude::IntoSystemSetConfigs,
-};
+use bevy::app::{App, FixedPostUpdate, FixedUpdate, Plugin};
+use bevy::prelude::*;
 
 use buildings::BuildingsPlugin;
 use calendar::CalendarPlugin;
@@ -16,6 +14,9 @@ use fulfillment::FulfillmentPlugin;
 use resources::ResourcesPlugin;
 use ticker::TickerPlugin;
 use work_orders::WorkOrdersPlugin;
+
+#[derive(Component, Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Unlocked(pub bool);
 
 pub struct SimulationPlugin;
 
