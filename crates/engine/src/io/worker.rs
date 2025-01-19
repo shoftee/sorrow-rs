@@ -98,7 +98,7 @@ impl sorrow_worker::Worker for Worker {
     }
 }
 
-pub mod schedule {
+pub mod sets {
     use bevy::prelude::SystemSet;
 
     #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -121,8 +121,8 @@ impl Plugin for WorkerPlugin {
         Worker::registrar().register_with(dispatcher.clone());
 
         app.insert_non_send_resource(dispatcher)
-            .add_systems(First, receive_inputs.in_set(schedule::Inputs))
-            .add_systems(Last, send_outputs.in_set(schedule::Outputs));
+            .add_systems(First, receive_inputs.in_set(sets::Inputs))
+            .add_systems(Last, send_outputs.in_set(sets::Outputs));
     }
 }
 

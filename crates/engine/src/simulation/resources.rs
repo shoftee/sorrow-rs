@@ -14,7 +14,7 @@ use crate::{
     io::{BufferChanges, OutputEvent},
 };
 
-pub mod schedule {
+pub mod sets {
     use bevy::prelude::SystemSet;
 
     #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -119,15 +119,12 @@ impl Plugin for ResourcesPlugin {
                 FixedUpdate,
                 (clear_debits_and_credits, add_deltas_to_debit_or_credit)
                     .chain()
-                    .in_set(schedule::Prepare),
+                    .in_set(sets::Prepare),
             )
-            .add_systems(
-                FixedUpdate,
-                commit_credits_and_debits.in_set(schedule::Commit),
-            )
+            .add_systems(FixedUpdate, commit_credits_and_debits.in_set(sets::Commit))
             .add_systems(
                 FixedPostUpdate,
-                recalculate_deltas.in_set(schedule::Recalculate),
+                recalculate_deltas.in_set(sets::Recalculate),
             )
             .add_systems(BufferChanges, detect_resource_changes);
     }

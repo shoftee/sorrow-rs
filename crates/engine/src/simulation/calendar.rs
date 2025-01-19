@@ -27,7 +27,7 @@ pub struct Season(pub SeasonKind);
 #[derive(Component)]
 pub struct Day(pub i16);
 
-pub mod schedule {
+pub mod sets {
     use bevy::prelude::SystemSet;
 
     #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -39,7 +39,7 @@ pub struct CalendarPlugin;
 impl Plugin for CalendarPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn)
-            .add_systems(FixedUpdate, advance_calendar.in_set(schedule::Main))
+            .add_systems(FixedUpdate, advance_calendar.in_set(sets::Main))
             .add_systems(BufferChanges, detect_calendar_changes);
     }
 }

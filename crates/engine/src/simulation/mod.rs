@@ -30,21 +30,17 @@ impl Plugin for SimulationPlugin {
             .configure_sets(
                 FixedUpdate,
                 (
-                    ticker::schedule::Main,
-                    calendar::schedule::Main,
-                    resources::schedule::Prepare,
-                    work_orders::schedule::Main,
-                    resources::schedule::Commit,
+                    ticker::sets::Main,
+                    calendar::sets::Main,
+                    resources::sets::Prepare,
+                    work_orders::sets::Main,
+                    resources::sets::Commit,
                 )
                     .chain(),
             )
             .configure_sets(
                 FixedPostUpdate,
-                (
-                    resources::schedule::Recalculate,
-                    fulfillment::schedule::Recalculate,
-                )
-                    .chain(),
+                (resources::sets::Recalculate, fulfillment::sets::Recalculate).chain(),
             );
     }
 }

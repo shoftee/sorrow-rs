@@ -32,7 +32,7 @@ impl Plugin for InputOutputPlugin {
             .add_plugins(IntentResolverPlugin)
             .configure_sets(
                 First,
-                (worker::schedule::Inputs, intent_resolver::schedule::Main).chain(),
+                (worker::sets::Inputs, intent_resolver::sets::Main).chain(),
             );
 
         app.init_schedule(BufferChanges);

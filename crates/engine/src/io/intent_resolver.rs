@@ -11,7 +11,7 @@ use crate::simulation::work_orders::WorkOrder;
 
 use super::{InputEvent, OutputEvent};
 
-pub mod schedule {
+pub mod sets {
     use bevy::prelude::SystemSet;
 
     #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -22,7 +22,7 @@ pub struct IntentResolverPlugin;
 
 impl Plugin for IntentResolverPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(First, resolve_intents.in_set(schedule::Main));
+        app.add_systems(First, resolve_intents.in_set(sets::Main));
     }
 }
 

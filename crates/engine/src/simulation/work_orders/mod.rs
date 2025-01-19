@@ -17,7 +17,7 @@ use super::{
     resources::{Amount, Capacity},
 };
 
-pub mod schedule {
+pub mod sets {
     use bevy::prelude::SystemSet;
 
     #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -32,7 +32,7 @@ pub struct WorkOrdersPlugin;
 impl Plugin for WorkOrdersPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<WorkOrder>()
-            .add_systems(FixedUpdate, process_work_orders.in_set(schedule::Main));
+            .add_systems(FixedUpdate, process_work_orders.in_set(sets::Main));
     }
 }
 

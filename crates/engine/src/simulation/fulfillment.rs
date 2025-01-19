@@ -15,7 +15,7 @@ use crate::simulation::resources::Capacity;
 use super::buildings::Level;
 use super::resources::{Amount, Crafted};
 
-pub mod schedule {
+pub mod sets {
     use bevy::prelude::SystemSet;
 
     #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -78,7 +78,7 @@ impl Plugin for FulfillmentPlugin {
                 FixedPostUpdate,
                 (recalculate_recipe_costs, recalculate_fulfillments)
                     .chain()
-                    .in_set(schedule::Recalculate),
+                    .in_set(sets::Recalculate),
             )
             .add_systems(BufferChanges, detect_fulfillment_changes);
     }

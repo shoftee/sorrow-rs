@@ -59,7 +59,7 @@ fn round(number: f64) -> f64 {
     (number * 1000.0).round() / 1000.0
 }
 
-pub mod schedule {
+pub mod sets {
     use bevy::prelude::SystemSet;
 
     #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -74,7 +74,7 @@ impl Plugin for TickerPlugin {
             .insert_resource(Time::<Fixed>::from_hz(5.0))
             .insert_resource(TickRate::default())
             .add_systems(Startup, spawn)
-            .add_systems(FixedUpdate, advance_simulation.in_set(schedule::Main));
+            .add_systems(FixedUpdate, advance_simulation.in_set(sets::Main));
     }
 }
 
