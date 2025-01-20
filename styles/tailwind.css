@@ -32,7 +32,7 @@ body {
 
 @layer utilities {
   .btn {
-    @apply py-1.5 px-3 enabled:text-black disabled:text-neutral-500 bg-neutral-100 rounded;
+    @apply py-1.5 px-3 text-black disabled:text-neutral-500 bg-neutral-100 rounded;
     @apply border border-solid enabled:border-black disabled:border-neutral-500;
     @apply focus:enabled:ring-black/50 focus:enabled:ring-4;
   }
