@@ -1,3 +1,4 @@
+use leptos::either::Either;
 use leptos::prelude::*;
 
 use sorrow_core::communication::{Intent, WorkOrderKind};
@@ -5,7 +6,9 @@ use sorrow_core::state::recipes::Crafting;
 use sorrow_core::state::ui::{BonfireNodeId, NodeId};
 use sorrow_core::state::{buildings, recipes};
 
-use crate::components::{numbers::number_span, Button};
+use crate::components::numbers::number_span;
+use crate::components::tooltip::{Target, Tooltip, TooltipContainer};
+use crate::endpoint::use_endpoint;
 use crate::state::{
     use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreStoreFields,
     UiStateStoreFields,
@@ -68,49 +71,52 @@ fn BonfireControls() -> impl IntoView {
 
 #[component]
 fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
+    let endpoint = use_endpoint();
+
     let label = match kind {
         WorkOrderKind::Construct(building) => match building {
-            sorrow_core::state::buildings::Kind::CatnipField => "Catnip field",
+            buildings::Kind::CatnipField => "Catnip field",
         },
         WorkOrderKind::Craft(crafting) => match crafting {
-            sorrow_core::state::recipes::Crafting::GatherCatnip => "Gather catnip",
-            sorrow_core::state::recipes::Crafting::RefineCatnip => "Refine catnip",
+            recipes::Crafting::GatherCatnip => "Gather catnip",
+            recipes::Crafting::RefineCatnip => "Refine catnip",
         },
     };
 
     let fulfillment = fulfillment_state(kind);
-    let is_not_fulfilled = Memo::new(move |_| {
-        !matches!(
-            fulfillment.get(),
-            sorrow_core::state::recipes::Fulfillment::Fulfilled
-        )
-    });
+    let is_not_fulfilled =
+        Memo::new(move |_| !matches!(fulfillment.get(), recipes::Fulfillment::Fulfilled));
 
-    match kind {
-        WorkOrderKind::Construct(building) => {
-            let level = building_level(building);
+    let button_view = match kind {
+        WorkOrderKind::Construct(building) => Either::Left(view! {
+            <button
+                class="btn w-full" type="button"
+                on:click=move |_| endpoint.send(Intent::QueueWorkOrder(WorkOrderKind::Construct(building)))
+                prop:disabled=is_not_fulfilled
+            >
+                {label}" "{number_span(building_level(building))}
+            </button>
+        }),
+        WorkOrderKind::Craft(crafting) => Either::Right(view! {
+            <button
+                class="btn w-full" type="button"
+                on:click=move |_| endpoint.send(Intent::QueueWorkOrder(WorkOrderKind::Craft(crafting)))
+                prop:disabled=is_not_fulfilled
+            >
+                {label}
+            </button>
+        }),
+    };
 
-            view! {
-                <Button
-                    intent=Intent::QueueWorkOrder(WorkOrderKind::Construct(building))
-                    {..}
-                    disabled=is_not_fulfilled
-                >
-                    {label}" "{number_span(level)}
-                </Button>
-            }
-        }
-        WorkOrderKind::Craft(crafting) => {
-            view! {
-                <Button
-                    intent=Intent::QueueWorkOrder(WorkOrderKind::Craft(crafting))
-                    {..}
-                    disabled=is_not_fulfilled
-                >
-                    {label}
-                </Button>
-            }
-        }
+    view! {
+        <TooltipContainer>
+            <Target slot>{button_view}</Target>
+            <Tooltip slot>
+                <div class="rounded p-2 bg-neutral-100 border border-solid border-neutral-800">
+                    "Test tooltip."
+                </div>
+            </Tooltip>
+        </TooltipContainer>
     }
 }
 

@@ -10,7 +10,7 @@ body {
 }
 
 body {
-  @apply select-none;
+  @apply select-none overflow-hidden;
 }
 
 .btn {
@@ -35,6 +35,10 @@ body {
     @apply py-1.5 px-3 enabled:text-black disabled:text-neutral-500 bg-neutral-100 rounded;
     @apply border border-solid enabled:border-black disabled:border-neutral-500;
     @apply focus:enabled:ring-black/50 focus:enabled:ring-4;
+  }
+
+  .tooltip-content {
+    @apply p-2 transition-transform duration-300;
   }
 
   .controls > .btn {
