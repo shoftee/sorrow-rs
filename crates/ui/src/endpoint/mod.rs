@@ -7,7 +7,7 @@ use send_wrapper::SendWrapper;
 use sorrow_core::communication::{Intent, Notification};
 use sorrow_engine::Endpoint;
 
-use crate::state::{use_global_store, GlobalStore, GlobalStoreStoreFields};
+use crate::state::{use_global_store, Global, GlobalStoreFields};
 
 pub fn provide_endpoint_context() {
     let global_store = use_global_store();
@@ -25,7 +25,7 @@ pub fn use_endpoint() -> SendWrapper<Rc<Endpoint>> {
     expect_context::<SendWrapper<Rc<Endpoint>>>()
 }
 
-fn accept(store: Store<GlobalStore>, notifications: Vec<Notification>) {
+fn accept(store: Store<Global>, notifications: Vec<Notification>) {
     use Notification::*;
 
     for notification in notifications {

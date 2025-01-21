@@ -7,7 +7,7 @@ use leptos::{
 
 use crate::{
     formatter::{Formatter, ShowSign},
-    state::{use_global_store, GlobalStoreStoreFields, PreferencesStoreFields},
+    state::{use_global_store, GlobalStoreFields, PreferencesStoreFields},
 };
 
 pub fn number_span<I: IntoView>(inner: I) -> HtmlElement<Span, (Class<&'static str>,), (I,)> {

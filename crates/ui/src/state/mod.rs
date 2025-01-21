@@ -44,7 +44,7 @@ pub struct UiState {
 }
 
 #[derive(Store)]
-pub struct GlobalStore {
+pub struct Global {
     pub buildings: BTreeMap<core_state::buildings::Kind, Store<Building>>,
     pub calendar: Calendar,
     pub fulfillments: BTreeMap<core_state::recipes::Kind, Store<Fulfillment>>,
@@ -54,7 +54,7 @@ pub struct GlobalStore {
     pub ui: BTreeMap<core_state::ui::NodeId, Store<UiState>>,
 }
 
-impl GlobalStore {
+impl Global {
     fn new() -> Self {
         use core_state::buildings::Kind as BuildingKind;
         use core_state::recipes::Kind as RecipeKind;
@@ -124,9 +124,9 @@ impl GlobalStore {
 }
 
 pub fn provide_global_store() {
-    provide_context(Store::new(GlobalStore::new()));
+    provide_context(Store::new(Global::new()));
 }
 
-pub fn use_global_store() -> Store<GlobalStore> {
-    expect_context::<Store<GlobalStore>>()
+pub fn use_global_store() -> Store<Global> {
+    expect_context::<Store<Global>>()
 }

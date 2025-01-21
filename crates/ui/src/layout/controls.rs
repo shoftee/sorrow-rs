@@ -11,7 +11,7 @@ use crate::components::numbers::number_span;
 use crate::components::tooltip::{Target, Tooltip, TooltipContainer};
 use crate::endpoint::use_endpoint;
 use crate::state::{
-    use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreStoreFields,
+    use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreFields,
     UiStateStoreFields,
 };
 use crate::use_i18n;
@@ -48,8 +48,7 @@ fn BonfireControls() -> impl IntoView {
         bonfire_nodes
             .iter()
             .filter_map(|(id, kind)| {
-                let visible = ui.read_untracked().get(id).unwrap().visible().get();
-                if visible {
+                if ui.read_untracked().get(id).unwrap().visible().get() {
                     Some(*kind)
                 } else {
                     None
