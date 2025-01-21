@@ -26,7 +26,7 @@ fn mount() {
         self::endpoint::provide_endpoint_context();
 
         view! {
-           <Title text="Obserable Sorrow"/>
+           <Title text="Observable Sorrow"/>
            <App />
         }
     })
