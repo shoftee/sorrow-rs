@@ -1,5 +1,6 @@
 use leptos::either::Either;
 use leptos::prelude::*;
+use leptos_i18n::{t_string, tu_string};
 
 use sorrow_core::communication::{Intent, WorkOrderKind};
 use sorrow_core::state::recipes::Crafting;
@@ -13,6 +14,7 @@ use crate::state::{
     use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreStoreFields,
     UiStateStoreFields,
 };
+use crate::use_i18n;
 
 #[component]
 pub fn ControlsContainer() -> impl IntoView {
@@ -71,17 +73,8 @@ fn BonfireControls() -> impl IntoView {
 
 #[component]
 fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
+    let i18n = use_i18n();
     let endpoint = use_endpoint();
-
-    let label = match kind {
-        WorkOrderKind::Construct(building) => match building {
-            buildings::Kind::CatnipField => "Catnip field",
-        },
-        WorkOrderKind::Craft(crafting) => match crafting {
-            recipes::Crafting::GatherCatnip => "Gather catnip",
-            recipes::Crafting::RefineCatnip => "Refine catnip",
-        },
-    };
 
     let fulfillment = fulfillment_state(kind);
     let is_not_fulfilled =
@@ -94,7 +87,7 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
                 on:click=move |_| endpoint.send(Intent::QueueWorkOrder(WorkOrderKind::Construct(building)))
                 prop:disabled=is_not_fulfilled
             >
-                {label}" "{number_span(building_level(building))}
+                { button_label(i18n, kind) }" "{ number_span(building_level(building)) }
             </button>
         }),
         WorkOrderKind::Craft(crafting) => Either::Right(view! {
@@ -103,7 +96,7 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
                 on:click=move |_| endpoint.send(Intent::QueueWorkOrder(WorkOrderKind::Craft(crafting)))
                 prop:disabled=is_not_fulfilled
             >
-                {label}
+                { button_label(i18n, kind) }
             </button>
         }),
     };
@@ -112,8 +105,8 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
         <TooltipContainer>
             <Target slot>{button_view}</Target>
             <Tooltip slot>
-                <div class="rounded p-2 bg-neutral-100 border border-solid border-neutral-800">
-                    "Test tooltip."
+                <div class="rounded p-2 max-w-[20dvw] bg-neutral-100 border border-solid border-neutral-400 drop-shadow-sm">
+                    { button_description(i18n, kind) }
                 </div>
             </Tooltip>
         </TooltipContainer>
@@ -139,4 +132,37 @@ fn fulfillment_state(kind: WorkOrderKind) -> Memo<sorrow_core::state::recipes::F
             .fulfillment()
             .get()
     })
+}
+
+fn button_label(
+    i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
+    kind: sorrow_core::communication::WorkOrderKind,
+) -> &'static str {
+    match kind {
+        WorkOrderKind::Construct(building) => match building {
+            buildings::Kind::CatnipField => tu_string!(i18n, buildings.catnip_field.label),
+        },
+        WorkOrderKind::Craft(crafting) => match crafting {
+            recipes::Crafting::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.label),
+            recipes::Crafting::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.label),
+        },
+    }
+}
+
+fn button_description(
+    i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
+    kind: sorrow_core::communication::WorkOrderKind,
+) -> impl IntoView {
+    let description = match kind {
+        WorkOrderKind::Construct(building) => match building {
+            buildings::Kind::CatnipField => t_string!(i18n, buildings.catnip_field.description),
+        },
+        WorkOrderKind::Craft(crafting) => match crafting {
+            recipes::Crafting::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.description),
+            recipes::Crafting::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.description),
+        },
+    };
+    view! {
+        <p>{ description }</p>
+    }
 }

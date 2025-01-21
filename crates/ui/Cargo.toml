@@ -23,7 +23,17 @@ wasm-bindgen.workspace = true
 
 leptos = { version = "0.7", features = ["csr", "tracing"] }
 leptos_meta = "0.7"
+leptos_i18n = { version = "0.5", features = [
+    "csr",
+    "interpolate_display",
+    "format_nums",
+    "plurals",
+] }
 leptos-node-ref = "0.0.3"
 floating-ui-leptos = "0.2"
 tracing-wasm = "0.2"
 reactive_stores = "0.1"
+
+[package.metadata.leptos-i18n]
+default = "en"
+locales = ["en"]

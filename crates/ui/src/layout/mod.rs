@@ -3,13 +3,18 @@ mod environment;
 mod resources;
 
 use leptos::prelude::*;
+use leptos_i18n::*;
 
 use controls::ControlsContainer;
 use environment::EnvironmentContainer;
 use resources::ResourcesContainer;
 
+use crate::use_i18n;
+
 #[component]
 pub fn App() -> impl IntoView {
+    let i18n = use_i18n();
+
     view! {
         <div id="app" class="h-100 flex flex-col">
             <header class="bg-gray-100/50 flex flex-row gap-1 px-2 py-1 items-center">
@@ -25,7 +30,9 @@ pub fn App() -> impl IntoView {
                 <section class="navigation-area flex justify-center">
                     <ul class="flex flex-wrap gap-2 text-gray-500 dark:text-gray-400">
                         <li>
-                            <button type="button" class="inline-block p-1 rounded-md text-white bg-blue-600 active">"Bonfire"</button>
+                            <button type="button" class="inline-block p-1 rounded-md text-white bg-blue-600 active">
+                                { t!{i18n, sections.bonfire.label} }
+                            </button>
                         </li>
                         <li>
                             <button type="button" class="inline-block p-1 rounded-md hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-white">"Tab 2"</button>

@@ -1,0 +1,275 @@
+{
+  "game": {
+    "blurb": "You are a kitten in a catnip forest.",
+    "control": {
+      "pawse": "Pawse",
+      "unpawse": "Unpawse",
+      "clear_log": "Clear log",
+      "observe_sky": "Observe sky"
+    }
+  },
+  "sections": {
+    "bonfire": {
+      "label": "Bonfire"
+    },
+    "society": {
+      "label": "Society",
+      "outpost": "Outpost",
+      "small_village": "Small Village",
+      "village": "Village"
+    },
+    "science": {
+      "label": "Science"
+    }
+  },
+
+  "jobs": {
+    "title": "Jobs",
+    "status": {
+      "empty": "But nobody came.",
+      "good": "Work is going well.",
+      "idle": "One is idle. | {{idle}} are idle."
+    },
+    "woodcutter": {
+      "label": "Woodcutter",
+      "description": "Chop some forest trees for wood.",
+      "flavor": "Must. Not. Scratch.",
+      "effects": {
+        "wood": "Wood production {{amount}}"
+      }
+    },
+    "farmer": {
+      "label": "Farmer",
+      "description": "Cultivate catnip in the surrounding lands.",
+      "effects": {
+        "catnip": "Catnip production {{amount}}"
+      }
+    },
+    "scholar": {
+      "label": "Scholar",
+      "description": "Ponder the myriad wonders of the world around you.",
+      "effects": {
+        "science": "Science production {{amount}}"
+      }
+    },
+    "hunter": {
+      "label": "Hunter",
+      "description": "Organize an elite force.",
+      "effects": {
+        "catpower": "Catpower production {{amount}}"
+      }
+    },
+    "miner": {
+      "label": "Miner",
+      "description": "Dig into the depths of Cath for minerals.",
+      "flavor": "How do I hold a pick with my paws…?",
+      "effects": {
+        "minerals": "Mineral production {{amount}}"
+      }
+    }
+  },
+
+  "management": {
+    "title": "Management",
+    "happiness": {
+      "label": "Happiness {{amount}}",
+      "detail": "Happiness affects your workers' production and consumption of catnip. Rare resources will increase this value whilst overpopulation will reduce it."
+    }
+  },
+
+  "resources": {
+    "section": {
+      "label": "Resources",
+      "empty": "Your paws are empty."
+    },
+    "catnip": {
+      "label": "catnip"
+    },
+    "wood": {
+      "label": "wood"
+    },
+    "minerals": {
+      "label": "minerals"
+    },
+    "science": {
+      "label": "science"
+    },
+    "catpower": {
+      "label": "catpower"
+    },
+    "kittens": {
+      "label": "kittens"
+    }
+  },
+
+  "environment": {
+    "seasons": {
+      "spring": {
+        "label": "Spring"
+      },
+      "summer": {
+        "label": "Summer"
+      },
+      "autumn": {
+        "label": "Autumn"
+      },
+      "winter": {
+        "label": "Winter"
+      }
+    },
+    "weather": {
+      "warm": "Warm",
+      "cold": "Cold"
+    }
+  },
+
+  "calendar": {
+    "epoch": {
+      "basic": "{{season}}",
+      "full": "Year {{year}} – {{season}}"
+    },
+    "basic": {
+      "no_weather": "{{season}}",
+      "weather": "{{season}} ({{weather}})"
+    },
+    "full": {
+      "no_weather": "Year {{year}} – {{season}}, day {{day}}",
+      "weather": "Year {{year}} – {{season}} ({{weather}}), day {{day}}"
+    }
+  },
+
+  "bonfire": {
+    "gather_catnip": {
+      "label": "Gather catnip",
+      "description": "Gather some catnip in the forest."
+    },
+    "refine_catnip": {
+      "label": "Refine catnip",
+      "description": "Use your mystical kitten powers to convert catnip into wood.",
+      "flavor": "So… tired…"
+    }
+  },
+
+  "effects": {
+    "buildings": {
+      "per_level": "Effects (per level)",
+      "total": "Effects (total)"
+    },
+    "jobs": {
+      "per_worker": "Effects (per worker)",
+      "total": "Effects (total)"
+    }
+  },
+  "effect_tree": {
+    "base": "Base",
+    "bonus": "Bonus",
+    "catnip_fields": "Catnip fields",
+    "farming": "Farming",
+    "happiness": "Happiness",
+    "mining": "Mining",
+    "overpopulation": "Overpopulation",
+    "researching": "Researching",
+    "village_demand": "Demand",
+    "weather": "Weather",
+    "woodcutting": "Woodcutting"
+  },
+
+  "buildings": {
+    "catnip_field": {
+      "label": "Catnip field",
+      "description": "Plant some catnip to grow in the village. Fields have increased production during Spring and decreased production during Winter.",
+      "flavor": "‘Nip as far as the eye can see.",
+      "effects": {
+        "catnip": "Catnip production {{amount}}"
+      }
+    },
+    "hut": {
+      "label": "Hut",
+      "description": "A simple home with space for 2 kittens. Kittens consume catnip to stay alive.",
+      "flavor": "The Nation of Two",
+      "effects": {
+        "catpower_limit": "Maximum catpower {{amount}}",
+        "kittens_limit": "Maximum kittens {{amount}}"
+      }
+    },
+    "library": {
+      "label": "Library",
+      "description": "A library to store sacred catkind knowledge. Each level increases science output.",
+      "flavor": "All in Catonese",
+      "effects": {
+        "science_limit": "Maximum science {{amount}}",
+        "science_ratio": "Science output bonus {{amount}}",
+        "culture_limit": "Maximum culture {{amount}}"
+      }
+    },
+    "barn": {
+      "label": "Barn",
+      "description": "A space to store more of your resources.",
+      "flavor": "Rats ain't a problem for us!",
+      "effects": {
+        "catnip_limit": "Maximum catnip {{amount}}",
+        "wood_limit": "Maximum wood {{amount}}",
+        "minerals_limit": "Maximum minerals {{amount}}"
+      }
+    },
+    "mine": {
+      "label": "Mine",
+      "description": "Allows the acquisition of minerals. Each level increases mineral output.",
+      "flavor": "100 days without diggor mortis",
+      "effects": {
+        "minerals_ratio": "Minerals output bonus {{amount}}"
+      }
+    }
+  },
+
+  "population": {
+    "kitten": {
+      "arrived_one": "A kitten has joined your village!",
+      "arrived_other": "{{count}} kittens have joined your village!",
+      "starved_one": "A kitten starved to death.",
+      "starved_other": "{{count}} kittens starved to death."
+    }
+  },
+
+  "tech": {
+    "section": {
+      "title": "Technologies"
+    },
+    "calendar": {
+      "label": "Calendar",
+      "description": "Develops the ability to predict when the seasons will change. Essential for advanced agriculture.",
+      "flavor": "What day is it again?",
+      "effect": "Provides a way of more precise time tracking."
+    },
+    "agriculture": {
+      "label": "Agriculture",
+      "description": "The basis of all civilised life. Allows the working of land for food.",
+      "flavor": "Best thing since sliced bread!",
+      "effect": "Unlocks Farmers and Barns."
+    },
+    "archery": {
+      "label": "Archery",
+      "description": "Develops the ranged weaponry known as a 'bow'.",
+      "flavor": "Aren't cats natural hunters anyway…?",
+      "effect": "Unlocks Hunters."
+    },
+    "mining": {
+      "label": "Mining",
+      "description": "Develops the ability to extract mineral resources from the bowels fo Cath.",
+      "flavor": "Pickaxes are easier to hold with opposable thumbs.",
+      "effect": "Unlocks Mines."
+    }
+  },
+
+  "astronomy": {
+    "rare_event": "A rare astronomical event occurred in the sky.",
+    "observed_sky_reward": {
+      "gained": "Observed rare event! Gained {{science_amount}} science!",
+      "capped": "Observed rare event! No science, but it was really neat!"
+    },
+    "fallen_meteor_reward": {
+      "gained_minerals": "A meteor fell near the village! Gained {{minerals_amount}} minerals!",
+      "capped": "A meteor fell near the village! Fascinating."
+    }
+  }
+}
