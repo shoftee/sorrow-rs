@@ -4,7 +4,7 @@ use bevy::{
 };
 
 use sorrow_core::{
-    communication::Notification,
+    communication::Update,
     state::{
         ui::{BonfireNodeId, NavigationNodeId, NodeId},
         KeyIter,
@@ -13,7 +13,7 @@ use sorrow_core::{
 
 use crate::{
     index::{IndexedQueryMut, LookupIndexPlugin},
-    io::OutputEvent,
+    io::UpdatedEvent,
     schedules::{BufferChanges, Recalculate},
     simulation::{fulfillment::Recipe, resources::Resource, Unlocked},
 };
@@ -81,7 +81,7 @@ fn recalculate_visibility(
 
 fn detect_visibility_changes(
     query: Query<(&Node, &Visibility), Changed<Visibility>>,
-    mut outputs: EventWriter<OutputEvent>,
+    mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
     let mut state = sorrow_core::state::ui::VisibilityState::default();
@@ -93,6 +93,6 @@ fn detect_visibility_changes(
         has_changes = true;
     }
     if has_changes {
-        outputs.send(OutputEvent(Notification::VisibilityChanged(state)));
+        updates.send(Update::VisibilityChanged(state).into());
     }
 }

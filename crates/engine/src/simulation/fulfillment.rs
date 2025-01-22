@@ -5,14 +5,14 @@ use bevy::prelude::{
 };
 use bevy::utils::HashMap;
 
-use sorrow_core::communication::Notification;
+use sorrow_core::communication::Update;
 use sorrow_core::state::buildings::Kind as BuildingKind;
 use sorrow_core::state::recipes::Kind as RecipeKind;
 use sorrow_core::state::recipes::{Fulfillment as SFulfillment, FulfillmentState};
 use sorrow_core::state::resources::Kind as ResourceKind;
 
 use crate::index::{IndexedQuery, LookupIndexPlugin};
-use crate::io::OutputEvent;
+use crate::io::UpdatedEvent;
 use crate::schedules::BufferChanges;
 use crate::simulation::resources::Capacity;
 
@@ -199,7 +199,7 @@ fn recalculate_unlocks(
 
 fn detect_fulfillment_changes(
     fulfillments: Query<(&Recipe, &Fulfillment), Changed<Fulfillment>>,
-    mut outputs: EventWriter<OutputEvent>,
+    mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
     let mut state = FulfillmentState::default();
@@ -209,6 +209,6 @@ fn detect_fulfillment_changes(
     }
 
     if has_changes {
-        outputs.send(OutputEvent(Notification::FulfillmentsChanged(state)));
+        updates.send(Update::FulfillmentsChanged(state).into());
     }
 }

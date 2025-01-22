@@ -6,12 +6,12 @@ use bevy::{
 };
 
 use sorrow_core::state::resources::Kind as ResourceKind;
-use sorrow_core::{communication::Notification, state::recipes::Crafting};
+use sorrow_core::{communication::Update, state::recipes::Crafting};
 
 use super::{buildings, Unlocked};
 use crate::{
     index::{IndexedQuery, LookupIndexPlugin},
-    io::OutputEvent,
+    io::UpdatedEvent,
     schedules::BufferChanges,
 };
 
@@ -208,7 +208,7 @@ fn recalculate_unlocks(
 
 fn detect_resource_changes(
     resources: Query<(&Resource, Ref<Amount>, Ref<Delta>)>,
-    mut outputs: EventWriter<OutputEvent>,
+    mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
     let mut state = sorrow_core::state::resources::ResourceState::default();
@@ -224,7 +224,7 @@ fn detect_resource_changes(
     }
 
     if has_changes {
-        outputs.send(OutputEvent(Notification::ResourcesChanged(state)));
+        updates.send(Update::ResourcesChanged(state).into());
     }
 }
 

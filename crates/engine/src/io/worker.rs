@@ -3,17 +3,16 @@ use bevy::{
     prelude::{EventWriter, Events, IntoSystemConfigs, NonSend, ResMut},
 };
 use sorrow_core::{
-    communication::{Intent, Notification},
+    communication::{EngineMessage, Intent},
     utils::Shared,
 };
 use sorrow_worker::{HandlerId, Registrable, WorkerDestroyHandle, WorkerScope};
-use tracing::warn;
 
-use super::{InputEvent, OutputEvent};
+use super::{InputEvent, OutputEvent, UpdatedEvent};
 
 pub struct Dispatcher {
     inputs: Vec<Intent>,
-    outputs: Vec<Notification>,
+    outputs: Vec<EngineMessage>,
     scope: Option<WorkerScope<Worker>>,
     handler_id: Option<HandlerId>,
 }
@@ -41,7 +40,9 @@ impl Dispatcher {
 
     fn send_responses(&mut self) {
         if let (Some(scope), Some(handler_id)) = (self.scope.clone(), self.handler_id) {
-            scope.respond(handler_id, self.outputs.drain(..).collect());
+            for message in self.outputs.drain(..) {
+                scope.respond(handler_id, message);
+            }
         } else {
             panic!("Could not send responses because there was no connection");
         }
@@ -65,7 +66,7 @@ impl sorrow_worker::Worker for Worker {
 
     type Input = Intent;
 
-    type Output = Vec<Notification>;
+    type Output = EngineMessage;
 
     fn create(scope: &WorkerScope<Self>) -> Self {
         scope.external_state().borrow_mut().created(scope.clone());
@@ -114,7 +115,7 @@ impl Plugin for WorkerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         let dispatcher = Shared::new(Dispatcher {
             inputs: Vec::<Intent>::new(),
-            outputs: Vec::<Notification>::new(),
+            outputs: Vec::<EngineMessage>::new(),
             handler_id: None,
             scope: None,
         });
@@ -122,12 +123,19 @@ impl Plugin for WorkerPlugin {
 
         app.insert_non_send_resource(dispatcher)
             .add_systems(First, receive_inputs.in_set(sets::Inputs))
-            .add_systems(Last, send_outputs.in_set(sets::Outputs));
+            .add_systems(
+                Last,
+                (batch_updates, send_outputs).chain().in_set(sets::Outputs),
+            );
     }
 }
 
 fn receive_inputs(mut inputs: EventWriter<InputEvent>, dispatcher: NonSend<Shared<Dispatcher>>) {
     inputs.send_batch(dispatcher.borrow_mut().inputs.drain(..).map(InputEvent));
+}
+
+fn batch_updates(mut updates: ResMut<Events<UpdatedEvent>>, mut outputs: EventWriter<OutputEvent>) {
+    outputs.send(EngineMessage::Updated(updates.drain().map(|e| e.0).collect()).into());
 }
 
 fn send_outputs(mut outputs: ResMut<Events<OutputEvent>>, dispatcher: NonSend<Shared<Dispatcher>>) {

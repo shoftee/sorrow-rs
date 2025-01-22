@@ -3,11 +3,11 @@ use bevy::{
     prelude::*,
 };
 use sorrow_core::{
-    communication::Notification,
+    communication::Update,
     state::calendar::{PartialCalendarState, SeasonKind},
 };
 
-use crate::{io::OutputEvent, schedules::BufferChanges, simulation::ticker::Ticker};
+use crate::{io::UpdatedEvent, schedules::BufferChanges, simulation::ticker::Ticker};
 
 #[derive(Component)]
 struct DayTicker;
@@ -86,7 +86,7 @@ fn advance_calendar(
 
 fn detect_calendar_changes(
     calendar: Query<(Ref<Day>, Ref<Season>, Ref<Year>)>,
-    mut outputs: EventWriter<OutputEvent>,
+    mut updates: EventWriter<UpdatedEvent>,
 ) {
     if let Ok(calendar) = calendar.get_single() {
         let mut has_changes = false;
@@ -110,7 +110,7 @@ fn detect_calendar_changes(
         }
 
         if has_changes {
-            outputs.send(OutputEvent(Notification::CalendarChanged(state)));
+            updates.send(Update::CalendarChanged(state).into());
         }
     }
 }

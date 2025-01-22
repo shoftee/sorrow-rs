@@ -54,8 +54,8 @@ pub struct Global {
     pub ui: BTreeMap<core_state::ui::NodeId, Store<UiState>>,
 }
 
-impl Global {
-    fn new() -> Self {
+impl Default for Global {
+    fn default() -> Self {
         use core_state::buildings::Kind as BuildingKind;
         use core_state::recipes::Kind as RecipeKind;
         use core_state::resources::Kind as ResourceKind;
@@ -123,8 +123,8 @@ impl Global {
     }
 }
 
-pub fn provide_global_store() {
-    provide_context(Store::new(Global::new()));
+pub fn provide_store(store: Store<Global>) {
+    provide_context(store);
 }
 
 pub fn use_global_store() -> Store<Global> {

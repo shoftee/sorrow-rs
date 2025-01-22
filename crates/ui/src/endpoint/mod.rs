@@ -4,105 +4,109 @@ use leptos::prelude::*;
 use reactive_stores::Store;
 use send_wrapper::SendWrapper;
 
-use sorrow_core::communication::{Intent, Notification};
+use sorrow_core::communication::{EngineMessage, Update};
 use sorrow_engine::Endpoint;
 
-use crate::store::{use_global_store, Global, GlobalStoreFields};
+use crate::store::{Global, GlobalStoreFields};
 
-pub fn provide_endpoint_context() {
-    let global_store = use_global_store();
-    let endpoint = Rc::new(Endpoint::new(
-        move |notification| accept(global_store, notification),
-        "./engine.js",
-    ));
-    let endpoint_wrapped = SendWrapper::new(endpoint.clone());
-    provide_context(endpoint_wrapped);
+pub fn connect() -> (Endpoint, Store<Global>) {
+    let store = Store::new(Global::default());
+    let endpoint = Endpoint::new(move |message| update_store(store, message), "./engine.js");
+    (endpoint, store)
+}
 
-    endpoint.send(Intent::Load);
+pub fn provide_endpoint(endpoint: Endpoint) {
+    provide_context(SendWrapper::new(Rc::new(endpoint)));
 }
 
 pub fn use_endpoint() -> SendWrapper<Rc<Endpoint>> {
     expect_context::<SendWrapper<Rc<Endpoint>>>()
 }
 
-fn accept(store: Store<Global>, notifications: Vec<Notification>) {
-    use Notification::*;
+fn update_store(store: Store<Global>, message: EngineMessage) {
+    match message {
+        EngineMessage::Loaded => tracing::debug!("Loaded."),
+        EngineMessage::Updated(updates) => {
+            for update in updates {
+                accept_update(store, update);
+            }
+        }
+    }
+}
 
-    for notification in notifications {
-        match notification {
-            Initialized => tracing::debug!("World initialized."),
-            CalendarChanged(calendar) => {
-                use crate::store::CalendarStoreFields;
-                if let Some(day) = calendar.day {
-                    store.calendar().day().set(day);
-                }
-                if let Some(season) = calendar.season {
-                    store.calendar().season().set(season);
-                }
-                if let Some(year) = calendar.year {
-                    store.calendar().year().set(year);
+fn accept_update(store: Store<Global>, update: Update) {
+    match update {
+        Update::CalendarChanged(calendar) => {
+            use crate::store::CalendarStoreFields;
+            if let Some(day) = calendar.day {
+                store.calendar().day().set(day);
+            }
+            if let Some(season) = calendar.season {
+                store.calendar().season().set(season);
+            }
+            if let Some(year) = calendar.year {
+                store.calendar().year().set(year);
+            }
+        }
+        Update::BuildingsChanged(state) => {
+            use crate::store::BuildingStoreFields;
+            for (kind, level) in state.levels.iter() {
+                if let Some(level) = level {
+                    store
+                        .buildings()
+                        .write_untracked()
+                        .entry(*kind)
+                        .and_modify(|e| e.level().set(*level));
                 }
             }
-            BuildingsChanged(state) => {
-                use crate::store::BuildingStoreFields;
-                for (kind, level) in state.levels.iter() {
-                    if let Some(level) = level {
-                        store
-                            .buildings()
-                            .write_untracked()
-                            .entry(*kind)
-                            .and_modify(|e| e.level().set(*level));
-                    }
+        }
+        Update::FulfillmentsChanged(state) => {
+            use crate::store::FulfillmentStoreFields;
+            for (kind, fulfillment) in state.fulfillments.iter() {
+                if let Some(fulfillment) = fulfillment {
+                    store
+                        .fulfillments()
+                        .write_untracked()
+                        .entry(*kind)
+                        .and_modify(|e| e.fulfillment().set(*fulfillment));
                 }
             }
-            FulfillmentsChanged(state) => {
-                use crate::store::FulfillmentStoreFields;
-                for (kind, fulfillment) in state.fulfillments.iter() {
-                    if let Some(fulfillment) = fulfillment {
-                        store
-                            .fulfillments()
-                            .write_untracked()
-                            .entry(*kind)
-                            .and_modify(|e| e.fulfillment().set(*fulfillment));
-                    }
+        }
+        Update::ResourcesChanged(state) => {
+            use crate::store::ResourceStoreFields;
+            for (kind, amount) in state.amounts.iter() {
+                if let Some(amount) = amount {
+                    store
+                        .resources()
+                        .write_untracked()
+                        .entry(*kind)
+                        .and_modify(|e| e.amount().set(*amount));
                 }
             }
-            ResourcesChanged(state) => {
-                use crate::store::ResourceStoreFields;
-                for (kind, amount) in state.amounts.iter() {
-                    if let Some(amount) = amount {
-                        store
-                            .resources()
-                            .write_untracked()
-                            .entry(*kind)
-                            .and_modify(|e| e.amount().set(*amount));
-                    }
-                }
-                for (kind, delta) in state.deltas.iter() {
-                    if let Some(delta) = delta {
-                        store
-                            .resources()
-                            .write_untracked()
-                            .entry(*kind)
-                            .and_modify(|e| e.delta().set(*delta));
-                    }
+            for (kind, delta) in state.deltas.iter() {
+                if let Some(delta) = delta {
+                    store
+                        .resources()
+                        .write_untracked()
+                        .entry(*kind)
+                        .and_modify(|e| e.delta().set(*delta));
                 }
             }
-            TimeChanged(time) => {
-                if let Some(running_state) = time.running_state {
-                    store.running_state().set(running_state);
-                }
+        }
+        Update::TimeChanged(time) => {
+            if let Some(running_state) = time.running_state {
+                store.running_state().set(running_state);
             }
-            VisibilityChanged(state) => {
-                use crate::store::UiStateStoreFields;
-                for (id, visible) in state.nodes.iter() {
-                    if let Some(visible) = visible {
-                        store
-                            .ui()
-                            .write_untracked()
-                            .entry(*id)
-                            .and_modify(|e| e.visible().set(*visible));
-                    }
+        }
+        Update::VisibilityChanged(state) => {
+            use crate::store::UiStateStoreFields;
+            for (id, visible) in state.nodes.iter() {
+                if let Some(visible) = visible {
+                    store
+                        .ui()
+                        .write_untracked()
+                        .entry(*id)
+                        .and_modify(|e| e.visible().set(*visible));
                 }
             }
         }

@@ -22,8 +22,10 @@ fn mount() {
     mount_to_body(|| {
         provide_meta_context();
         self::events::provide_keyboard_events_context();
-        self::store::provide_global_store();
-        self::endpoint::provide_endpoint_context();
+
+        let (endpoint, store) = endpoint::connect();
+        endpoint::provide_endpoint(endpoint);
+        store::provide_store(store);
 
         view! {
             <I18nContextProvider>

@@ -3,13 +3,13 @@ use bevy::{
     prelude::{EventReader, EventWriter, IntoSystemConfigs},
 };
 use sorrow_core::{
-    communication::{Intent, Notification, TimeControl},
+    communication::{EngineMessage, Intent, TimeControl, Update},
     state::time::{PartialTimeState, RunningState},
 };
 
 use crate::simulation::work_orders::WorkOrder;
 
-use super::{InputEvent, OutputEvent};
+use super::{InputEvent, OutputEvent, UpdatedEvent};
 
 pub mod sets {
     use bevy::prelude::SystemSet;
@@ -30,11 +30,12 @@ fn resolve_intents(
     mut inputs: EventReader<InputEvent>,
     mut work_orders: EventWriter<WorkOrder>,
     mut outputs: EventWriter<OutputEvent>,
+    mut updates: EventWriter<UpdatedEvent>,
 ) {
     for InputEvent(message) in inputs.read() {
         match message {
             Intent::Load => {
-                outputs.send(OutputEvent(Notification::Initialized));
+                outputs.send(OutputEvent(EngineMessage::Loaded));
             }
             Intent::QueueWorkOrder(kind) => {
                 work_orders.send(WorkOrder(*kind));
@@ -42,14 +43,20 @@ fn resolve_intents(
             Intent::TimeControl(time_control) => {
                 match time_control {
                     TimeControl::Pause => {
-                        outputs.send(OutputEvent(Notification::TimeChanged(PartialTimeState {
-                            running_state: Some(RunningState::Paused),
-                        })));
+                        updates.send(
+                            Update::TimeChanged(PartialTimeState {
+                                running_state: Some(RunningState::Paused),
+                            })
+                            .into(),
+                        );
                     }
                     TimeControl::Start => {
-                        outputs.send(OutputEvent(Notification::TimeChanged(PartialTimeState {
-                            running_state: Some(RunningState::Running),
-                        })));
+                        updates.send(
+                            Update::TimeChanged(PartialTimeState {
+                                running_state: Some(RunningState::Running),
+                            })
+                            .into(),
+                        );
                     }
                 };
             }

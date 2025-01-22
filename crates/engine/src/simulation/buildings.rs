@@ -5,11 +5,11 @@ use bevy::{
     prelude::*,
 };
 use sorrow_core::{
-    communication::Notification,
+    communication::Update,
     state::buildings::{BuildingState, Kind as BuildingKind},
 };
 
-use crate::{index::LookupIndexPlugin, io::OutputEvent, schedules::BufferChanges};
+use crate::{index::LookupIndexPlugin, io::UpdatedEvent, schedules::BufferChanges};
 
 #[derive(Component, Clone, Copy, Hash, PartialEq, Eq, Debug)]
 pub struct Building(pub BuildingKind);
@@ -51,7 +51,7 @@ fn spawn_buildings(mut commands: Commands) {
 
 fn detect_building_changes(
     buildings: Query<(&Building, &Level), Changed<Level>>,
-    mut outputs: EventWriter<OutputEvent>,
+    mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
     let mut state = BuildingState::default();
@@ -61,6 +61,6 @@ fn detect_building_changes(
     }
 
     if has_changes {
-        outputs.send(OutputEvent(Notification::BuildingsChanged(state)));
+        updates.send(Update::BuildingsChanged(state).into());
     }
 }
