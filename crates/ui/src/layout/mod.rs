@@ -14,7 +14,7 @@ use sorrow_core::state::{
 };
 
 use crate::{
-    state::{use_global_store, GlobalStoreFields, UiStateStoreFields},
+    store::{use_global_store, GlobalStoreFields, UiStateStoreFields},
     use_i18n, Locale,
 };
 

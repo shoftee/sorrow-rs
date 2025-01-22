@@ -8,7 +8,7 @@ use sorrow_core::state::KeyIter;
 
 use crate::components::{conditional::*, numbers::DecimalView};
 use crate::formatter::ShowSign;
-use crate::state::{use_global_store, GlobalStoreFields, ResourceStoreFields, UiStateStoreFields};
+use crate::store::{use_global_store, GlobalStoreFields, ResourceStoreFields, UiStateStoreFields};
 use crate::use_i18n;
 
 #[component]
@@ -75,7 +75,7 @@ pub fn ResourcesContainer() -> impl IntoView {
 }
 
 #[component]
-fn ResourceItem(#[prop(into)] item: Store<crate::state::Resource>) -> impl IntoView {
+fn ResourceItem(#[prop(into)] item: Store<crate::store::Resource>) -> impl IntoView {
     let i18n = use_i18n();
 
     let amount = Memo::new(move |_| item.amount().get());

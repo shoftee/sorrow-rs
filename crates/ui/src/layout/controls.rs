@@ -10,7 +10,7 @@ use sorrow_core::state::{buildings, recipes};
 use crate::components::numbers::number_span;
 use crate::components::tooltip::{Target, Tooltip, TooltipContainer};
 use crate::endpoint::use_endpoint;
-use crate::state::{
+use crate::store::{
     use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreFields,
     UiStateStoreFields,
 };

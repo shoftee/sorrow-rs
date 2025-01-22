@@ -7,7 +7,7 @@ use send_wrapper::SendWrapper;
 use sorrow_core::communication::{Intent, Notification};
 use sorrow_engine::Endpoint;
 
-use crate::state::{use_global_store, Global, GlobalStoreFields};
+use crate::store::{use_global_store, Global, GlobalStoreFields};
 
 pub fn provide_endpoint_context() {
     let global_store = use_global_store();
@@ -32,7 +32,7 @@ fn accept(store: Store<Global>, notifications: Vec<Notification>) {
         match notification {
             Initialized => tracing::debug!("World initialized."),
             CalendarChanged(calendar) => {
-                use crate::state::CalendarStoreFields;
+                use crate::store::CalendarStoreFields;
                 if let Some(day) = calendar.day {
                     store.calendar().day().set(day);
                 }
@@ -44,7 +44,7 @@ fn accept(store: Store<Global>, notifications: Vec<Notification>) {
                 }
             }
             BuildingsChanged(state) => {
-                use crate::state::BuildingStoreFields;
+                use crate::store::BuildingStoreFields;
                 for (kind, level) in state.levels.iter() {
                     if let Some(level) = level {
                         store
@@ -56,7 +56,7 @@ fn accept(store: Store<Global>, notifications: Vec<Notification>) {
                 }
             }
             FulfillmentsChanged(state) => {
-                use crate::state::FulfillmentStoreFields;
+                use crate::store::FulfillmentStoreFields;
                 for (kind, fulfillment) in state.fulfillments.iter() {
                     if let Some(fulfillment) = fulfillment {
                         store
@@ -68,7 +68,7 @@ fn accept(store: Store<Global>, notifications: Vec<Notification>) {
                 }
             }
             ResourcesChanged(state) => {
-                use crate::state::ResourceStoreFields;
+                use crate::store::ResourceStoreFields;
                 for (kind, amount) in state.amounts.iter() {
                     if let Some(amount) = amount {
                         store
@@ -94,7 +94,7 @@ fn accept(store: Store<Global>, notifications: Vec<Notification>) {
                 }
             }
             VisibilityChanged(state) => {
-                use crate::state::UiStateStoreFields;
+                use crate::store::UiStateStoreFields;
                 for (id, visible) in state.nodes.iter() {
                     if let Some(visible) = visible {
                         store

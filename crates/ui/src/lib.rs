@@ -3,7 +3,7 @@ mod endpoint;
 mod events;
 mod formatter;
 mod layout;
-mod state;
+mod store;
 
 pub fn start() {
     tracing_wasm::set_as_global_default_with_config(tracing_wasm::WASMLayerConfig::default());
@@ -22,7 +22,7 @@ fn mount() {
     mount_to_body(|| {
         provide_meta_context();
         self::events::provide_keyboard_events_context();
-        self::state::provide_global_store();
+        self::store::provide_global_store();
         self::endpoint::provide_endpoint_context();
 
         view! {
