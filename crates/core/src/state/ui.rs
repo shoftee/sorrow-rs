@@ -6,6 +6,7 @@ use super::{recipes, resources, KeyIter, StateTable};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NodeId {
+    Navigation(NavigationNodeId),
     Resources(ResourceNodeId),
     Bonfire(BonfireNodeId),
 }
@@ -14,10 +15,11 @@ impl KeyIter for NodeId {
     type Item = NodeId;
 
     fn key_iter() -> impl Iterator<Item = Self::Item> {
-        Iterator::chain(
+        itertools::chain![
+            <NavigationNodeId as KeyIter>::key_iter().map(NodeId::Navigation),
             <ResourceNodeId as KeyIter>::key_iter().map(NodeId::Resources),
             <BonfireNodeId as KeyIter>::key_iter().map(NodeId::Bonfire),
-        )
+        ]
     }
 }
 
@@ -65,6 +67,12 @@ state_key!(
         GatherCatnip,
         RefineCatnip,
         CatnipField,
+    }
+);
+
+state_key!(
+    pub enum NavigationNodeId {
+        Bonfire,
     }
 );
 

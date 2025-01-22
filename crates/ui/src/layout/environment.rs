@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use leptos_i18n::{t, t_string, use_i18n_scoped};
+use leptos_i18n::*;
 
 use sorrow_core::{
     communication::*,

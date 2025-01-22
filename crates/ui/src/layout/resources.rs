@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use leptos_i18n::t_string;
+use leptos_i18n::*;
 use reactive_stores::Store;
 
 use sorrow_core::state::resources::Kind;

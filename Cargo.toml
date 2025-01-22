@@ -24,6 +24,7 @@ sorrow-worker = { path = "crates/worker" }
 
 ahash = "0.8"
 console_error_panic_hook = "0.1"
+itertools = "0.14.0"
 send_wrapper = "0.6"
 serde = { version = "1.0", features = ["derive"] }
 wasm-bindgen = "0.2"

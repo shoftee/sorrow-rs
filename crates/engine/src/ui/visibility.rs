@@ -6,7 +6,7 @@ use bevy::{
 use sorrow_core::{
     communication::Notification,
     state::{
-        ui::{BonfireNodeId, NodeId},
+        ui::{BonfireNodeId, NavigationNodeId, NodeId},
         KeyIter,
     },
 };
@@ -44,7 +44,8 @@ fn spawn_ui_nodes(mut cmd: Commands) {
             Node(node_id),
             if matches!(
                 node_id,
-                NodeId::Bonfire(BonfireNodeId::GatherCatnip)
+                NodeId::Navigation(NavigationNodeId::Bonfire)
+                    | NodeId::Bonfire(BonfireNodeId::GatherCatnip)
                     | NodeId::Bonfire(BonfireNodeId::RefineCatnip)
             ) {
                 Visibility::Visible

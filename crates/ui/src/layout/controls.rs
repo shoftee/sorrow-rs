@@ -1,6 +1,6 @@
 use leptos::either::Either;
 use leptos::prelude::*;
-use leptos_i18n::{t_string, tu_string};
+use leptos_i18n::*;
 
 use sorrow_core::communication::{Intent, WorkOrderKind};
 use sorrow_core::state::recipes::Crafting;

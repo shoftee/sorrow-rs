@@ -1,5 +1,7 @@
 {
   "game": {
+    "title": "Observable Sorrow",
+    "dedication": "Observable Sorrow is a clone of <link>Kittens Game</link>.",
     "blurb": "You are a kitten in a catnip forest.",
     "control": {
       "pawse": "Pawse",
