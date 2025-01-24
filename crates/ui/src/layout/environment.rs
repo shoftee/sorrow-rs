@@ -8,8 +8,8 @@ use sorrow_core::{
 
 use crate::{
     components::Button,
+    i18n::use_i18n,
     store::{use_global_store, CalendarStoreFields, GlobalStoreFields},
-    use_i18n,
 };
 
 #[component]
@@ -19,7 +19,7 @@ pub fn EnvironmentContainer() -> impl IntoView {
     view! {
         <section class="environment-area unscroll-y flex flex-col gap-2">
             <Calendar />
-            <div>{ t_string!(i18n, game.blurb) }</div>
+            <div>{ t!(i18n, game.blurb) }</div>
             <div class="flex flex-row gap-2 *:flex-auto">
                 <ClearLog />
                 <PawseButton />

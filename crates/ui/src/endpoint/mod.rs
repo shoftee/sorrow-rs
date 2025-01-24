@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use reactive_stores::Store;
 use send_wrapper::SendWrapper;
 
-use sorrow_core::communication::{EngineMessage, Update};
+use sorrow_core::communication::{EngineMessage, EngineUpdate};
 use sorrow_engine::Endpoint;
 
 use crate::store::{Global, GlobalStoreFields};
@@ -25,18 +25,26 @@ pub fn use_endpoint() -> SendWrapper<Rc<Endpoint>> {
 
 fn update_store(store: Store<Global>, message: EngineMessage) {
     match message {
-        EngineMessage::Loaded => tracing::debug!("Loaded."),
+        EngineMessage::Loaded => tracing::info!("Loaded."),
         EngineMessage::Updated(updates) => {
             for update in updates {
                 accept_update(store, update);
             }
+            store.is_loaded().maybe_update(|v| {
+                if *v {
+                    false
+                } else {
+                    *v = true;
+                    true
+                }
+            });
         }
     }
 }
 
-fn accept_update(store: Store<Global>, update: Update) {
+fn accept_update(store: Store<Global>, update: EngineUpdate) {
     match update {
-        Update::CalendarChanged(calendar) => {
+        EngineUpdate::CalendarChanged(calendar) => {
             use crate::store::CalendarStoreFields;
             if let Some(day) = calendar.day {
                 store.calendar().day().set(day);
@@ -48,7 +56,7 @@ fn accept_update(store: Store<Global>, update: Update) {
                 store.calendar().year().set(year);
             }
         }
-        Update::BuildingsChanged(state) => {
+        EngineUpdate::BuildingsChanged(state) => {
             use crate::store::BuildingStoreFields;
             for (kind, level) in state.levels.iter() {
                 if let Some(level) = level {
@@ -60,7 +68,7 @@ fn accept_update(store: Store<Global>, update: Update) {
                 }
             }
         }
-        Update::FulfillmentsChanged(state) => {
+        EngineUpdate::FulfillmentsChanged(state) => {
             use crate::store::FulfillmentStoreFields;
             for (kind, fulfillment) in state.fulfillments.iter() {
                 if let Some(fulfillment) = fulfillment {
@@ -72,7 +80,7 @@ fn accept_update(store: Store<Global>, update: Update) {
                 }
             }
         }
-        Update::ResourcesChanged(state) => {
+        EngineUpdate::ResourcesChanged(state) => {
             use crate::store::ResourceStoreFields;
             for (kind, amount) in state.amounts.iter() {
                 if let Some(amount) = amount {
@@ -93,12 +101,12 @@ fn accept_update(store: Store<Global>, update: Update) {
                 }
             }
         }
-        Update::TimeChanged(time) => {
+        EngineUpdate::TimeChanged(time) => {
             if let Some(running_state) = time.running_state {
                 store.running_state().set(running_state);
             }
         }
-        Update::VisibilityChanged(state) => {
+        EngineUpdate::VisibilityChanged(state) => {
             use crate::store::UiStateStoreFields;
             for (id, visible) in state.nodes.iter() {
                 if let Some(visible) = visible {

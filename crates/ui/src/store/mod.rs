@@ -45,6 +45,8 @@ pub struct UiState {
 
 #[derive(Store)]
 pub struct Global {
+    pub is_loaded: bool,
+
     pub buildings: BTreeMap<core_state::buildings::Kind, Store<Building>>,
     pub calendar: Calendar,
     pub fulfillments: BTreeMap<core_state::recipes::Kind, Store<Fulfillment>>,
@@ -106,6 +108,8 @@ impl Default for Global {
                 .collect()
         }
         Self {
+            is_loaded: false,
+
             buildings: buildings_map(),
             calendar: Calendar {
                 day: 0,

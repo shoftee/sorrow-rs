@@ -8,8 +8,8 @@ use sorrow_core::state::KeyIter;
 
 use crate::components::{conditional::*, numbers::DecimalView};
 use crate::formatter::ShowSign;
+use crate::i18n::use_i18n;
 use crate::store::{use_global_store, GlobalStoreFields, ResourceStoreFields, UiStateStoreFields};
-use crate::use_i18n;
 
 #[component]
 pub fn ResourcesContainer() -> impl IntoView {

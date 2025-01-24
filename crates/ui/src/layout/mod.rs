@@ -14,8 +14,8 @@ use sorrow_core::state::{
 };
 
 use crate::{
+    i18n::use_i18n,
     store::{use_global_store, GlobalStoreFields, UiStateStoreFields},
-    use_i18n, Locale,
 };
 
 #[component]
@@ -72,7 +72,10 @@ fn Navigation(#[prop(into)] active: Signal<NavigationNodeId>) -> impl IntoView {
     }
 }
 
-fn nav_label(i18n: I18nContext<Locale>, id: NavigationNodeId) -> &'static str {
+fn nav_label(
+    i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
+    id: NavigationNodeId,
+) -> &'static str {
     match id {
         NavigationNodeId::Bonfire => t_string!(i18n, sections.bonfire.label),
     }

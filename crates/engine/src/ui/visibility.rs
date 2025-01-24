@@ -4,7 +4,7 @@ use bevy::{
 };
 
 use sorrow_core::{
-    communication::Update,
+    communication::EngineUpdate,
     state::{
         ui::{BonfireNodeId, NavigationNodeId, NodeId},
         KeyIter,
@@ -93,6 +93,6 @@ fn detect_visibility_changes(
         has_changes = true;
     }
     if has_changes {
-        updates.send(Update::VisibilityChanged(state).into());
+        updates.send(EngineUpdate::VisibilityChanged(state).into());
     }
 }

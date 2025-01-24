@@ -6,7 +6,7 @@ use bevy::{
 };
 
 use sorrow_core::state::resources::Kind as ResourceKind;
-use sorrow_core::{communication::Update, state::recipes::Crafting};
+use sorrow_core::{communication::EngineUpdate, state::recipes::Crafting};
 
 use super::{buildings, Unlocked};
 use crate::{
@@ -224,7 +224,7 @@ fn detect_resource_changes(
     }
 
     if has_changes {
-        updates.send(Update::ResourcesChanged(state).into());
+        updates.send(EngineUpdate::ResourcesChanged(state).into());
     }
 }
 

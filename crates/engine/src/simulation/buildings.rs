@@ -5,7 +5,7 @@ use bevy::{
     prelude::*,
 };
 use sorrow_core::{
-    communication::Update,
+    communication::EngineUpdate,
     state::buildings::{BuildingState, Kind as BuildingKind},
 };
 
@@ -61,6 +61,6 @@ fn detect_building_changes(
     }
 
     if has_changes {
-        updates.send(Update::BuildingsChanged(state).into());
+        updates.send(EngineUpdate::BuildingsChanged(state).into());
     }
 }

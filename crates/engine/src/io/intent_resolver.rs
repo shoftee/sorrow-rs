@@ -3,7 +3,7 @@ use bevy::{
     prelude::{EventReader, EventWriter, IntoSystemConfigs},
 };
 use sorrow_core::{
-    communication::{EngineMessage, Intent, TimeControl, Update},
+    communication::{EngineMessage, EngineUpdate, Intent, TimeControl},
     state::time::{PartialTimeState, RunningState},
 };
 
@@ -44,7 +44,7 @@ fn resolve_intents(
                 match time_control {
                     TimeControl::Pause => {
                         updates.send(
-                            Update::TimeChanged(PartialTimeState {
+                            EngineUpdate::TimeChanged(PartialTimeState {
                                 running_state: Some(RunningState::Paused),
                             })
                             .into(),
@@ -52,7 +52,7 @@ fn resolve_intents(
                     }
                     TimeControl::Start => {
                         updates.send(
-                            Update::TimeChanged(PartialTimeState {
+                            EngineUpdate::TimeChanged(PartialTimeState {
                                 running_state: Some(RunningState::Running),
                             })
                             .into(),

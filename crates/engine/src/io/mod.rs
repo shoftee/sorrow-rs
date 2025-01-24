@@ -11,17 +11,17 @@ use bevy::{
 };
 
 use intent_resolver::IntentResolverPlugin;
-use sorrow_core::communication::{EngineMessage, Intent, Update};
+use sorrow_core::communication::{EngineMessage, EngineUpdate, Intent};
 use worker::WorkerPlugin;
 
 #[derive(Event)]
 pub struct InputEvent(pub Intent);
 
 #[derive(Event)]
-pub struct UpdatedEvent(pub Update);
+pub struct UpdatedEvent(pub EngineUpdate);
 
-impl From<Update> for UpdatedEvent {
-    fn from(value: Update) -> Self {
+impl From<EngineUpdate> for UpdatedEvent {
+    fn from(value: EngineUpdate) -> Self {
         UpdatedEvent(value)
     }
 }

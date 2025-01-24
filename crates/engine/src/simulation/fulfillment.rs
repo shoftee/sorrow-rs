@@ -5,7 +5,7 @@ use bevy::prelude::{
 };
 use bevy::utils::HashMap;
 
-use sorrow_core::communication::Update;
+use sorrow_core::communication::EngineUpdate;
 use sorrow_core::state::buildings::Kind as BuildingKind;
 use sorrow_core::state::recipes::Kind as RecipeKind;
 use sorrow_core::state::recipes::{Fulfillment as SFulfillment, FulfillmentState};
@@ -209,6 +209,6 @@ fn detect_fulfillment_changes(
     }
 
     if has_changes {
-        updates.send(Update::FulfillmentsChanged(state).into());
+        updates.send(EngineUpdate::FulfillmentsChanged(state).into());
     }
 }

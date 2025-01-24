@@ -23,11 +23,11 @@ pub enum TimeControl {
 #[derive(Serialize, Deserialize, Debug)]
 pub enum EngineMessage {
     Loaded,
-    Updated(Vec<Update>),
+    Updated(Vec<EngineUpdate>),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum Update {
+pub enum EngineUpdate {
     CalendarChanged(crate::state::calendar::PartialCalendarState),
     BuildingsChanged(crate::state::buildings::BuildingState),
     FulfillmentsChanged(crate::state::recipes::FulfillmentState),

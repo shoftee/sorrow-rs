@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 use sorrow_core::{
-    communication::Update,
+    communication::EngineUpdate,
     state::calendar::{PartialCalendarState, SeasonKind},
 };
 
@@ -110,7 +110,7 @@ fn detect_calendar_changes(
         }
 
         if has_changes {
-            updates.send(Update::CalendarChanged(state).into());
+            updates.send(EngineUpdate::CalendarChanged(state).into());
         }
     }
 }
