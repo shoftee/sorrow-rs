@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 use super::StateTable;
 
 crate::state_key! {
-    pub enum Kind {
+    pub enum BuildingKind {
         CatnipField,
     }
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct BuildingState {
-    pub levels: StateTable<Kind, u32>,
+    pub levels: StateTable<BuildingKind, u32>,
 }

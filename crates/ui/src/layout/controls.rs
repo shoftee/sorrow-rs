@@ -3,6 +3,7 @@ use leptos::prelude::*;
 use leptos_i18n::*;
 
 use sorrow_core::communication::{Intent, WorkOrderKind};
+use sorrow_core::state::buildings::BuildingKind;
 use sorrow_core::state::recipes::{Crafting, RecipeKind};
 use sorrow_core::state::ui::{BonfireNodeId, NodeId};
 use sorrow_core::state::{buildings, recipes};
@@ -38,7 +39,7 @@ fn BonfireControls() -> impl IntoView {
         ),
         (
             NodeId::Bonfire(BonfireNodeId::CatnipField),
-            WorkOrderKind::Construct(buildings::Kind::CatnipField),
+            WorkOrderKind::Construct(BuildingKind::CatnipField),
         ),
     ];
 
@@ -112,7 +113,7 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
     }
 }
 
-fn building_level(kind: sorrow_core::state::buildings::Kind) -> Memo<u32> {
+fn building_level(kind: BuildingKind) -> Memo<u32> {
     let buildings = use_global_store().buildings();
     Memo::new(move |_| buildings.read_untracked().get(&kind).unwrap().level().get())
 }
@@ -139,7 +140,7 @@ fn button_label(
 ) -> &'static str {
     match kind {
         WorkOrderKind::Construct(building) => match building {
-            buildings::Kind::CatnipField => tu_string!(i18n, buildings.catnip_field.label),
+            buildings::BuildingKind::CatnipField => tu_string!(i18n, buildings.catnip_field.label),
         },
         WorkOrderKind::Craft(crafting) => match crafting {
             recipes::Crafting::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.label),
@@ -154,7 +155,9 @@ fn button_description(
 ) -> impl IntoView {
     let description = match kind {
         WorkOrderKind::Construct(building) => match building {
-            buildings::Kind::CatnipField => t_string!(i18n, buildings.catnip_field.description),
+            buildings::BuildingKind::CatnipField => {
+                t_string!(i18n, buildings.catnip_field.description)
+            }
         },
         WorkOrderKind::Craft(crafting) => match crafting {
             recipes::Crafting::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.description),

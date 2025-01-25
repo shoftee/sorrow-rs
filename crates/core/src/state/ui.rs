@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::state_key;
 
-use super::{recipes, resources, KeyIter, StateTable};
+use super::{buildings::BuildingKind, recipes, resources, KeyIter, StateTable};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NodeId {
@@ -30,7 +30,7 @@ impl From<recipes::RecipeKind> for NodeId {
                 recipes::Crafting::GatherCatnip => NodeId::Bonfire(BonfireNodeId::GatherCatnip),
                 recipes::Crafting::RefineCatnip => NodeId::Bonfire(BonfireNodeId::RefineCatnip),
             },
-            recipes::RecipeKind::Building(super::buildings::Kind::CatnipField) => {
+            recipes::RecipeKind::Building(BuildingKind::CatnipField) => {
                 NodeId::Bonfire(BonfireNodeId::CatnipField)
             }
         }

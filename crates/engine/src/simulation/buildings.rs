@@ -6,7 +6,7 @@ use bevy::{
 };
 use sorrow_core::{
     communication::EngineUpdate,
-    state::buildings::{BuildingState, Kind as BuildingKind},
+    state::buildings::{BuildingKind, BuildingState},
 };
 
 use crate::{index::LookupIndexPlugin, io::UpdatedEvent, schedules::BufferChanges};

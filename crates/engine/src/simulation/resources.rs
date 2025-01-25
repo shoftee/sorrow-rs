@@ -5,7 +5,7 @@ use bevy::{
     prelude::*,
 };
 
-use sorrow_core::state::resources::Kind as ResourceKind;
+use sorrow_core::state::{buildings::BuildingKind, resources::Kind as ResourceKind};
 use sorrow_core::{communication::EngineUpdate, state::recipes::Crafting};
 
 use super::{buildings, Unlocked};
@@ -183,8 +183,7 @@ fn recalculate_deltas(
     for (kind, mut delta) in resources.iter_mut() {
         match kind.0 {
             sorrow_core::state::resources::Kind::Catnip => {
-                let catnip_fields =
-                    buildings.item(sorrow_core::state::buildings::Kind::CatnipField.into());
+                let catnip_fields = buildings.item(BuildingKind::CatnipField.into());
                 let level: u32 = (*catnip_fields).into();
                 delta.0 = 0.125 * level as f64;
             }

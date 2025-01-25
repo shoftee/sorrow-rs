@@ -4,11 +4,13 @@ use leptos::prelude::*;
 use reactive_stores::Store;
 
 use sorrow_core::state as core_state;
+use sorrow_core::state::buildings::BuildingKind;
+use sorrow_core::state::recipes::RecipeKind;
 use sorrow_core::state::{calendar::SeasonKind, precision::Precision, time::RunningState};
 
 #[derive(Store)]
 pub struct Building {
-    pub kind: core_state::buildings::Kind,
+    pub kind: BuildingKind,
     pub level: u32,
 }
 
@@ -47,9 +49,9 @@ pub struct UiState {
 pub struct Global {
     pub is_loaded: bool,
 
-    pub buildings: BTreeMap<core_state::buildings::Kind, Store<Building>>,
+    pub buildings: BTreeMap<BuildingKind, Store<Building>>,
     pub calendar: Calendar,
-    pub fulfillments: BTreeMap<core_state::recipes::RecipeKind, Store<Fulfillment>>,
+    pub fulfillments: BTreeMap<RecipeKind, Store<Fulfillment>>,
     pub preferences: Preferences,
     pub resources: BTreeMap<core_state::resources::Kind, Store<Resource>>,
     pub running_state: RunningState,
@@ -58,8 +60,6 @@ pub struct Global {
 
 impl Default for Global {
     fn default() -> Self {
-        use core_state::buildings::Kind as BuildingKind;
-        use core_state::recipes::RecipeKind;
         use core_state::resources::Kind as ResourceKind;
 
         fn buildings_map() -> BTreeMap<BuildingKind, Store<Building>> {

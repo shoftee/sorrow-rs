@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::state::buildings::BuildingKind;
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum Intent {
     /// Stub for initializing game session.
@@ -11,7 +13,7 @@ pub enum Intent {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum WorkOrderKind {
     Craft(crate::state::recipes::Crafting),
-    Construct(crate::state::buildings::Kind),
+    Construct(BuildingKind),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]

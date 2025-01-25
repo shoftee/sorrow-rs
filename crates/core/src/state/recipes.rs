@@ -2,12 +2,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::state_key;
 
-use super::{KeyIter, StateTable};
+use super::{buildings::BuildingKind, KeyIter, StateTable};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum RecipeKind {
     Crafting(Crafting),
-    Building(super::buildings::Kind),
+    Building(BuildingKind),
 }
 
 impl KeyIter for RecipeKind {
@@ -15,7 +15,7 @@ impl KeyIter for RecipeKind {
 
     fn key_iter() -> impl Iterator<Item = Self::Item> {
         Iterator::chain(
-            super::buildings::Kind::key_iter().map(RecipeKind::Building),
+            BuildingKind::key_iter().map(RecipeKind::Building),
             Crafting::key_iter().map(RecipeKind::Crafting),
         )
     }
