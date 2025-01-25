@@ -165,7 +165,7 @@ fn add_deltas_to_debit_or_credit(
     for (delta, mut debit, mut credit) in resources.iter_mut() {
         let delta = delta.0;
         if delta.is_infinite() {
-            info!("Encountered infinite delta value");
+            tracing::warn!("Encountered infinite delta value");
             continue;
         }
         match delta.signum() {

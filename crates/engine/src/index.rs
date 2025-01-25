@@ -59,7 +59,7 @@ where
                 if let Ok(key) = data.get(entity) {
                     index.inner.insert(key.clone(), entity);
                 } else {
-                    bevy::log::warn!("Could not find entity to add to index")
+                    tracing::warn!("Could not find entity to add to index")
                 }
             },
         )
@@ -69,7 +69,7 @@ where
                 if let Ok(key) = data.get(entity) {
                     index.inner.remove(key);
                 } else {
-                    bevy::log::warn!("Could not find entity to remove from index")
+                    tracing::warn!("Could not find entity to remove from index")
                 }
             },
         );
