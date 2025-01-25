@@ -57,6 +57,7 @@ pub struct BuildingTransport {
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct FulfillmentTransport {
     pub fulfillments: StateTable<RecipeKind, FulfillmentState>,
+    pub required_amounts: StateTable<(RecipeKind, ResourceKind), f64>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug)]

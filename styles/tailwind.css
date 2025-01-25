@@ -18,6 +18,14 @@ body {
     border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
+.tooltip-container > .tooltip-content {
+  display: none;
+}
+
+.tooltip-container > .tooltip-target:hover + .tooltip-content {
+  display: block;
+}
+
 @layer base {
   a {
     @apply text-blue-500 underline hover:no-underline;
@@ -35,10 +43,6 @@ body {
     @apply py-1.5 px-3 text-black disabled:text-neutral-500 bg-neutral-100 rounded;
     @apply border border-solid enabled:border-black disabled:border-neutral-500;
     @apply enabled:focus:ring-black/50 enabled:focus:ring-4;
-  }
-
-  .tooltip-content {
-    @apply p-2 transition-transform duration-300;
   }
 
   .controls > .btn {

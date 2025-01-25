@@ -3,13 +3,12 @@ use leptos_i18n::*;
 use reactive_stores::Store;
 
 use sorrow_core::state::{
-    resources::ResourceKind,
     ui::{NodeId, ResourceNodeId},
     KeyIter,
 };
 
 use crate::{
-    components::{conditional::*, numbers::DecimalView},
+    components::{conditional::*, numbers::DecimalView, strings::ResourceLabel},
     formatter::ShowSign,
     i18n::use_i18n,
     store::{use_global_store, GlobalStoreFields, ResourceStoreFields, UiStateStoreFields},
@@ -62,7 +61,7 @@ pub fn ResourcesContainer() -> impl IntoView {
                             </button>
                             <Conditional>
                                 <Main slot condition=expanded_rw>
-                                    <For each={move || resources.get()} key=|item| item.kind().get() let:child>
+                                    <For each={move || resources.get()} key=|item| item.resource().get() let:child>
                                         <ResourceItem item=child />
                                     </For>
                                 </Main>
@@ -80,28 +79,16 @@ pub fn ResourcesContainer() -> impl IntoView {
 
 #[component]
 fn ResourceItem(#[prop(into)] item: Store<crate::store::Resource>) -> impl IntoView {
-    let i18n = use_i18n();
-
     let amount = Memo::new(move |_| item.amount().get());
     let delta = Memo::new(move |_| item.delta().get());
 
     view! {
         <li class="list-group-item small">
-            { resource_label(i18n, item.kind().get()) }
+            <ResourceLabel resource=item.resource().get() />
             " "
             <DecimalView value=amount />
             " "
             <DecimalView value=delta show_sign=ShowSign::Always />
         </li>
-    }
-}
-
-fn resource_label(
-    i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
-    kind: ResourceKind,
-) -> &'static str {
-    match kind {
-        ResourceKind::Catnip => t_string!(i18n, resources.catnip.label),
-        ResourceKind::Wood => t_string!(i18n, resources.wood.label),
     }
 }

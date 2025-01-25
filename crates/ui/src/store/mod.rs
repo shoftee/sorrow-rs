@@ -7,7 +7,7 @@ use sorrow_core::state::{
     buildings::BuildingKind,
     calendar::SeasonKind,
     precision::Precision,
-    recipes::{FulfillmentState, RecipeKind},
+    recipes::{FulfillmentState, RecipeKind, RECIPE_INGREDIENTS},
     resources::ResourceKind,
     time::RunningState,
     ui::NodeId,
@@ -16,7 +16,7 @@ use sorrow_core::state::{
 
 #[derive(Store)]
 pub struct Building {
-    pub kind: BuildingKind,
+    pub building: BuildingKind,
     pub level: u32,
 }
 
@@ -29,8 +29,15 @@ pub struct Calendar {
 
 #[derive(Store)]
 pub struct Fulfillment {
-    pub kind: RecipeKind,
+    pub recipe: RecipeKind,
     pub fulfillment: FulfillmentState,
+    pub ingredients: BTreeMap<ResourceKind, Store<IngredientFulfillment>>,
+}
+
+#[derive(Store)]
+pub struct IngredientFulfillment {
+    pub resource: ResourceKind,
+    pub required_amount: f64,
 }
 
 #[derive(Store)]
@@ -40,14 +47,14 @@ pub struct Preferences {
 
 #[derive(Store)]
 pub struct Resource {
-    pub kind: ResourceKind,
+    pub resource: ResourceKind,
     pub amount: f64,
     pub delta: f64,
 }
 
 #[derive(Store)]
 pub struct UiState {
-    pub id: NodeId,
+    pub node: NodeId,
     pub visible: bool,
 }
 
@@ -70,7 +77,7 @@ impl Default for Global {
             is_loaded: false,
 
             buildings: <BuildingKind as KeyIter>::key_iter()
-                .map(|kind| (kind, Store::new(Building { kind, level: 0 })))
+                .map(|building| (building, Store::new(Building { building, level: 0 })))
                 .collect(),
             calendar: Calendar {
                 day: 0,
@@ -78,12 +85,26 @@ impl Default for Global {
                 year: 0,
             },
             fulfillments: <RecipeKind as KeyIter>::key_iter()
-                .map(|kind| {
+                .map(|recipe| {
                     (
-                        kind,
+                        recipe,
                         Store::new(Fulfillment {
-                            kind,
+                            recipe,
                             fulfillment: FulfillmentState::Unfulfilled,
+                            ingredients: RECIPE_INGREDIENTS
+                                .get(&recipe)
+                                .expect("Could not find recipe data")
+                                .iter()
+                                .map(|item| {
+                                    (
+                                        item.0,
+                                        Store::new(IngredientFulfillment {
+                                            resource: item.0,
+                                            required_amount: item.1,
+                                        }),
+                                    )
+                                })
+                                .collect(),
                         }),
                     )
                 })
@@ -92,11 +113,11 @@ impl Default for Global {
                 precision: Precision::default(),
             },
             resources: <ResourceKind as KeyIter>::key_iter()
-                .map(|kind| {
+                .map(|resource| {
                     (
-                        kind,
+                        resource,
                         Store::new(Resource {
-                            kind,
+                            resource,
                             amount: 0.0,
                             delta: 0.0,
                         }),
@@ -105,11 +126,11 @@ impl Default for Global {
                 .collect(),
             running_state: RunningState::default(),
             ui: <NodeId as KeyIter>::key_iter()
-                .map(|e| {
+                .map(|node| {
                     (
-                        e,
+                        node,
                         Store::new(UiState {
-                            id: e,
+                            node,
                             visible: false,
                         }),
                     )

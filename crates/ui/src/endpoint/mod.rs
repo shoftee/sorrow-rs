@@ -7,7 +7,7 @@ use send_wrapper::SendWrapper;
 use sorrow_core::communication::{EngineMessage, EngineUpdate};
 use sorrow_engine::Endpoint;
 
-use crate::store::{Global, GlobalStoreFields};
+use crate::store::{Global, GlobalStoreFields, IngredientFulfillmentStoreFields};
 
 pub fn connect() -> (Endpoint, Store<Global>) {
     let store = Store::new(Global::default());
@@ -58,45 +58,60 @@ fn accept_update(store: Store<Global>, update: EngineUpdate) {
         }
         EngineUpdate::BuildingsChanged(state) => {
             use crate::store::BuildingStoreFields;
-            for (kind, level) in state.levels.iter() {
+            for (building, level) in state.levels.iter() {
                 if let Some(level) = level {
                     store
                         .buildings()
                         .write_untracked()
-                        .entry(*kind)
+                        .entry(*building)
                         .and_modify(|e| e.level().set(*level));
                 }
             }
         }
         EngineUpdate::FulfillmentsChanged(state) => {
             use crate::store::FulfillmentStoreFields;
-            for (kind, fulfillment) in state.fulfillments.iter() {
+            for (recipe, fulfillment) in state.fulfillments.iter() {
                 if let Some(fulfillment) = fulfillment {
                     store
                         .fulfillments()
                         .write_untracked()
-                        .entry(*kind)
+                        .entry(*recipe)
                         .and_modify(|e| e.fulfillment().set(*fulfillment));
+                }
+            }
+
+            for ((recipe, resource), required_amount) in state.required_amounts.iter() {
+                if let Some(required_amount) = required_amount {
+                    store
+                        .fulfillments()
+                        .write_untracked()
+                        .entry(*recipe)
+                        .and_modify(|e| {
+                            e.ingredients()
+                                .write_untracked()
+                                .entry(*resource)
+                                .and_modify(|e| e.required_amount().set(*required_amount));
+                        });
                 }
             }
         }
         EngineUpdate::ResourcesChanged(state) => {
             use crate::store::ResourceStoreFields;
-            for (kind, amount) in state.amounts.iter() {
+            for (resource, amount) in state.amounts.iter() {
                 if let Some(amount) = amount {
                     store
                         .resources()
                         .write_untracked()
-                        .entry(*kind)
+                        .entry(*resource)
                         .and_modify(|e| e.amount().set(*amount));
                 }
             }
-            for (kind, delta) in state.deltas.iter() {
+            for (resource, delta) in state.deltas.iter() {
                 if let Some(delta) = delta {
                     store
                         .resources()
                         .write_untracked()
-                        .entry(*kind)
+                        .entry(*resource)
                         .and_modify(|e| e.delta().set(*delta));
                 }
             }
@@ -108,12 +123,12 @@ fn accept_update(store: Store<Global>, update: EngineUpdate) {
         }
         EngineUpdate::VisibilityChanged(state) => {
             use crate::store::UiStateStoreFields;
-            for (id, visible) in state.nodes.iter() {
+            for (node, visible) in state.nodes.iter() {
                 if let Some(visible) = visible {
                     store
                         .ui()
                         .write_untracked()
-                        .entry(*id)
+                        .entry(*node)
                         .and_modify(|e| e.visible().set(*visible));
                 }
             }

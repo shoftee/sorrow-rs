@@ -51,9 +51,8 @@ pub fn TooltipContainer(target: Target, tooltip: Tooltip) -> impl IntoView {
 
     let tooltip = view! {
         <div
-            class="tooltip-content"
+            class="tooltip-content p-2"
             node_ref=floating_ref
-            style:display=move || if is_open.get() { "block" } else { "none" }
             style:position=move || floating_styles.get().style_position()
             style:top=move || floating_styles.get().style_top()
             style:left=move || floating_styles.get().style_left()

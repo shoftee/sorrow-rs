@@ -2,6 +2,7 @@ use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_i18n::*;
 
+use reactive_stores::Store;
 use sorrow_core::{
     communication::{Intent, WorkOrderKind},
     state::{
@@ -13,14 +14,15 @@ use sorrow_core::{
 
 use crate::{
     components::{
-        numbers::number_span,
+        numbers::{number_span, DecimalView, ResourceAmount},
+        strings::{ResourceLabel, WorkOrderLabel},
         tooltip::{Target, Tooltip, TooltipContainer},
     },
     endpoint::use_endpoint,
     i18n::use_i18n,
     store::{
         use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreFields,
-        UiStateStoreFields,
+        IngredientFulfillment, IngredientFulfillmentStoreFields, UiStateStoreFields,
     },
 };
 
@@ -83,9 +85,13 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
     let i18n = use_i18n();
     let endpoint = use_endpoint();
 
-    let fulfillment = fulfillment_state(kind);
+    let recipe = recipe_for_work_order(kind);
+
+    let fulfillment_state = fulfillment_state(recipe);
     let is_not_fulfilled =
-        Memo::new(move |_| !matches!(fulfillment.get(), FulfillmentState::Fulfilled));
+        Memo::new(move |_| !matches!(fulfillment_state.get(), FulfillmentState::Fulfilled));
+
+    let ingredients = ingredients(recipe);
 
     let button_view = match kind {
         WorkOrderKind::Construct(building) => Either::Left(view! {
@@ -94,7 +100,7 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
                 on:click=move |_| endpoint.send(Intent::QueueWorkOrder(WorkOrderKind::Construct(building)))
                 prop:disabled=is_not_fulfilled
             >
-                { button_label(i18n, kind) }" "{ number_span(building_level(building)) }
+                <WorkOrderLabel work_order=kind />" "{ number_span(building_level(building)) }
             </button>
         }),
         WorkOrderKind::Craft(crafting) => Either::Right(view! {
@@ -103,7 +109,7 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
                 on:click=move |_| endpoint.send(Intent::QueueWorkOrder(WorkOrderKind::Craft(crafting)))
                 prop:disabled=is_not_fulfilled
             >
-                { button_label(i18n, kind) }
+                <WorkOrderLabel work_order=kind />
             </button>
         }),
     };
@@ -112,11 +118,38 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
         <TooltipContainer>
             <Target slot>{button_view}</Target>
             <Tooltip slot>
-                <div class="rounded p-2 max-w-[20dvw] bg-neutral-100 border border-solid border-neutral-400 drop-shadow-sm">
-                    { button_description(i18n, kind) }
+                <div class="flex flex-col *:p-1 rounded p-2 max-w-[20dvw] bg-neutral-100 border border-solid border-neutral-400 drop-shadow-sm">
+                    <div>{ button_description(i18n, kind) }</div>
+                    <div class="text-sm">
+                        <ul>
+                            <For
+                                each={move || ingredients.get()}
+                                key={|item| item.resource().get()}
+                                let:item
+                            >
+                                <IngredientFulfillmentItem store=item />
+                            </For>
+                        </ul>
+                    </div>
                 </div>
             </Tooltip>
         </TooltipContainer>
+    }
+}
+
+#[component]
+fn IngredientFulfillmentItem(store: Store<IngredientFulfillment>) -> impl IntoView {
+    let kind = store.resource().get_untracked();
+    let required_amount = Signal::derive(move || store.required_amount().get());
+
+    view! {
+        <li>
+            <ResourceLabel resource=kind />
+            ": "
+            <ResourceAmount resource=kind />
+            "/"
+            <DecimalView value=required_amount />
+        </li>
     }
 }
 
@@ -125,14 +158,17 @@ fn building_level(kind: BuildingKind) -> Memo<u32> {
     Memo::new(move |_| buildings.read_untracked().get(&kind).unwrap().level().get())
 }
 
-fn fulfillment_state(kind: WorkOrderKind) -> Memo<FulfillmentState> {
-    let fulfillments = use_global_store().fulfillments();
-    let recipe = match kind {
+fn recipe_for_work_order(kind: WorkOrderKind) -> RecipeKind {
+    match kind {
         WorkOrderKind::Craft(crafting) => RecipeKind::Crafting(crafting),
         WorkOrderKind::Construct(building) => RecipeKind::Building(building),
-    };
+    }
+}
+
+fn fulfillment_state(recipe: RecipeKind) -> Memo<FulfillmentState> {
+    let store = use_global_store().fulfillments();
     Memo::new(move |_| {
-        fulfillments
+        store
             .read_untracked()
             .get(&recipe)
             .unwrap()
@@ -141,19 +177,19 @@ fn fulfillment_state(kind: WorkOrderKind) -> Memo<FulfillmentState> {
     })
 }
 
-fn button_label(
-    i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
-    kind: WorkOrderKind,
-) -> &'static str {
-    match kind {
-        WorkOrderKind::Construct(building) => match building {
-            BuildingKind::CatnipField => tu_string!(i18n, buildings.catnip_field.label),
-        },
-        WorkOrderKind::Craft(crafting) => match crafting {
-            CraftingRecipeKind::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.label),
-            CraftingRecipeKind::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.label),
-        },
-    }
+fn ingredients(recipe: RecipeKind) -> Signal<Vec<Store<IngredientFulfillment>>> {
+    let store = use_global_store().fulfillments();
+    Signal::derive(move || {
+        store
+            .read_untracked()
+            .get(&recipe)
+            .unwrap()
+            .ingredients()
+            .read_untracked()
+            .values()
+            .cloned()
+            .collect::<Vec<_>>()
+    })
 }
 
 fn button_description(

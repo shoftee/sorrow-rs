@@ -1,8 +1,8 @@
 use bevy::{
     app::{FixedPostUpdate, Plugin, Startup},
     prelude::{
-        BuildChildren, Changed, ChildBuild, Children, Commands, Component, EventWriter,
-        IntoSystemConfigs, ParamSet, Query, With,
+        BuildChildren, Changed, ChildBuild, Children, Commands, Component, DetectChanges,
+        EventWriter, IntoSystemConfigs, ParamSet, Parent, Query, Ref, With,
     },
     utils::HashMap,
 };
@@ -146,14 +146,14 @@ fn recalculate_fulfillments(
         IndexedQuery<Recipe, &Children>,
         Query<(&Recipe, &mut Fulfillment)>,
     )>,
-    requirements: Query<(&Ingredient, &RequiredAmount), With<Ingredient>>,
+    requirements: Query<(&Ingredient, &RequiredAmount)>,
     resources: IndexedQuery<Resource, (&Amount, Option<&Capacity>, Option<&Crafted>)>,
 ) {
     fn recalculate_one(
         recipe: Recipe,
         calculated: &mut HashMap<Recipe, FulfillmentState>,
         recipes: &IndexedQuery<Recipe, &Children>,
-        requirements: &Query<(&Ingredient, &RequiredAmount), With<Ingredient>>,
+        requirements: &Query<(&Ingredient, &RequiredAmount)>,
         resources: &IndexedQuery<Resource, (&Amount, Option<&Capacity>, Option<&Crafted>)>,
     ) -> FulfillmentState {
         let mut result = FulfillmentState::Fulfilled;
@@ -206,7 +206,7 @@ fn recalculate_fulfillments(
 
 fn recalculate_unlocks(
     mut recipes: Query<(&UnlockRatio, &mut super::Unlocked, &Children), With<Recipe>>,
-    requirements: Query<(&Ingredient, &RequiredAmount), With<Ingredient>>,
+    requirements: Query<(&Ingredient, &RequiredAmount)>,
     resources: IndexedQuery<Resource, &Amount>,
 ) {
     for (unlock_ratio, mut unlocked, children) in recipes.iter_mut() {
@@ -221,13 +221,27 @@ fn recalculate_unlocks(
 }
 
 fn detect_fulfillment_changes(
-    fulfillments: Query<(&Recipe, &Fulfillment), Changed<Fulfillment>>,
+    recipes: Query<(&Recipe, Ref<Fulfillment>)>,
+    ingredients: Query<(&Ingredient, &RequiredAmount, &Parent), Changed<RequiredAmount>>,
     mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
     let mut transport = FulfillmentTransport::default();
-    for (recipe, fulfillment) in fulfillments.iter() {
-        *transport.fulfillments.get_state_mut(&recipe.0) = Some(fulfillment.0);
+
+    for (recipe, fulfillment) in recipes.iter() {
+        if fulfillment.is_changed() {
+            *transport.fulfillments.get_state_mut(&recipe.0) = Some(fulfillment.0);
+            has_changes = true;
+        }
+    }
+
+    for (ingredient, required_amount, parent) in ingredients.iter() {
+        let (recipe, _) = recipes
+            .get(**parent)
+            .expect("Could not find recipe for ingredient");
+        *transport
+            .required_amounts
+            .get_state_mut(&(recipe.0, ingredient.0)) = Some(required_amount.0);
         has_changes = true;
     }
 

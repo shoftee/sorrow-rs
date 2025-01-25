@@ -77,3 +77,13 @@ pub enum FulfillmentState {
     Fulfilled,
     Capped,
 }
+
+impl KeyIter for (RecipeKind, ResourceKind) {
+    type Item = (RecipeKind, ResourceKind);
+
+    fn key_iter() -> impl Iterator<Item = Self::Item> {
+        RECIPE_INGREDIENTS
+            .iter()
+            .flat_map(|r| r.1.iter().map(|i| (*r.0, i.0)))
+    }
+}
