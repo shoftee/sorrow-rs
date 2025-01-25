@@ -2,9 +2,10 @@ use bevy::{
     app::{App, FixedUpdate, Plugin, Startup},
     prelude::*,
 };
+
 use sorrow_core::{
     communication::EngineUpdate,
-    state::calendar::{PartialCalendarState, SeasonKind},
+    state::calendar::{CalendarTransport, SeasonKind},
 };
 
 use crate::{io::UpdatedEvent, schedules::BufferChanges, simulation::ticker::Ticker};
@@ -90,27 +91,27 @@ fn detect_calendar_changes(
 ) {
     if let Ok(calendar) = calendar.get_single() {
         let mut has_changes = false;
-        let mut state = PartialCalendarState::default();
+        let mut transport = CalendarTransport::default();
         let day = &calendar.0;
         if day.is_changed() {
-            state.day = Some(day.0);
+            transport.day = Some(day.0);
             has_changes = true;
         }
 
         let season = &calendar.1;
         if season.is_changed() {
-            state.season = Some(season.0);
+            transport.season = Some(season.0);
             has_changes = true;
         }
 
         let year = &calendar.2;
         if year.is_changed() {
-            state.year = Some(year.0);
+            transport.year = Some(year.0);
             has_changes = true;
         }
 
         if has_changes {
-            updates.send(EngineUpdate::CalendarChanged(state).into());
+            updates.send(EngineUpdate::CalendarChanged(transport).into());
         }
     }
 }

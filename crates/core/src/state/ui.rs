@@ -4,7 +4,7 @@ use crate::state_key;
 
 use super::{
     buildings::BuildingKind,
-    recipes::{Crafting, RecipeKind},
+    recipes::{CraftingRecipeKind, RecipeKind},
     resources::ResourceKind,
     KeyIter, StateTable,
 };
@@ -32,8 +32,8 @@ impl From<RecipeKind> for NodeId {
     fn from(value: RecipeKind) -> Self {
         match value {
             RecipeKind::Crafting(crafting) => match crafting {
-                Crafting::GatherCatnip => NodeId::Bonfire(BonfireNodeId::GatherCatnip),
-                Crafting::RefineCatnip => NodeId::Bonfire(BonfireNodeId::RefineCatnip),
+                CraftingRecipeKind::GatherCatnip => NodeId::Bonfire(BonfireNodeId::GatherCatnip),
+                CraftingRecipeKind::RefineCatnip => NodeId::Bonfire(BonfireNodeId::RefineCatnip),
             },
             RecipeKind::Building(BuildingKind::CatnipField) => {
                 NodeId::Bonfire(BonfireNodeId::CatnipField)
@@ -82,6 +82,6 @@ state_key!(
 );
 
 #[derive(Default, Debug, Serialize, Deserialize)]
-pub struct VisibilityState {
+pub struct VisibilityTransport {
     pub nodes: StateTable<NodeId, bool>,
 }

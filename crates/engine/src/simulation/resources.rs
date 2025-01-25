@@ -5,14 +5,20 @@ use bevy::{
     prelude::*,
 };
 
-use sorrow_core::state::{buildings::BuildingKind, resources::ResourceKind};
-use sorrow_core::{communication::EngineUpdate, state::recipes::Crafting};
+use sorrow_core::{
+    communication::EngineUpdate,
+    state::{buildings::BuildingKind, recipes::CraftingRecipeKind, resources::ResourceKind},
+};
 
-use super::{buildings, Unlocked};
 use crate::{
     index::{IndexedQuery, LookupIndexPlugin},
     io::UpdatedEvent,
     schedules::BufferChanges,
+};
+
+use super::{
+    buildings::{Building, Level},
+    Unlocked,
 };
 
 pub mod sets {
@@ -47,7 +53,7 @@ impl From<Resource> for ResourceKind {
 }
 
 #[derive(Component, Debug, Clone, Copy)]
-pub struct Crafted(pub Crafting);
+pub struct Crafted(pub CraftingRecipeKind);
 
 #[derive(Component, Debug, Clone, Copy)]
 #[require(Debit, Credit)]
@@ -138,7 +144,7 @@ fn spawn_resources(mut cmd: Commands) {
         Resource(ResourceKind::Wood),
         Amount(0.0),
         Delta(0.0),
-        Crafted(Crafting::RefineCatnip),
+        Crafted(CraftingRecipeKind::RefineCatnip),
     ));
 }
 
@@ -178,7 +184,7 @@ fn commit_credits_and_debits(
 
 fn recalculate_deltas(
     mut resources: Query<(&Resource, &mut Delta)>,
-    buildings: IndexedQuery<buildings::Building, &buildings::Level>,
+    buildings: IndexedQuery<Building, &Level>,
 ) {
     for (kind, mut delta) in resources.iter_mut() {
         match kind.0 {
@@ -210,20 +216,20 @@ fn detect_resource_changes(
     mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
-    let mut state = sorrow_core::state::resources::ResourceState::default();
+    let mut transport = sorrow_core::state::resources::ResourceTransport::default();
     for (kind, amount, delta) in resources.iter() {
         if amount.is_changed() {
-            *state.amounts.get_state_mut(&kind.0) = Some(amount.0);
+            *transport.amounts.get_state_mut(&kind.0) = Some(amount.0);
             has_changes = true;
         }
         if delta.is_changed() {
-            *state.deltas.get_state_mut(&kind.0) = Some(delta.0);
+            *transport.deltas.get_state_mut(&kind.0) = Some(delta.0);
             has_changes = true;
         }
     }
 
     if has_changes {
-        updates.send(EngineUpdate::ResourcesChanged(state).into());
+        updates.send(EngineUpdate::ResourcesChanged(transport).into());
     }
 }
 

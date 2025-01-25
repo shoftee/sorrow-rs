@@ -1,22 +1,32 @@
-use bevy::app::{FixedPostUpdate, Plugin, Startup};
-use bevy::prelude::{
-    BuildChildren, Changed, Children, Commands, Component, EventWriter, IntoSystemConfigs,
-    ParamSet, Query, With,
+use bevy::{
+    app::{FixedPostUpdate, Plugin, Startup},
+    prelude::{
+        BuildChildren, Changed, Children, Commands, Component, EventWriter, IntoSystemConfigs,
+        ParamSet, Query, With,
+    },
+    utils::HashMap,
 };
-use bevy::utils::HashMap;
 
-use sorrow_core::communication::EngineUpdate;
-use sorrow_core::state::buildings::BuildingKind;
-use sorrow_core::state::recipes::{Fulfillment as SFulfillment, FulfillmentState, RecipeKind};
-use sorrow_core::state::resources::ResourceKind;
+use sorrow_core::{
+    communication::EngineUpdate,
+    state::{
+        buildings::BuildingKind,
+        recipes::{CraftingRecipeKind, FulfillmentState, FulfillmentTransport, RecipeKind},
+        resources::ResourceKind,
+    },
+};
 
-use crate::index::{IndexedQuery, LookupIndexPlugin};
-use crate::io::UpdatedEvent;
-use crate::schedules::BufferChanges;
-use crate::simulation::resources::Capacity;
+use crate::{
+    index::{IndexedQuery, LookupIndexPlugin},
+    io::UpdatedEvent,
+    schedules::BufferChanges,
+    simulation::resources::Capacity,
+};
 
-use super::buildings::{Building, Level};
-use super::resources::{Amount, Crafted, Resource};
+use super::{
+    buildings::{Building, Level},
+    resources::{Amount, Crafted, Resource},
+};
 
 pub mod sets {
     use bevy::prelude::SystemSet;
@@ -52,7 +62,7 @@ struct PriceRatio(pub f64);
 struct UnlockRatio(pub f64);
 
 #[derive(Component, Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Fulfillment(pub SFulfillment);
+pub struct Fulfillment(pub FulfillmentState);
 
 pub struct FulfillmentPlugin;
 
@@ -76,12 +86,12 @@ impl Plugin for FulfillmentPlugin {
 
 fn spawn_recipes(mut cmd: Commands) {
     cmd.spawn(Recipe(RecipeKind::Crafting(
-        sorrow_core::state::recipes::Crafting::GatherCatnip,
+        CraftingRecipeKind::GatherCatnip,
     )))
     .with_child((CraftedResource(ResourceKind::Catnip), CraftedAmount(1.0)));
 
     cmd.spawn(Recipe(RecipeKind::Crafting(
-        sorrow_core::state::recipes::Crafting::RefineCatnip,
+        CraftingRecipeKind::RefineCatnip,
     )))
     .with_child((
         Ingredient(ResourceKind::Catnip),
@@ -127,12 +137,12 @@ fn recalculate_fulfillments(
 ) {
     fn recalculate_one(
         recipe: Recipe,
-        calculated: &mut HashMap<Recipe, SFulfillment>,
+        calculated: &mut HashMap<Recipe, FulfillmentState>,
         recipes: &IndexedQuery<Recipe, &Children>,
         requirements: &Query<(&Ingredient, &RequiredAmount), With<Ingredient>>,
         resources: &IndexedQuery<Resource, (&Amount, Option<&Capacity>, Option<&Crafted>)>,
-    ) -> SFulfillment {
-        let mut result = SFulfillment::Fulfilled;
+    ) -> FulfillmentState {
+        let mut result = FulfillmentState::Fulfilled;
         let children = recipes.item(recipe);
         for (ingredient, required_amount) in requirements.iter_many(children) {
             let (amount, capacity, crafted) = resources.item(ingredient.0.into());
@@ -148,12 +158,12 @@ fn recalculate_fulfillments(
             }
             if let Some(capacity) = capacity {
                 if required_amount.0 > capacity.0 {
-                    result = SFulfillment::Capped;
+                    result = FulfillmentState::Capped;
                     break;
                 }
             }
             if amount.0 < required_amount.0 {
-                result = SFulfillment::Unfulfilled;
+                result = FulfillmentState::Unfulfilled;
                 break;
             }
         }
@@ -161,7 +171,7 @@ fn recalculate_fulfillments(
         result
     }
 
-    let mut calculated = HashMap::<Recipe, SFulfillment>::default();
+    let mut calculated = HashMap::<Recipe, FulfillmentState>::default();
 
     let recipes_indexed = recipes.p0();
     for recipe in recipes_indexed.keys() {
@@ -201,13 +211,13 @@ fn detect_fulfillment_changes(
     mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
-    let mut state = FulfillmentState::default();
+    let mut transport = FulfillmentTransport::default();
     for (recipe, fulfillment) in fulfillments.iter() {
-        *state.fulfillments.get_state_mut(&recipe.0) = Some(fulfillment.0);
+        *transport.fulfillments.get_state_mut(&recipe.0) = Some(fulfillment.0);
         has_changes = true;
     }
 
     if has_changes {
-        updates.send(EngineUpdate::FulfillmentsChanged(state).into());
+        updates.send(EngineUpdate::FulfillmentsChanged(transport).into());
     }
 }

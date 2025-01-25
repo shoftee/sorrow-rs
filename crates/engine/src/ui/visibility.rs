@@ -6,7 +6,7 @@ use bevy::{
 use sorrow_core::{
     communication::EngineUpdate,
     state::{
-        ui::{BonfireNodeId, NavigationNodeId, NodeId},
+        ui::{BonfireNodeId, NavigationNodeId, NodeId, VisibilityTransport},
         KeyIter,
     },
 };
@@ -84,15 +84,16 @@ fn detect_visibility_changes(
     mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
-    let mut state = sorrow_core::state::ui::VisibilityState::default();
+    let mut transport = VisibilityTransport::default();
     for (node, visibility) in query.iter() {
-        *state.nodes.get_state_mut(&node.0) = match visibility {
+        *transport.nodes.get_state_mut(&node.0) = match visibility {
             Visibility::Visible => Some(true),
             Visibility::Invisible => Some(false),
         };
         has_changes = true;
     }
+
     if has_changes {
-        updates.send(EngineUpdate::VisibilityChanged(state).into());
+        updates.send(EngineUpdate::VisibilityChanged(transport).into());
     }
 }

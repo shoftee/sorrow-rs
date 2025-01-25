@@ -4,6 +4,7 @@ use bevy::{
     app::{App, FixedUpdate, Plugin},
     prelude::{Children, Event, EventReader, IntoSystemConfigs, Query},
 };
+
 use sorrow_core::{communication::WorkOrderKind, state::recipes::RecipeKind};
 
 use crate::{
@@ -25,7 +26,7 @@ pub mod sets {
 }
 
 #[derive(Event)]
-pub struct WorkOrder(pub sorrow_core::communication::WorkOrderKind);
+pub struct WorkOrder(pub WorkOrderKind);
 
 pub struct WorkOrdersPlugin;
 

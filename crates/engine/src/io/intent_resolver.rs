@@ -2,9 +2,10 @@ use bevy::{
     app::{First, Plugin},
     prelude::{EventReader, EventWriter, IntoSystemConfigs},
 };
+
 use sorrow_core::{
     communication::{EngineMessage, EngineUpdate, Intent, TimeControl},
-    state::time::{PartialTimeState, RunningState},
+    state::time::{RunningState, TimeTransport},
 };
 
 use crate::simulation::work_orders::WorkOrder;
@@ -44,7 +45,7 @@ fn resolve_intents(
                 match time_control {
                     TimeControl::Pause => {
                         updates.send(
-                            EngineUpdate::TimeChanged(PartialTimeState {
+                            EngineUpdate::TimeChanged(TimeTransport {
                                 running_state: Some(RunningState::Paused),
                             })
                             .into(),
@@ -52,7 +53,7 @@ fn resolve_intents(
                     }
                     TimeControl::Start => {
                         updates.send(
-                            EngineUpdate::TimeChanged(PartialTimeState {
+                            EngineUpdate::TimeChanged(TimeTransport {
                                 running_state: Some(RunningState::Running),
                             })
                             .into(),

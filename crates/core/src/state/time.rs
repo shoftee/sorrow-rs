@@ -8,6 +8,6 @@ pub enum RunningState {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct PartialTimeState {
+pub struct TimeTransport {
     pub running_state: Option<RunningState>,
 }

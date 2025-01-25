@@ -9,6 +9,6 @@ crate::state_key! {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct BuildingState {
+pub struct BuildingTransport {
     pub levels: StateTable<BuildingKind, u32>,
 }

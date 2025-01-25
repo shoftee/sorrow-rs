@@ -10,7 +10,7 @@ crate::state_key! {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct ResourceState {
+pub struct ResourceTransport {
     pub amounts: StateTable<ResourceKind, f64>,
     pub deltas: StateTable<ResourceKind, f64>,
 }

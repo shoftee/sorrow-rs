@@ -2,14 +2,19 @@ use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_i18n::*;
 
-use sorrow_core::communication::{Intent, WorkOrderKind};
-use sorrow_core::state::buildings::BuildingKind;
-use sorrow_core::state::recipes::{Crafting, RecipeKind};
-use sorrow_core::state::ui::{BonfireNodeId, NodeId};
-use sorrow_core::state::{buildings, recipes};
+use sorrow_core::{
+    communication::{Intent, WorkOrderKind},
+    state::{
+        buildings::BuildingKind,
+        recipes::{CraftingRecipeKind, FulfillmentState, RecipeKind},
+        ui::{BonfireNodeId, NodeId},
+    },
+};
 
-use crate::components::numbers::number_span;
-use crate::components::tooltip::{Target, Tooltip, TooltipContainer};
+use crate::components::{
+    numbers::number_span,
+    tooltip::{Target, Tooltip, TooltipContainer},
+};
 use crate::endpoint::use_endpoint;
 use crate::i18n::use_i18n;
 use crate::store::{
@@ -31,11 +36,11 @@ fn BonfireControls() -> impl IntoView {
     let bonfire_nodes = [
         (
             NodeId::Bonfire(BonfireNodeId::GatherCatnip),
-            WorkOrderKind::Craft(Crafting::GatherCatnip),
+            WorkOrderKind::Craft(CraftingRecipeKind::GatherCatnip),
         ),
         (
             NodeId::Bonfire(BonfireNodeId::RefineCatnip),
-            WorkOrderKind::Craft(Crafting::RefineCatnip),
+            WorkOrderKind::Craft(CraftingRecipeKind::RefineCatnip),
         ),
         (
             NodeId::Bonfire(BonfireNodeId::CatnipField),
@@ -78,7 +83,7 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
 
     let fulfillment = fulfillment_state(kind);
     let is_not_fulfilled =
-        Memo::new(move |_| !matches!(fulfillment.get(), recipes::Fulfillment::Fulfilled));
+        Memo::new(move |_| !matches!(fulfillment.get(), FulfillmentState::Fulfilled));
 
     let button_view = match kind {
         WorkOrderKind::Construct(building) => Either::Left(view! {
@@ -118,7 +123,7 @@ fn building_level(kind: BuildingKind) -> Memo<u32> {
     Memo::new(move |_| buildings.read_untracked().get(&kind).unwrap().level().get())
 }
 
-fn fulfillment_state(kind: WorkOrderKind) -> Memo<sorrow_core::state::recipes::Fulfillment> {
+fn fulfillment_state(kind: WorkOrderKind) -> Memo<FulfillmentState> {
     let fulfillments = use_global_store().fulfillments();
     let recipe = match kind {
         WorkOrderKind::Craft(crafting) => RecipeKind::Crafting(crafting),
@@ -136,32 +141,32 @@ fn fulfillment_state(kind: WorkOrderKind) -> Memo<sorrow_core::state::recipes::F
 
 fn button_label(
     i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
-    kind: sorrow_core::communication::WorkOrderKind,
+    kind: WorkOrderKind,
 ) -> &'static str {
     match kind {
         WorkOrderKind::Construct(building) => match building {
-            buildings::BuildingKind::CatnipField => tu_string!(i18n, buildings.catnip_field.label),
+            BuildingKind::CatnipField => tu_string!(i18n, buildings.catnip_field.label),
         },
         WorkOrderKind::Craft(crafting) => match crafting {
-            recipes::Crafting::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.label),
-            recipes::Crafting::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.label),
+            CraftingRecipeKind::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.label),
+            CraftingRecipeKind::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.label),
         },
     }
 }
 
 fn button_description(
     i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
-    kind: sorrow_core::communication::WorkOrderKind,
+    kind: WorkOrderKind,
 ) -> impl IntoView {
     let description = match kind {
         WorkOrderKind::Construct(building) => match building {
-            buildings::BuildingKind::CatnipField => {
+            BuildingKind::CatnipField => {
                 t_string!(i18n, buildings.catnip_field.description)
             }
         },
         WorkOrderKind::Craft(crafting) => match crafting {
-            recipes::Crafting::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.description),
-            recipes::Crafting::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.description),
+            CraftingRecipeKind::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.description),
+            CraftingRecipeKind::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.description),
         },
     };
     view! {

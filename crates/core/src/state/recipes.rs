@@ -6,7 +6,7 @@ use super::{buildings::BuildingKind, KeyIter, StateTable};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum RecipeKind {
-    Crafting(Crafting),
+    Crafting(CraftingRecipeKind),
     Building(BuildingKind),
 }
 
@@ -16,20 +16,20 @@ impl KeyIter for RecipeKind {
     fn key_iter() -> impl Iterator<Item = Self::Item> {
         Iterator::chain(
             BuildingKind::key_iter().map(RecipeKind::Building),
-            Crafting::key_iter().map(RecipeKind::Crafting),
+            CraftingRecipeKind::key_iter().map(RecipeKind::Crafting),
         )
     }
 }
 
 state_key!(
-    pub enum Crafting {
+    pub enum CraftingRecipeKind {
         GatherCatnip,
         RefineCatnip,
     }
 );
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Fulfillment {
+pub enum FulfillmentState {
     #[default]
     Unfulfilled,
     Fulfilled,
@@ -37,6 +37,6 @@ pub enum Fulfillment {
 }
 
 #[derive(Serialize, Deserialize, Default, Debug)]
-pub struct FulfillmentState {
-    pub fulfillments: StateTable<RecipeKind, Fulfillment>,
+pub struct FulfillmentTransport {
+    pub fulfillments: StateTable<RecipeKind, FulfillmentState>,
 }

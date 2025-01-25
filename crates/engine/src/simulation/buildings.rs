@@ -4,9 +4,10 @@ use bevy::{
     app::{Plugin, Startup},
     prelude::*,
 };
+
 use sorrow_core::{
     communication::EngineUpdate,
-    state::buildings::{BuildingKind, BuildingState},
+    state::buildings::{BuildingKind, BuildingTransport},
 };
 
 use crate::{index::LookupIndexPlugin, io::UpdatedEvent, schedules::BufferChanges};
@@ -54,13 +55,13 @@ fn detect_building_changes(
     mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
-    let mut state = BuildingState::default();
+    let mut transport = BuildingTransport::default();
     for (kind, level) in buildings.iter() {
-        *state.levels.get_state_mut(&kind.0) = Some(level.0);
+        *transport.levels.get_state_mut(&kind.0) = Some(level.0);
         has_changes = true;
     }
 
     if has_changes {
-        updates.send(EngineUpdate::BuildingsChanged(state).into());
+        updates.send(EngineUpdate::BuildingsChanged(transport).into());
     }
 }

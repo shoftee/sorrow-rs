@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::state::buildings::BuildingKind;
+use crate::state::{buildings::BuildingKind, recipes::CraftingRecipeKind};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum Intent {
@@ -12,7 +12,7 @@ pub enum Intent {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum WorkOrderKind {
-    Craft(crate::state::recipes::Crafting),
+    Craft(CraftingRecipeKind),
     Construct(BuildingKind),
 }
 
@@ -30,10 +30,10 @@ pub enum EngineMessage {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum EngineUpdate {
-    CalendarChanged(crate::state::calendar::PartialCalendarState),
-    BuildingsChanged(crate::state::buildings::BuildingState),
-    FulfillmentsChanged(crate::state::recipes::FulfillmentState),
-    ResourcesChanged(crate::state::resources::ResourceState),
-    TimeChanged(crate::state::time::PartialTimeState),
-    VisibilityChanged(crate::state::ui::VisibilityState),
+    CalendarChanged(crate::state::calendar::CalendarTransport),
+    BuildingsChanged(crate::state::buildings::BuildingTransport),
+    FulfillmentsChanged(crate::state::recipes::FulfillmentTransport),
+    ResourcesChanged(crate::state::resources::ResourceTransport),
+    TimeChanged(crate::state::time::TimeTransport),
+    VisibilityChanged(crate::state::ui::VisibilityTransport),
 }
