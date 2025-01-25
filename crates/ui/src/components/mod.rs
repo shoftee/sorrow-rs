@@ -3,7 +3,6 @@ pub mod numbers;
 pub mod tooltip;
 
 use leptos::prelude::*;
-use leptos::{component, IntoView};
 
 use sorrow_core::communication::Intent;
 

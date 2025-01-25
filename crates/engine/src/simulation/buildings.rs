@@ -7,7 +7,10 @@ use bevy::{
 
 use sorrow_core::{
     communication::EngineUpdate,
-    state::buildings::{BuildingKind, BuildingTransport},
+    state::{
+        buildings::{BuildingKind, BuildingTransport},
+        KeyIter,
+    },
 };
 
 use crate::{index::LookupIndexPlugin, io::UpdatedEvent, schedules::BufferChanges};
@@ -47,7 +50,7 @@ impl Plugin for BuildingsPlugin {
 }
 
 fn spawn_buildings(mut commands: Commands) {
-    commands.spawn((Building(BuildingKind::CatnipField), Level(0)));
+    commands.spawn_batch(BuildingKind::key_iter().map(|k| (Building(k), Level(0))));
 }
 
 fn detect_building_changes(

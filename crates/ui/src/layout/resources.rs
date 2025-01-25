@@ -2,14 +2,18 @@ use leptos::prelude::*;
 use leptos_i18n::*;
 use reactive_stores::Store;
 
-use sorrow_core::state::resources::ResourceKind;
-use sorrow_core::state::ui::{NodeId, ResourceNodeId};
-use sorrow_core::state::KeyIter;
+use sorrow_core::state::{
+    resources::ResourceKind,
+    ui::{NodeId, ResourceNodeId},
+    KeyIter,
+};
 
-use crate::components::{conditional::*, numbers::DecimalView};
-use crate::formatter::ShowSign;
-use crate::i18n::use_i18n;
-use crate::store::{use_global_store, GlobalStoreFields, ResourceStoreFields, UiStateStoreFields};
+use crate::{
+    components::{conditional::*, numbers::DecimalView},
+    formatter::ShowSign,
+    i18n::use_i18n,
+    store::{use_global_store, GlobalStoreFields, ResourceStoreFields, UiStateStoreFields},
+};
 
 #[component]
 pub fn ResourcesContainer() -> impl IntoView {
@@ -94,7 +98,7 @@ fn ResourceItem(#[prop(into)] item: Store<crate::store::Resource>) -> impl IntoV
 
 fn resource_label(
     i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
-    kind: sorrow_core::state::resources::ResourceKind,
+    kind: ResourceKind,
 ) -> &'static str {
     match kind {
         ResourceKind::Catnip => t_string!(i18n, resources.catnip.label),

@@ -5,10 +5,7 @@ use bevy::{
 
 use sorrow_core::{
     communication::EngineUpdate,
-    state::{
-        ui::{BonfireNodeId, NavigationNodeId, NodeId, VisibilityTransport},
-        KeyIter,
-    },
+    state::ui::{NodeId, VisibilityTransport, NODE_VISIBILITY},
 };
 
 use crate::{
@@ -39,22 +36,16 @@ impl Plugin for VisibilityPlugin {
 }
 
 fn spawn_ui_nodes(mut cmd: Commands) {
-    let bundles = NodeId::key_iter().map(|node_id| {
+    cmd.spawn_batch(NODE_VISIBILITY.iter().map(|(id, is_visible)| {
         (
-            Node(node_id),
-            if matches!(
-                node_id,
-                NodeId::Navigation(NavigationNodeId::Bonfire)
-                    | NodeId::Bonfire(BonfireNodeId::GatherCatnip)
-                    | NodeId::Bonfire(BonfireNodeId::RefineCatnip)
-            ) {
+            Node(*id),
+            if *is_visible {
                 Visibility::Visible
             } else {
                 Visibility::Invisible
             },
         )
-    });
-    cmd.spawn_batch(bundles);
+    }));
 }
 
 fn recalculate_visibility(
@@ -63,12 +54,12 @@ fn recalculate_visibility(
     resources: Query<(&Resource, &Unlocked), Changed<Unlocked>>,
 ) {
     let recipe_states = recipes.iter().map(|(recipe, unlocked)| {
-        let node_id: sorrow_core::state::ui::NodeId = recipe.0.into();
+        let node_id: NodeId = recipe.0.into();
         (Node(node_id), unlocked)
     });
 
     let resource_states = resources.iter().map(|(resource, unlocked)| {
-        let node_id: sorrow_core::state::ui::NodeId = resource.0.into();
+        let node_id: NodeId = resource.0.into();
         (Node(node_id), unlocked)
     });
 

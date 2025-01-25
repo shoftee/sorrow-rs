@@ -11,15 +11,17 @@ use sorrow_core::{
     },
 };
 
-use crate::components::{
-    numbers::number_span,
-    tooltip::{Target, Tooltip, TooltipContainer},
-};
-use crate::endpoint::use_endpoint;
-use crate::i18n::use_i18n;
-use crate::store::{
-    use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreFields,
-    UiStateStoreFields,
+use crate::{
+    components::{
+        numbers::number_span,
+        tooltip::{Target, Tooltip, TooltipContainer},
+    },
+    endpoint::use_endpoint,
+    i18n::use_i18n,
+    store::{
+        use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreFields,
+        UiStateStoreFields,
+    },
 };
 
 #[component]

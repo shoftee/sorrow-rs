@@ -1,3 +1,6 @@
+use std::sync::LazyLock;
+
+use ahash::AHashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::state_key;
@@ -80,6 +83,22 @@ state_key!(
         Bonfire,
     }
 );
+
+pub static NODE_VISIBILITY: LazyLock<AHashMap<NodeId, bool>> = LazyLock::new(|| {
+    NodeId::key_iter()
+        .map(|node_id| {
+            (
+                node_id,
+                matches!(
+                    node_id,
+                    NodeId::Navigation(NavigationNodeId::Bonfire)
+                        | NodeId::Bonfire(BonfireNodeId::GatherCatnip)
+                        | NodeId::Bonfire(BonfireNodeId::RefineCatnip)
+                ),
+            )
+        })
+        .collect()
+});
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct VisibilityTransport {

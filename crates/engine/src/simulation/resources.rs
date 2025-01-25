@@ -7,7 +7,12 @@ use bevy::{
 
 use sorrow_core::{
     communication::EngineUpdate,
-    state::{buildings::BuildingKind, recipes::CraftingRecipeKind, resources::ResourceKind},
+    state::{
+        buildings::BuildingKind,
+        recipes::CraftingRecipeKind,
+        resources::{ResourceKind, CRAFTED_RESOURCES},
+        KeyIter,
+    },
 };
 
 use crate::{
@@ -139,13 +144,12 @@ impl Plugin for ResourcesPlugin {
 }
 
 fn spawn_resources(mut cmd: Commands) {
-    cmd.spawn((Resource(ResourceKind::Catnip), Amount(0.0), Delta(0.0)));
-    cmd.spawn((
-        Resource(ResourceKind::Wood),
-        Amount(0.0),
-        Delta(0.0),
-        Crafted(CraftingRecipeKind::RefineCatnip),
-    ));
+    for resource in ResourceKind::key_iter() {
+        let mut spawned = cmd.spawn((Resource(resource), Amount(0.0), Delta(0.0)));
+        if let Some(crafting_recipe_kind) = CRAFTED_RESOURCES.get(&resource) {
+            spawned.insert(Crafted(*crafting_recipe_kind));
+        }
+    }
 }
 
 fn clear_debits_and_credits(mut transactions: Query<(&mut Debit, &mut Credit), With<Resource>>) {

@@ -5,9 +5,6 @@ mod resources;
 use leptos::prelude::*;
 use leptos_i18n::*;
 
-use controls::ControlsContainer;
-use environment::EnvironmentContainer;
-use resources::ResourcesContainer;
 use sorrow_core::state::{
     ui::{NavigationNodeId, NodeId},
     KeyIter,
@@ -17,6 +14,10 @@ use crate::{
     i18n::use_i18n,
     store::{use_global_store, GlobalStoreFields, UiStateStoreFields},
 };
+
+use controls::ControlsContainer;
+use environment::EnvironmentContainer;
+use resources::ResourcesContainer;
 
 #[component]
 pub fn App() -> impl IntoView {

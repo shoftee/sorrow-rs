@@ -1,8 +1,8 @@
 use bevy::{
     app::{FixedPostUpdate, Plugin, Startup},
     prelude::{
-        BuildChildren, Changed, Children, Commands, Component, EventWriter, IntoSystemConfigs,
-        ParamSet, Query, With,
+        BuildChildren, Changed, ChildBuild, Children, Commands, Component, EventWriter,
+        IntoSystemConfigs, ParamSet, Query, With,
     },
     utils::HashMap,
 };
@@ -10,9 +10,13 @@ use bevy::{
 use sorrow_core::{
     communication::EngineUpdate,
     state::{
-        buildings::BuildingKind,
-        recipes::{CraftingRecipeKind, FulfillmentState, FulfillmentTransport, RecipeKind},
+        buildings::{BUILDING_PRICE_RATIOS, BUILDING_UNLOCK_RATIOS},
+        recipes::{
+            FulfillmentState, FulfillmentTransport, RecipeKind, ResourceAmount,
+            RECIPE_CRAFTED_RESOURCES, RECIPE_INGREDIENTS,
+        },
         resources::ResourceKind,
+        KeyIter,
     },
 };
 
@@ -85,31 +89,41 @@ impl Plugin for FulfillmentPlugin {
 }
 
 fn spawn_recipes(mut cmd: Commands) {
-    cmd.spawn(Recipe(RecipeKind::Crafting(
-        CraftingRecipeKind::GatherCatnip,
-    )))
-    .with_child((CraftedResource(ResourceKind::Catnip), CraftedAmount(1.0)));
+    for recipe in RecipeKind::key_iter() {
+        let mut spawned = cmd.spawn(Recipe(recipe));
 
-    cmd.spawn(Recipe(RecipeKind::Crafting(
-        CraftingRecipeKind::RefineCatnip,
-    )))
-    .with_child((
-        Ingredient(ResourceKind::Catnip),
-        BaseAmount(100.0),
-        RequiredAmount(100.0),
-    ))
-    .with_child((CraftedResource(ResourceKind::Wood), CraftedAmount(1.0)));
+        match recipe {
+            RecipeKind::Crafting(crafting_recipe_kind) => {
+                let ResourceAmount(resource, base_amount) = RECIPE_CRAFTED_RESOURCES
+                    .get(&crafting_recipe_kind)
+                    .expect("recipe did not have a crafting result entry");
+                spawned.with_child((CraftedResource(*resource), CraftedAmount(*base_amount)));
+            }
+            RecipeKind::Building(building_kind) => {
+                let price_ratio = BUILDING_PRICE_RATIOS
+                    .get(&building_kind)
+                    .expect("building recipe did not have a price ratio entry");
+                spawned.insert(PriceRatio(*price_ratio));
 
-    cmd.spawn((
-        Recipe(RecipeKind::Building(BuildingKind::CatnipField)),
-        PriceRatio(1.12),
-        UnlockRatio(0.3),
-    ))
-    .with_child((
-        Ingredient(ResourceKind::Catnip),
-        BaseAmount(10.0),
-        RequiredAmount(10.0),
-    ));
+                if let Some(unlock_ratio) = BUILDING_UNLOCK_RATIOS.get(&building_kind) {
+                    spawned.insert(UnlockRatio(*unlock_ratio));
+                }
+            }
+        }
+
+        spawned.with_children(|b| {
+            for ResourceAmount(resource, base_amount) in RECIPE_INGREDIENTS
+                .get(&recipe)
+                .expect("recipe did not have an ingredients entry")
+            {
+                b.spawn((
+                    Ingredient(*resource),
+                    BaseAmount(*base_amount),
+                    RequiredAmount(*base_amount),
+                ));
+            }
+        });
+    }
 }
 
 fn recalculate_recipe_costs(
