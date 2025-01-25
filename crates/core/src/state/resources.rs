@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::StateTable;
 
 crate::state_key! {
-    pub enum Kind {
+    pub enum ResourceKind {
         Catnip,
         Wood,
     }
@@ -11,6 +11,6 @@ crate::state_key! {
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct ResourceState {
-    pub amounts: StateTable<Kind, f64>,
-    pub deltas: StateTable<Kind, f64>,
+    pub amounts: StateTable<ResourceKind, f64>,
+    pub deltas: StateTable<ResourceKind, f64>,
 }

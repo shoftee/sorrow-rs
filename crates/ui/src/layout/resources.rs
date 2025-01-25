@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use leptos_i18n::*;
 use reactive_stores::Store;
 
-use sorrow_core::state::resources::Kind;
+use sorrow_core::state::resources::ResourceKind;
 use sorrow_core::state::ui::{NodeId, ResourceNodeId};
 use sorrow_core::state::KeyIter;
 
@@ -94,10 +94,10 @@ fn ResourceItem(#[prop(into)] item: Store<crate::store::Resource>) -> impl IntoV
 
 fn resource_label(
     i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
-    kind: sorrow_core::state::resources::Kind,
+    kind: sorrow_core::state::resources::ResourceKind,
 ) -> &'static str {
     match kind {
-        Kind::Catnip => t_string!(i18n, resources.catnip.label),
-        Kind::Wood => t_string!(i18n, resources.wood.label),
+        ResourceKind::Catnip => t_string!(i18n, resources.catnip.label),
+        ResourceKind::Wood => t_string!(i18n, resources.wood.label),
     }
 }

@@ -8,7 +8,7 @@ use bevy::utils::HashMap;
 use sorrow_core::communication::EngineUpdate;
 use sorrow_core::state::buildings::BuildingKind;
 use sorrow_core::state::recipes::{Fulfillment as SFulfillment, FulfillmentState, RecipeKind};
-use sorrow_core::state::resources::Kind as ResourceKind;
+use sorrow_core::state::resources::ResourceKind;
 
 use crate::index::{IndexedQuery, LookupIndexPlugin};
 use crate::io::UpdatedEvent;

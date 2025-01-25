@@ -1,5 +1,5 @@
 use bevy::utils::{hashbrown::hash_map::Iter, HashMap};
-use sorrow_core::state::resources::Kind;
+use sorrow_core::state::resources::ResourceKind;
 
 #[derive(Default)]
 pub struct ResourceDelta {
@@ -8,7 +8,7 @@ pub struct ResourceDelta {
 }
 
 pub struct DeltaSetStack {
-    stack: Vec<HashMap<Kind, ResourceDelta>>,
+    stack: Vec<HashMap<ResourceKind, ResourceDelta>>,
 }
 
 impl DeltaSetStack {
@@ -38,7 +38,7 @@ impl DeltaSetStack {
     }
 
     #[expect(dead_code)]
-    pub fn debit(&self, kind: Kind) -> f64 {
+    pub fn debit(&self, kind: ResourceKind) -> f64 {
         self.stack
             .iter()
             .rev()
@@ -46,7 +46,7 @@ impl DeltaSetStack {
             .sum()
     }
 
-    pub fn credit(&self, kind: Kind) -> f64 {
+    pub fn credit(&self, kind: ResourceKind) -> f64 {
         self.stack
             .iter()
             .rev()
@@ -54,7 +54,7 @@ impl DeltaSetStack {
             .sum()
     }
 
-    fn top(&self) -> &HashMap<Kind, ResourceDelta> {
+    fn top(&self) -> &HashMap<ResourceKind, ResourceDelta> {
         self.stack
             .last()
             .expect("DeltaSet contains at least one element")
@@ -66,29 +66,29 @@ impl DeltaSetStack {
         }
     }
 
-    fn top_mut(&mut self) -> &mut HashMap<Kind, ResourceDelta> {
+    fn top_mut(&mut self) -> &mut HashMap<ResourceKind, ResourceDelta> {
         self.stack
             .last_mut()
             .expect("DeltaSet contains at least one element")
     }
 
-    pub fn add_debit(&mut self, kind: Kind, amount: f64) {
+    pub fn add_debit(&mut self, kind: ResourceKind, amount: f64) {
         let local = self.top_mut().entry(kind).or_default();
         local.debit += amount;
     }
 
-    pub fn add_credit(&mut self, kind: Kind, amount: f64) {
+    pub fn add_credit(&mut self, kind: ResourceKind, amount: f64) {
         let local = self.top_mut().entry(kind).or_default();
         local.credit += amount;
     }
 }
 
 pub struct DeltaSetIter<'a> {
-    inner: Iter<'a, Kind, ResourceDelta>,
+    inner: Iter<'a, ResourceKind, ResourceDelta>,
 }
 
 impl<'a> Iterator for DeltaSetIter<'a> {
-    type Item = (&'a Kind, &'a ResourceDelta);
+    type Item = (&'a ResourceKind, &'a ResourceDelta);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()

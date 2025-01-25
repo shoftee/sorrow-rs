@@ -2,7 +2,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::state_key;
 
-use super::{buildings::BuildingKind, recipes, resources, KeyIter, StateTable};
+use super::{
+    buildings::BuildingKind,
+    recipes::{Crafting, RecipeKind},
+    resources::ResourceKind,
+    KeyIter, StateTable,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NodeId {
@@ -23,25 +28,25 @@ impl KeyIter for NodeId {
     }
 }
 
-impl From<recipes::RecipeKind> for NodeId {
-    fn from(value: recipes::RecipeKind) -> Self {
+impl From<RecipeKind> for NodeId {
+    fn from(value: RecipeKind) -> Self {
         match value {
-            recipes::RecipeKind::Crafting(crafting) => match crafting {
-                recipes::Crafting::GatherCatnip => NodeId::Bonfire(BonfireNodeId::GatherCatnip),
-                recipes::Crafting::RefineCatnip => NodeId::Bonfire(BonfireNodeId::RefineCatnip),
+            RecipeKind::Crafting(crafting) => match crafting {
+                Crafting::GatherCatnip => NodeId::Bonfire(BonfireNodeId::GatherCatnip),
+                Crafting::RefineCatnip => NodeId::Bonfire(BonfireNodeId::RefineCatnip),
             },
-            recipes::RecipeKind::Building(BuildingKind::CatnipField) => {
+            RecipeKind::Building(BuildingKind::CatnipField) => {
                 NodeId::Bonfire(BonfireNodeId::CatnipField)
             }
         }
     }
 }
 
-impl From<resources::Kind> for NodeId {
-    fn from(value: resources::Kind) -> Self {
+impl From<ResourceKind> for NodeId {
+    fn from(value: ResourceKind) -> Self {
         match value {
-            resources::Kind::Catnip => NodeId::Resources(ResourceNodeId::Catnip),
-            resources::Kind::Wood => NodeId::Resources(ResourceNodeId::Wood),
+            ResourceKind::Catnip => NodeId::Resources(ResourceNodeId::Catnip),
+            ResourceKind::Wood => NodeId::Resources(ResourceNodeId::Wood),
         }
     }
 }
@@ -53,11 +58,11 @@ state_key!(
     }
 );
 
-impl From<ResourceNodeId> for super::resources::Kind {
+impl From<ResourceNodeId> for ResourceKind {
     fn from(value: ResourceNodeId) -> Self {
         match value {
-            ResourceNodeId::Catnip => super::resources::Kind::Catnip,
-            ResourceNodeId::Wood => super::resources::Kind::Wood,
+            ResourceNodeId::Catnip => ResourceKind::Catnip,
+            ResourceNodeId::Wood => ResourceKind::Wood,
         }
     }
 }

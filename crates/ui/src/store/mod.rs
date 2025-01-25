@@ -6,6 +6,7 @@ use reactive_stores::Store;
 use sorrow_core::state as core_state;
 use sorrow_core::state::buildings::BuildingKind;
 use sorrow_core::state::recipes::RecipeKind;
+use sorrow_core::state::resources::ResourceKind;
 use sorrow_core::state::{calendar::SeasonKind, precision::Precision, time::RunningState};
 
 #[derive(Store)]
@@ -23,7 +24,7 @@ pub struct Calendar {
 
 #[derive(Store)]
 pub struct Fulfillment {
-    pub kind: core_state::recipes::RecipeKind,
+    pub kind: RecipeKind,
     pub fulfillment: core_state::recipes::Fulfillment,
 }
 
@@ -34,7 +35,7 @@ pub struct Preferences {
 
 #[derive(Store)]
 pub struct Resource {
-    pub kind: core_state::resources::Kind,
+    pub kind: ResourceKind,
     pub amount: f64,
     pub delta: f64,
 }
@@ -53,15 +54,13 @@ pub struct Global {
     pub calendar: Calendar,
     pub fulfillments: BTreeMap<RecipeKind, Store<Fulfillment>>,
     pub preferences: Preferences,
-    pub resources: BTreeMap<core_state::resources::Kind, Store<Resource>>,
+    pub resources: BTreeMap<ResourceKind, Store<Resource>>,
     pub running_state: RunningState,
     pub ui: BTreeMap<core_state::ui::NodeId, Store<UiState>>,
 }
 
 impl Default for Global {
     fn default() -> Self {
-        use core_state::resources::Kind as ResourceKind;
-
         fn buildings_map() -> BTreeMap<BuildingKind, Store<Building>> {
             <BuildingKind as core_state::KeyIter>::key_iter()
                 .map(|kind| (kind, Store::new(Building { kind, level: 0 })))
