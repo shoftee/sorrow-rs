@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::state_key;
 
-use super::{buildings::BuildingKind, resources::ResourceKind, KeyIter, StateTable};
+use super::{buildings::BuildingKind, resources::ResourceKind, KeyIter};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum RecipeKind {
@@ -76,9 +76,4 @@ pub enum FulfillmentState {
     Unfulfilled,
     Fulfilled,
     Capped,
-}
-
-#[derive(Serialize, Deserialize, Default, Debug)]
-pub struct FulfillmentTransport {
-    pub fulfillments: StateTable<RecipeKind, FulfillmentState>,
 }

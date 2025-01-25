@@ -6,8 +6,3 @@ pub enum RunningState {
     Running,
     Paused,
 }
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct TimeTransport {
-    pub running_state: Option<RunningState>,
-}

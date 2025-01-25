@@ -8,12 +8,12 @@ use bevy::{
 };
 
 use sorrow_core::{
-    communication::EngineUpdate,
+    communication::{EngineUpdate, FulfillmentTransport},
     state::{
         buildings::{BUILDING_PRICE_RATIOS, BUILDING_UNLOCK_RATIOS},
         recipes::{
-            FulfillmentState, FulfillmentTransport, RecipeKind, ResourceAmount,
-            RECIPE_CRAFTED_RESOURCES, RECIPE_INGREDIENTS,
+            FulfillmentState, RecipeKind, ResourceAmount, RECIPE_CRAFTED_RESOURCES,
+            RECIPE_INGREDIENTS,
         },
         resources::ResourceKind,
         KeyIter,

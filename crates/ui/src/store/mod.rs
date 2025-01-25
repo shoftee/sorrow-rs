@@ -66,13 +66,32 @@ pub struct Global {
 
 impl Default for Global {
     fn default() -> Self {
-        fn buildings_map() -> BTreeMap<BuildingKind, Store<Building>> {
-            <BuildingKind as KeyIter>::key_iter()
+        Self {
+            is_loaded: false,
+
+            buildings: <BuildingKind as KeyIter>::key_iter()
                 .map(|kind| (kind, Store::new(Building { kind, level: 0 })))
-                .collect()
-        }
-        fn resources_map() -> BTreeMap<ResourceKind, Store<Resource>> {
-            <ResourceKind as KeyIter>::key_iter()
+                .collect(),
+            calendar: Calendar {
+                day: 0,
+                season: SeasonKind::Spring,
+                year: 0,
+            },
+            fulfillments: <RecipeKind as KeyIter>::key_iter()
+                .map(|kind| {
+                    (
+                        kind,
+                        Store::new(Fulfillment {
+                            kind,
+                            fulfillment: FulfillmentState::Unfulfilled,
+                        }),
+                    )
+                })
+                .collect(),
+            preferences: Preferences {
+                precision: Precision::default(),
+            },
+            resources: <ResourceKind as KeyIter>::key_iter()
                 .map(|kind| {
                     (
                         kind,
@@ -83,23 +102,9 @@ impl Default for Global {
                         }),
                     )
                 })
-                .collect()
-        }
-        fn fulfillments_map() -> BTreeMap<RecipeKind, Store<Fulfillment>> {
-            <RecipeKind as KeyIter>::key_iter()
-                .map(|kind| {
-                    (
-                        kind,
-                        Store::new(Fulfillment {
-                            kind,
-                            fulfillment: FulfillmentState::Unfulfilled,
-                        }),
-                    )
-                })
-                .collect()
-        }
-        fn ui_map() -> BTreeMap<NodeId, Store<UiState>> {
-            <NodeId as KeyIter>::key_iter()
+                .collect(),
+            running_state: RunningState::default(),
+            ui: <NodeId as KeyIter>::key_iter()
                 .map(|e| {
                     (
                         e,
@@ -109,24 +114,7 @@ impl Default for Global {
                         }),
                     )
                 })
-                .collect()
-        }
-        Self {
-            is_loaded: false,
-
-            buildings: buildings_map(),
-            calendar: Calendar {
-                day: 0,
-                season: SeasonKind::Spring,
-                year: 0,
-            },
-            fulfillments: fulfillments_map(),
-            preferences: Preferences {
-                precision: Precision::default(),
-            },
-            resources: resources_map(),
-            running_state: RunningState::default(),
-            ui: ui_map(),
+                .collect(),
         }
     }
 }

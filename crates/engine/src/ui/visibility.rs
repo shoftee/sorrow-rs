@@ -4,8 +4,8 @@ use bevy::{
 };
 
 use sorrow_core::{
-    communication::EngineUpdate,
-    state::ui::{NodeId, VisibilityTransport, NODE_VISIBILITY},
+    communication::{EngineUpdate, VisibilityTransport},
+    state::ui::{NodeId, NODE_VISIBILITY},
 };
 
 use crate::{

@@ -7,10 +7,3 @@ pub enum SeasonKind {
     Autumn,
     Winter,
 }
-
-#[derive(Serialize, Deserialize, Default, Debug)]
-pub struct CalendarTransport {
-    pub day: Option<i16>,
-    pub season: Option<SeasonKind>,
-    pub year: Option<usize>,
-}

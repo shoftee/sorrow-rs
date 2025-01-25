@@ -6,7 +6,7 @@ use bevy::{
 };
 
 use sorrow_core::{
-    communication::EngineUpdate,
+    communication::{EngineUpdate, ResourceTransport},
     state::{
         buildings::BuildingKind,
         recipes::CraftingRecipeKind,
@@ -220,7 +220,7 @@ fn detect_resource_changes(
     mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
-    let mut transport = sorrow_core::state::resources::ResourceTransport::default();
+    let mut transport = ResourceTransport::default();
     for (kind, amount, delta) in resources.iter() {
         if amount.is_changed() {
             *transport.amounts.get_state_mut(&kind.0) = Some(amount.0);

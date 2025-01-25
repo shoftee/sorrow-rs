@@ -9,7 +9,7 @@ use super::{
     buildings::BuildingKind,
     recipes::{CraftingRecipeKind, RecipeKind},
     resources::ResourceKind,
-    KeyIter, StateTable,
+    KeyIter,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -99,8 +99,3 @@ pub static NODE_VISIBILITY: LazyLock<AHashMap<NodeId, bool>> = LazyLock::new(|| 
         })
         .collect()
 });
-
-#[derive(Default, Debug, Serialize, Deserialize)]
-pub struct VisibilityTransport {
-    pub nodes: StateTable<NodeId, bool>,
-}

@@ -4,8 +4,8 @@ use bevy::{
 };
 
 use sorrow_core::{
-    communication::EngineUpdate,
-    state::calendar::{CalendarTransport, SeasonKind},
+    communication::{CalendarTransport, EngineUpdate},
+    state::calendar::SeasonKind,
 };
 
 use crate::{io::UpdatedEvent, schedules::BufferChanges, simulation::ticker::Ticker};

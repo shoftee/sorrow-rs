@@ -4,8 +4,8 @@ use bevy::{
 };
 
 use sorrow_core::{
-    communication::{EngineMessage, EngineUpdate, Intent, TimeControl},
-    state::time::{RunningState, TimeTransport},
+    communication::{EngineMessage, EngineUpdate, Intent, TimeControl, TimeTransport},
+    state::time::RunningState,
 };
 
 use crate::simulation::work_orders::WorkOrder;
