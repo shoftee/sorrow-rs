@@ -21,7 +21,7 @@ pub struct Calendar {
 
 #[derive(Store)]
 pub struct Fulfillment {
-    pub kind: core_state::recipes::Kind,
+    pub kind: core_state::recipes::RecipeKind,
     pub fulfillment: core_state::recipes::Fulfillment,
 }
 
@@ -49,7 +49,7 @@ pub struct Global {
 
     pub buildings: BTreeMap<core_state::buildings::Kind, Store<Building>>,
     pub calendar: Calendar,
-    pub fulfillments: BTreeMap<core_state::recipes::Kind, Store<Fulfillment>>,
+    pub fulfillments: BTreeMap<core_state::recipes::RecipeKind, Store<Fulfillment>>,
     pub preferences: Preferences,
     pub resources: BTreeMap<core_state::resources::Kind, Store<Resource>>,
     pub running_state: RunningState,
@@ -59,7 +59,7 @@ pub struct Global {
 impl Default for Global {
     fn default() -> Self {
         use core_state::buildings::Kind as BuildingKind;
-        use core_state::recipes::Kind as RecipeKind;
+        use core_state::recipes::RecipeKind;
         use core_state::resources::Kind as ResourceKind;
 
         fn buildings_map() -> BTreeMap<BuildingKind, Store<Building>> {

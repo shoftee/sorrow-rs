@@ -4,7 +4,7 @@ use bevy::{
     app::{App, FixedUpdate, Plugin},
     prelude::{Children, Event, EventReader, IntoSystemConfigs, Query},
 };
-use sorrow_core::{communication::WorkOrderKind, state::recipes::Kind as RecipeKind};
+use sorrow_core::{communication::WorkOrderKind, state::recipes::RecipeKind};
 
 use crate::{
     index::{IndexedQuery, IndexedQueryMut},

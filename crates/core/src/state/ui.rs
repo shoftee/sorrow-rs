@@ -23,14 +23,14 @@ impl KeyIter for NodeId {
     }
 }
 
-impl From<recipes::Kind> for NodeId {
-    fn from(value: recipes::Kind) -> Self {
+impl From<recipes::RecipeKind> for NodeId {
+    fn from(value: recipes::RecipeKind) -> Self {
         match value {
-            recipes::Kind::Crafting(crafting) => match crafting {
+            recipes::RecipeKind::Crafting(crafting) => match crafting {
                 recipes::Crafting::GatherCatnip => NodeId::Bonfire(BonfireNodeId::GatherCatnip),
                 recipes::Crafting::RefineCatnip => NodeId::Bonfire(BonfireNodeId::RefineCatnip),
             },
-            recipes::Kind::Building(super::buildings::Kind::CatnipField) => {
+            recipes::RecipeKind::Building(super::buildings::Kind::CatnipField) => {
                 NodeId::Bonfire(BonfireNodeId::CatnipField)
             }
         }

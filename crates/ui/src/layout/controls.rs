@@ -3,7 +3,7 @@ use leptos::prelude::*;
 use leptos_i18n::*;
 
 use sorrow_core::communication::{Intent, WorkOrderKind};
-use sorrow_core::state::recipes::Crafting;
+use sorrow_core::state::recipes::{Crafting, RecipeKind};
 use sorrow_core::state::ui::{BonfireNodeId, NodeId};
 use sorrow_core::state::{buildings, recipes};
 
@@ -120,8 +120,8 @@ fn building_level(kind: sorrow_core::state::buildings::Kind) -> Memo<u32> {
 fn fulfillment_state(kind: WorkOrderKind) -> Memo<sorrow_core::state::recipes::Fulfillment> {
     let fulfillments = use_global_store().fulfillments();
     let recipe = match kind {
-        WorkOrderKind::Craft(crafting) => recipes::Kind::Crafting(crafting),
-        WorkOrderKind::Construct(building) => recipes::Kind::Building(building),
+        WorkOrderKind::Craft(crafting) => RecipeKind::Crafting(crafting),
+        WorkOrderKind::Construct(building) => RecipeKind::Building(building),
     };
     Memo::new(move |_| {
         fulfillments
