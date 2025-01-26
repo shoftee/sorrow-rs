@@ -45,8 +45,24 @@ body {
     @apply enabled:focus:ring-black/50 enabled:focus:ring-4;
   }
 
+  .resource-list {
+    @apply *:p-1 rounded divide-y divide-solid divide-neutral-400 border border-solid border-neutral-400;
+  }
+
+  .resource-expander {
+    @apply cursor-pointer bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300;
+  }
+
   .controls > .btn {
     @apply w-full;
+  }
+
+  .controls-tooltip-content {
+    @apply text-sm max-w-[20dvw] drop-shadow-sm rounded bg-neutral-100;
+  }
+
+  .controls-tooltip-list {
+    @apply *:p-1 border border-solid border-neutral-400 divide-y divide-solid divide-neutral-400
   }
 
   .number {

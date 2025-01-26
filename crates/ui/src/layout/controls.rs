@@ -71,10 +71,10 @@ fn BonfireControls() -> impl IntoView {
         <div class="controls grid grid-cols-2 gap-2">
             <For
                 each={move || bonfire_buttons.get()}
-                key={|state| *state}
-                let:item
+                key={|kind| *kind}
+                let:kind
             >
-                <WorkOrderButton kind=item />
+                <WorkOrderButton kind=kind />
             </For>
         </div>
     }
@@ -88,53 +88,66 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
     let recipe = recipe_for_work_order(kind);
 
     let fulfillment_state = fulfillment_state(recipe);
+    let is_capped = Memo::new(move |_| matches!(fulfillment_state.get(), FulfillmentState::Capped));
     let is_not_fulfilled =
         Memo::new(move |_| !matches!(fulfillment_state.get(), FulfillmentState::Fulfilled));
 
     let ingredients = ingredients(recipe);
-
-    let button_view = match kind {
-        WorkOrderKind::Construct(building) => Either::Left(view! {
-            <button
-                class="btn w-full" type="button"
-                on:click=move |_| endpoint.send(Intent::QueueWorkOrder(WorkOrderKind::Construct(building)))
-                prop:disabled=is_not_fulfilled
-            >
-                <WorkOrderLabel work_order=kind />" "{ number_span(building_level(building)) }
-            </button>
-        }),
-        WorkOrderKind::Craft(crafting) => Either::Right(view! {
-            <button
-                class="btn w-full" type="button"
-                on:click=move |_| endpoint.send(Intent::QueueWorkOrder(WorkOrderKind::Craft(crafting)))
-                prop:disabled=is_not_fulfilled
-            >
-                <WorkOrderLabel work_order=kind />
-            </button>
-        }),
-    };
+    let has_ingredients = Memo::new(move |_| ingredients.get().iter().take(1).count() > 0);
 
     view! {
         <TooltipContainer>
-            <Target slot>{button_view}</Target>
+            <Target slot>
+                <button
+                    type="button"
+                    class="btn w-full"
+                    class:capped=is_capped
+                    on:click=move |_| endpoint.send(Intent::QueueWorkOrder(kind))
+                    prop:disabled=is_not_fulfilled
+                >{
+                    match kind {
+                        WorkOrderKind::Construct(building_kind) => Either::Left(view! {
+                            <WorkOrderLabel work_order=kind />" "<BuildingLevel building=building_kind />
+                        }),
+                        WorkOrderKind::Craft(_) => Either::Right(view! {
+                            <WorkOrderLabel work_order=kind />
+                        })
+                    }
+                }</button>
+            </Target>
             <Tooltip slot>
-                <div class="flex flex-col *:p-1 rounded p-2 max-w-[20dvw] bg-neutral-100 border border-solid border-neutral-400 drop-shadow-sm">
-                    <div>{ button_description(i18n, kind) }</div>
-                    <div class="text-sm">
+                <div class="flex flex-col controls-tooltip-content controls-tooltip-list">
+                    { button_description(i18n, kind) }
+                    <Show when=move || has_ingredients.get()>
                         <ul>
                             <For
                                 each={move || ingredients.get()}
-                                key={|item| item.resource().get()}
-                                let:item
+                                key={|store| store.resource().get()}
+                                let:store
                             >
-                                <IngredientFulfillmentItem store=item />
+                                <IngredientFulfillmentItem store=store />
                             </For>
                         </ul>
-                    </div>
+                    </Show>
                 </div>
             </Tooltip>
         </TooltipContainer>
     }
+}
+
+#[component]
+fn BuildingLevel(building: BuildingKind) -> impl IntoView {
+    let buildings = use_global_store().buildings();
+    let level = Memo::new(move |_| {
+        buildings
+            .read_untracked()
+            .get(&building)
+            .unwrap()
+            .level()
+            .get()
+    });
+
+    number_span(level)
 }
 
 #[component]
@@ -151,11 +164,6 @@ fn IngredientFulfillmentItem(store: Store<IngredientFulfillment>) -> impl IntoVi
             <DecimalView value=required_amount />
         </li>
     }
-}
-
-fn building_level(kind: BuildingKind) -> Memo<u32> {
-    let buildings = use_global_store().buildings();
-    Memo::new(move |_| buildings.read_untracked().get(&kind).unwrap().level().get())
 }
 
 fn recipe_for_work_order(kind: WorkOrderKind) -> RecipeKind {

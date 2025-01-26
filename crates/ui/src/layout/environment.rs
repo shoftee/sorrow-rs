@@ -99,7 +99,7 @@ fn EpochSection() -> impl IntoView {
 
 fn season_label(
     i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
-    season: sorrow_core::state::calendar::SeasonKind,
+    season: SeasonKind,
 ) -> &'static str {
     match season {
         SeasonKind::Spring => t_string!(i18n, environment.seasons.spring.label),
