@@ -1,6 +1,5 @@
 pub mod buildings;
 pub mod calendar;
-pub mod options;
 pub mod precision;
 pub mod recipes;
 pub mod resources;
