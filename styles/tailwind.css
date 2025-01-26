@@ -65,6 +65,12 @@ body {
     @apply *:p-1 border border-solid border-neutral-400 divide-y divide-solid divide-neutral-400
   }
 
+  .title-badge {
+    @apply inline-block p-1 rounded;
+    @apply text-xs font-bold text-center whitespace-nowrap align-baseline;
+    @apply text-white bg-green-700;
+  }
+
   .number {
     @apply font-mono;
   }

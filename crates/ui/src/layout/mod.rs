@@ -88,10 +88,10 @@ fn Header() -> impl IntoView {
     view! {
         <header class="bg-gray-100/50 flex flex-row gap-1 px-2 py-1 items-center">
             <div class="order-first flex flex-row gap-1 items-center">
-                <div>{ t!(i18n, game.title) }</div>
-                <div class="badge bg-success">
+                // <div></div>
+                <div class="title-badge">
                     <i class="bi bi-droplet"></i>
-                    " β "
+                    " "{ t!(i18n, game.title) }" β"
                 </div>
             </div>
         </header>
