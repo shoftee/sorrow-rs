@@ -90,9 +90,11 @@ fn EpochSection() -> impl IntoView {
     let year = calendar.year;
 
     view! {
-        <div class="epoch-section">
-            <div class="epoch-title">{ t_string!(i18n, calendar.epoch.full, year, season) }</div>
-            <div class="epoch-event">"Test Event"</div>
+        <div>
+            <div class="border-b border-solid border-neutral-400">{ t_string!(i18n, calendar.epoch.full, year, season) }</div>
+            <ul class="text-xs list-disc">
+                <li>"Test Event"</li>
+            </ul>
         </div>
     }
 }

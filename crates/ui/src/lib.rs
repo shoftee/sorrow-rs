@@ -45,7 +45,7 @@ fn mount() {
                         <App />
                     </Main>
                     <Fallback slot>
-                        <div class="w-100 h-100 flex flex-col items-center justify-center">
+                        <div class="w-full h-full flex flex-col items-center justify-center">
                             <div class="text-5xl">"Loading..."</div>
                         </div>
                     </Fallback>

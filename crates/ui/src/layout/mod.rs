@@ -22,7 +22,7 @@ use resources::ResourcesContainer;
 #[component]
 pub fn App() -> impl IntoView {
     view! {
-        <div id="app" class="h-100 flex flex-col">
+        <div id="app" class="h-full flex flex-col">
             <Header />
             <main class="flex-shrink grid-top-nav-layout gap-0 unscroll-y *:p-2">
                 <Navigation active=NavigationNodeId::Bonfire />
