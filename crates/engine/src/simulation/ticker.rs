@@ -28,8 +28,8 @@ impl Default for TickRate {
 }
 
 impl Ticker {
-    pub fn from_scale(scale: u64) -> Self {
-        assert!(scale > 0, "rate should never be 0");
+    pub fn from_scale(scale: u32) -> Self {
+        assert!(scale > 0, "scale should never be 0");
 
         Self {
             scale: scale as f64,
