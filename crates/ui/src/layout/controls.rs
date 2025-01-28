@@ -15,7 +15,7 @@ use sorrow_core::{
 use crate::{
     components::{
         numbers::{number_span, DecimalView, ResourceAmount},
-        strings::{ResourceLabel, WorkOrderLabel},
+        strings::ResourceLabel,
         tooltip::{Target, Tooltip, TooltipContainer},
     },
     endpoint::use_endpoint,
@@ -82,7 +82,6 @@ fn BonfireControls() -> impl IntoView {
 
 #[component]
 fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
-    let i18n = use_i18n();
     let endpoint = use_endpoint();
 
     let recipe = recipe_for_work_order(kind);
@@ -107,17 +106,17 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
                 >{
                     match kind {
                         WorkOrderKind::Construct(building_kind) => Either::Left(view! {
-                            <WorkOrderLabel work_order=kind />" "<BuildingLevel building=building_kind />
+                            <Label kind=kind />" "<BuildingLevel building_kind=building_kind />
                         }),
                         WorkOrderKind::Craft(_) => Either::Right(view! {
-                            <WorkOrderLabel work_order=kind />
+                            <Label kind=kind />
                         })
                     }
                 }</button>
             </Target>
             <Tooltip slot>
                 <div class="flex flex-col controls-tooltip-content controls-tooltip-list">
-                    { button_description(i18n, kind) }
+                    <Description kind=kind />
                     <Show when=move || has_ingredients.get()>
                         <ul>
                             <For
@@ -136,12 +135,51 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
 }
 
 #[component]
-fn BuildingLevel(building: BuildingKind) -> impl IntoView {
+fn Description(kind: WorkOrderKind) -> impl IntoView {
+    let i18n = use_i18n();
+
+    let description = Signal::derive(move || match kind {
+        WorkOrderKind::Construct(building) => match building {
+            BuildingKind::CatnipField => {
+                t_string!(i18n, buildings.catnip_field.description)
+            }
+        },
+        WorkOrderKind::Craft(crafting) => match crafting {
+            CraftingRecipeKind::GatherCatnip => {
+                t_string!(i18n, bonfire.gather_catnip.description)
+            }
+            CraftingRecipeKind::RefineCatnip => {
+                t_string!(i18n, bonfire.refine_catnip.description)
+            }
+        },
+    });
+
+    view! {
+        <p>{ description }</p>
+    }
+}
+
+#[component]
+fn Label(kind: WorkOrderKind) -> impl IntoView {
+    let i18n = use_i18n();
+    match kind {
+        WorkOrderKind::Construct(building_kind) => match building_kind {
+            BuildingKind::CatnipField => t_string!(i18n, buildings.catnip_field.label),
+        },
+        WorkOrderKind::Craft(crafting_recipe_kind) => match crafting_recipe_kind {
+            CraftingRecipeKind::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.label),
+            CraftingRecipeKind::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.label),
+        },
+    }
+}
+
+#[component]
+fn BuildingLevel(building_kind: BuildingKind) -> impl IntoView {
     let buildings = use_global_store().buildings();
     let level = Memo::new(move |_| {
         buildings
             .read_untracked()
-            .get(&building)
+            .get(&building_kind)
             .unwrap()
             .level()
             .get()
@@ -198,24 +236,4 @@ fn ingredients(recipe: RecipeKind) -> Signal<Vec<Store<IngredientFulfillment>>> 
             .cloned()
             .collect::<Vec<_>>()
     })
-}
-
-fn button_description(
-    i18n: leptos_i18n::I18nContext<crate::i18n::Locale>,
-    kind: WorkOrderKind,
-) -> impl IntoView {
-    let description = match kind {
-        WorkOrderKind::Construct(building) => match building {
-            BuildingKind::CatnipField => {
-                t_string!(i18n, buildings.catnip_field.description)
-            }
-        },
-        WorkOrderKind::Craft(crafting) => match crafting {
-            CraftingRecipeKind::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.description),
-            CraftingRecipeKind::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.description),
-        },
-    };
-    view! {
-        <p>{ description }</p>
-    }
 }
