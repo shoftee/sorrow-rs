@@ -180,22 +180,27 @@ fn commit_credits_and_debits(
     mut resources: Query<(&mut Amount, &Debit, &Credit, Option<&Capacity>), With<Resource>>,
 ) {
     for (mut amount, debit, credit, capacity) in resources.iter_mut() {
-        if let Some(new_amount) = logic::total_if_changed(&amount, debit, credit, capacity) {
-            amount.0 = new_amount;
+        let new_amount = logic::total(amount.as_ref(), debit, credit, capacity);
+        if (amount.as_ref().0 - new_amount).abs() > f64::EPSILON {
+            amount.as_mut().0 = new_amount;
         }
     }
 }
 
 fn recalculate_deltas(
     mut resources: Query<(&Resource, &mut Delta)>,
-    buildings: IndexedQuery<Building, &Level>,
+    buildings: IndexedQuery<Building, Ref<Level>>,
 ) {
     for (kind, mut delta) in resources.iter_mut() {
         match kind.0 {
             ResourceKind::Catnip => {
-                let catnip_fields = buildings.item(BuildingKind::CatnipField.into());
-                let level: u32 = (*catnip_fields).into();
-                delta.0 = 0.125 * level as f64;
+                let level = buildings.item(BuildingKind::CatnipField.into());
+                if level.is_changed() {
+                    let new_delta = 0.125 * level.0 as f64;
+                    if (delta.as_ref().0 - new_delta).abs() > f64::EPSILON {
+                        delta.as_mut().0 = new_delta;
+                    }
+                }
             }
             ResourceKind::Wood => {
                 // no wood gain yet
@@ -239,22 +244,6 @@ fn detect_resource_changes(
 
 pub mod logic {
     use super::{Amount, Capacity, Credit, Debit};
-
-    pub fn total_if_changed(
-        current: &Amount,
-        debit: &Debit,
-        credit: &Credit,
-        capacity: Option<&Capacity>,
-    ) -> Option<f64> {
-        let new_amount = total(current, debit, credit, capacity);
-
-        // check if the value actually changed
-        if (current.0 - new_amount).abs() > f64::EPSILON {
-            Some(new_amount)
-        } else {
-            None
-        }
-    }
 
     pub fn total(
         current: &Amount,

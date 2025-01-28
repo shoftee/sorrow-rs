@@ -18,7 +18,7 @@ use crate::{
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct Node(NodeId);
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Visibility {
     Visible,
     Invisible,
@@ -64,8 +64,15 @@ fn recalculate_visibility(
     });
 
     for (node, unlocked) in recipe_states.chain(resource_states) {
-        if unlocked.0 {
-            *visibilities.item_mut(node) = Visibility::Visible;
+        let new_value = if unlocked.0 {
+            Visibility::Visible
+        } else {
+            Visibility::Invisible
+        };
+
+        let mut visibility_item = visibilities.item_mut(node);
+        if *visibility_item.as_ref() != new_value {
+            *visibility_item.as_mut() = new_value;
         }
     }
 }

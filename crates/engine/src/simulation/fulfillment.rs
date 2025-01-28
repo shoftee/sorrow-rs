@@ -200,7 +200,10 @@ fn recalculate_fulfillments(
 
     let mut recipes_mutable = recipes.p1();
     for (recipe, mut fulfillment) in recipes_mutable.iter_mut() {
-        fulfillment.0 = *calculated.get(recipe).unwrap();
+        let new_value = *calculated.get(recipe).unwrap();
+        if fulfillment.as_ref().0 != new_value {
+            fulfillment.as_mut().0 = new_value;
+        }
     }
 }
 
@@ -210,10 +213,14 @@ fn recalculate_unlocks(
     resources: IndexedQuery<Resource, &Amount>,
 ) {
     for (unlock_ratio, mut unlocked, children) in recipes.iter_mut() {
+        if unlocked.as_ref().0 {
+            continue;
+        }
+
         for (ingredient, required_amount) in requirements.iter_many(children) {
             let amount = resources.item(ingredient.0.into());
             if amount.0 >= (required_amount.0 * unlock_ratio.0) {
-                unlocked.0 = true;
+                unlocked.as_mut().0 = true;
                 break;
             }
         }

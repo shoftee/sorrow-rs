@@ -85,7 +85,8 @@ fn process_work_orders(
                     deltas.add_credit(kind.0, amount.0);
 
                     let (amount, debit, credit, capacity) = resources.item_mut(kind.0.into());
-                    let total = resources::logic::total(amount, &debit, &credit, capacity);
+                    let total =
+                        resources::logic::total(amount, debit.as_ref(), credit.as_ref(), capacity);
                     if total - deltas.credit(kind.0) < 0.0 {
                         is_fulfilled = false;
                         break;
