@@ -1,24 +1,17 @@
 mod table;
+mod transport;
 
 pub use table::*;
+pub use transport::*;
 
 use serde::{Deserialize, Serialize};
 
-use crate::state::{
-    buildings::BuildingKind,
-    calendar::SeasonKind,
-    recipes::{CraftingRecipeKind, FulfillmentState, RecipeKind},
-    resources::ResourceKind,
-    time::RunningState,
-    ui::NodeId,
-};
+use crate::state::{buildings::BuildingKind, recipes::CraftingRecipeKind};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum Intent {
-    /// Stub for initializing game session.
-    Load,
-    TimeControl(TimeControl),
-    QueueWorkOrder(WorkOrderKind),
+pub enum TimeControl {
+    Start,
+    Pause,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -28,9 +21,11 @@ pub enum WorkOrderKind {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum TimeControl {
-    Start,
-    Pause,
+pub enum Intent {
+    /// Stub for initializing game session.
+    Load,
+    TimeControl(TimeControl),
+    QueueWorkOrder(WorkOrderKind),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -47,38 +42,4 @@ pub enum EngineUpdate {
     ResourcesChanged(ResourceTransport),
     TimeChanged(TimeTransport),
     VisibilityChanged(VisibilityTransport),
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct BuildingTransport {
-    pub levels: StateTable<BuildingKind, u32>,
-}
-
-#[derive(Serialize, Deserialize, Default, Debug)]
-pub struct FulfillmentTransport {
-    pub fulfillments: StateTable<RecipeKind, FulfillmentState>,
-    pub required_amounts: StateTable<(RecipeKind, ResourceKind), f64>,
-}
-
-#[derive(Serialize, Deserialize, Default, Debug)]
-pub struct CalendarTransport {
-    pub day: Option<i16>,
-    pub season: Option<SeasonKind>,
-    pub year: Option<usize>,
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct ResourceTransport {
-    pub amounts: StateTable<ResourceKind, f64>,
-    pub deltas: StateTable<ResourceKind, f64>,
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct TimeTransport {
-    pub running_state: Option<RunningState>,
-}
-
-#[derive(Default, Debug, Serialize, Deserialize)]
-pub struct VisibilityTransport {
-    pub nodes: StateTable<NodeId, bool>,
 }
