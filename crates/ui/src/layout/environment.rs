@@ -7,7 +7,7 @@ use sorrow_core::{
 };
 
 use crate::{
-    components::Button,
+    endpoint::use_endpoint,
     i18n::use_i18n,
     store::{use_global_store, CalendarStoreFields, GlobalStoreFields},
 };
@@ -49,7 +49,7 @@ fn Calendar() -> impl IntoView {
 fn ClearLog() -> impl IntoView {
     let i18n = use_i18n_scoped!(game.control);
     view! {
-        <button type="button" class="btn">{ t_string!(i18n, clear_log) }</button>
+        <button type="button" class="btn padded rounded">{ t_string!(i18n, clear_log) }</button>
     }
 }
 
@@ -58,10 +58,20 @@ fn PawseButton() -> impl IntoView {
     let i18n = use_i18n();
 
     let store = use_global_store();
+    let endpoint = use_endpoint();
+
     let running_state = Memo::new(move |_| store.running_state().get());
     let pawsed = Memo::new(move |_| matches!(running_state.get(), RunningState::Paused));
 
-    let new_intent = Signal::derive(move || {
+    let button_label = Signal::derive(move || {
+        if pawsed.get() {
+            t_string!(i18n, game.control.unpawse)
+        } else {
+            t_string!(i18n, game.control.pawse)
+        }
+    });
+
+    let button_intent = Signal::derive(move || {
         if pawsed.get() {
             Intent::TimeControl(TimeControl::Start)
         } else {
@@ -70,13 +80,13 @@ fn PawseButton() -> impl IntoView {
     });
 
     view! {
-        <Button class:active=pawsed intent=new_intent>{
-            move || if pawsed.get() {
-                t_string!(i18n, game.control.unpawse)
-            } else {
-                t_string!(i18n, game.control.pawse)
-            }
-        }</Button>
+        <button type="button"
+            class="btn padded rounded"
+            class:active=pawsed
+            on:click=move |_| endpoint.send(button_intent.get())
+        >
+            {move || button_label.get()}
+        </button>
     }
 }
 

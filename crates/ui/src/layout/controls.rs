@@ -100,7 +100,7 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
             <Target slot>
                 <button
                     type="button"
-                    class="btn w-full"
+                    class="btn padded rounded w-full"
                     class:capped=is_capped
                     on:click=move |_| endpoint.send(Intent::QueueWorkOrder(kind))
                     prop:disabled=is_not_fulfilled

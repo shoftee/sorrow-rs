@@ -60,7 +60,7 @@ fn Navigation(#[prop(into)] active: Signal<NavigationNodeId>) -> impl IntoView {
                 <For each={move || tabs.get()} key={|id| *id} let:child>
                     <li>
                         <button type="button"
-                            class="btn"
+                            class="btn padded rounded"
                             class:active={ move || active.get() == child }
                             prop:disabled=is_single
                         >
