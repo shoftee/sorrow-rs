@@ -2,9 +2,9 @@ mod endpoint;
 mod index;
 mod io;
 mod runner;
+mod schedules;
 mod simulation;
 mod ui;
-mod schedules;
 
 pub use endpoint::Endpoint;
 use ui::UiPlugin;
