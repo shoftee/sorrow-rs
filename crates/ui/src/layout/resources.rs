@@ -66,13 +66,13 @@ fn ResourceItem(#[prop(into)] item: Store<crate::store::Resource>) -> impl IntoV
     let delta = Memo::new(move |_| item.delta().get());
 
     view! {
-        <li class="text-xs">
+        <div class="text-xs">
             <ResourceLabel resource=item.resource().get() />
             " "
             <DecimalView value=amount />
             " "
             <DecimalView value=delta show_sign=ShowSign::Always />
-        </li>
+        </div>
     }
 }
 
