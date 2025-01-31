@@ -107,9 +107,9 @@ fn process_work_orders(
     }
 
     // Overwriting here is correct because the delta set includes the original debit and credit values.
-    for (kind, logic::ResourceDelta { debit, credit }) in deltas.iter_top() {
-        let (_, mut current_debit, mut current_credit, _) = resources.item_mut((*kind).into());
-        current_debit.0 = *debit;
-        current_credit.0 = *credit;
+    for (kind, logic::ResourceDelta { debit, credit }) in deltas.collect() {
+        let (_, mut current_debit, mut current_credit, _) = resources.item_mut(kind.into());
+        current_debit.0 = debit;
+        current_credit.0 = credit;
     }
 }

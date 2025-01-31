@@ -1,12 +1,13 @@
 use bevy::utils::{hashbrown::hash_map::Iter, HashMap};
 use sorrow_core::state::resources::ResourceKind;
 
-#[derive(Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct ResourceDelta {
     pub debit: f64,
     pub credit: f64,
 }
 
+#[derive(Debug)]
 pub struct DeltaSetStack {
     stack: Vec<HashMap<ResourceKind, ResourceDelta>>,
 }
@@ -54,16 +55,16 @@ impl DeltaSetStack {
             .sum()
     }
 
-    fn top(&self) -> &HashMap<ResourceKind, ResourceDelta> {
-        self.stack
-            .last()
-            .expect("DeltaSet contains at least one element")
-    }
-
-    pub fn iter_top(&self) -> DeltaSetIter<'_> {
-        DeltaSetIter {
-            inner: self.top().iter(),
+    pub fn collect(&self) -> Vec<(ResourceKind, ResourceDelta)> {
+        let mut keyed = HashMap::<ResourceKind, ResourceDelta>::default();
+        for level in self.stack.iter() {
+            for (resource, delta) in level.iter() {
+                let entry = keyed.entry(*resource).or_insert(Default::default());
+                entry.debit += delta.debit;
+                entry.credit += delta.credit;
+            }
         }
+        keyed.into_iter().collect()
     }
 
     fn top_mut(&mut self) -> &mut HashMap<ResourceKind, ResourceDelta> {
