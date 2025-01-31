@@ -82,7 +82,11 @@ fn spawn(mut cmd: Commands) {
     cmd.spawn(Ticker::from_scale(1));
 }
 
-fn advance_simulation(time: Res<Time>, tick_rate: Res<TickRate>, mut tickers: Query<&mut Ticker>) {
+fn advance_simulation(
+    time: Res<Time<Fixed>>,
+    tick_rate: Res<TickRate>,
+    mut tickers: Query<&mut Ticker>,
+) {
     for mut ticker in tickers.iter_mut() {
         ticker.advance(time.delta().as_secs_f64() / tick_rate.seconds_per_tick);
     }
