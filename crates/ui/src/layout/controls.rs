@@ -106,10 +106,10 @@ fn WorkOrderButton(kind: WorkOrderKind) -> impl IntoView {
                 >{
                     match kind {
                         WorkOrderKind::Construct(building_kind) => Either::Left(view! {
-                            <Label kind=kind />" "<BuildingLevel building_kind=building_kind />
+                            <WorkOrderLabel kind=kind />" "<BuildingLevel building_kind=building_kind />
                         }),
                         WorkOrderKind::Craft(_) => Either::Right(view! {
-                            <Label kind=kind />
+                            <WorkOrderLabel kind=kind />
                         })
                     }
                 }</button>
@@ -160,9 +160,9 @@ fn Description(kind: WorkOrderKind) -> impl IntoView {
 }
 
 #[component]
-fn Label(kind: WorkOrderKind) -> impl IntoView {
+fn WorkOrderLabel(kind: WorkOrderKind) -> impl IntoView {
     let i18n = use_i18n();
-    match kind {
+    Signal::derive(move || match kind {
         WorkOrderKind::Construct(building_kind) => match building_kind {
             BuildingKind::CatnipField => t_string!(i18n, buildings.catnip_field.label),
         },
@@ -170,7 +170,7 @@ fn Label(kind: WorkOrderKind) -> impl IntoView {
             CraftingRecipeKind::GatherCatnip => t_string!(i18n, bonfire.gather_catnip.label),
             CraftingRecipeKind::RefineCatnip => t_string!(i18n, bonfire.refine_catnip.label),
         },
-    }
+    })
 }
 
 #[component]

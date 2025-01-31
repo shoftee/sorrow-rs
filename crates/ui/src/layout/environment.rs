@@ -48,8 +48,11 @@ fn Calendar() -> impl IntoView {
 #[component]
 fn ClearLog() -> impl IntoView {
     let i18n = use_i18n_scoped!(game.control);
+
+    let label = Signal::derive(move || t_string!(i18n, clear_log));
+
     view! {
-        <button type="button" class="btn padded rounded">{ t_string!(i18n, clear_log) }</button>
+        <button type="button" class="btn padded rounded">{ label }</button>
     }
 }
 
@@ -96,12 +99,20 @@ fn EpochSection() -> impl IntoView {
 
     // read_untracked because Epoch sections designate a snapshot of time and should not change.
     let calendar = use_global_store().calendar().read_untracked();
-    let season = season_label(i18n, calendar.season);
+
+    // Need to react to locale changes for season, though.
+    let season = Signal::derive({
+        let season = calendar.season;
+        move || season_label(i18n, season)
+    });
     let year = calendar.year;
+
+    let formatted_date =
+        Signal::derive(move || t_string!(i18n, calendar.epoch.full, year, season = season.get()));
 
     view! {
         <div>
-            <div class="border-b border-solid border-neutral-400">{ t_string!(i18n, calendar.epoch.full, year, season) }</div>
+            <div class="border-b border-solid border-neutral-400">{ formatted_date }</div>
             <ul class="text-xs list-disc">
                 <li>"Test Event"</li>
             </ul>

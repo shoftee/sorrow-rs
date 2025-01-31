@@ -1,8 +1,4 @@
-@tailwind base;
-
-@tailwind components;
-
-@tailwind utilities;
+@import "tailwindcss";
 
 html,
 body {
@@ -13,9 +9,26 @@ body {
   @apply select-none overflow-hidden;
 }
 
+a {
+  @apply text-blue-500 underline hover:no-underline;
+}
+
 .btn {
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  @apply text-black disabled:text-neutral-500 bg-neutral-100 enabled:cursor-pointer;
+  @apply border border-solid enabled:border-black disabled:border-neutral-500;
+  @apply enabled:focus:ring-black/50 enabled:focus:ring-4;
+  
+  transition:
+    color 0.15s ease-in-out,
+    background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+
+  &:enabled.active,
+  &:enabled:active, 
+  &:enabled:hover {
+    @apply border-neutral-800 bg-neutral-500 text-neutral-100;
+  }
 }
 
 .tooltip-container > .tooltip-content {
@@ -26,89 +39,69 @@ body {
   display: block;
 }
 
-@layer base {
-  a {
-    @apply text-blue-500 underline hover:no-underline;
-  }
-  
-  .btn:active:enabled,
-  .btn:hover:enabled,
-  .btn.active:enabled {
-    @apply text-neutral-100 border-neutral-800 bg-neutral-500;
-  }
+@utility padded {
+  @apply py-1.5 px-3;
 }
 
-@layer utilities {
-  .padded {
-    @apply py-1.5 px-3;
-  }
+.resource-list {
+  @apply *:p-1 rounded divide-y divide-solid divide-neutral-400 border border-solid border-neutral-400;
+}
 
-  .btn {
-    @apply text-black disabled:text-neutral-500 bg-neutral-100;
-    @apply border border-solid enabled:border-black disabled:border-neutral-500;
-    @apply enabled:focus:ring-black/50 enabled:focus:ring-4;
-  }
+.resource-expander {
+  @apply padded cursor-pointer bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300;
+}
 
-  .resource-list {
-    @apply *:p-1 rounded divide-y divide-solid divide-neutral-400 border border-solid border-neutral-400;
-  }
+.controls > .btn {
+  @apply w-full;
+}
 
-  .resource-expander {
-    @apply padded cursor-pointer bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300;
-  }
+.controls-tooltip-content {
+  @apply text-sm max-w-[20dvw] drop-shadow-sm rounded bg-neutral-100;
+}
 
-  .controls > .btn {
-    @apply w-full;
-  }
+.controls-tooltip-list {
+  @apply *:p-1 border border-solid border-neutral-400 divide-y divide-solid divide-neutral-400;
+}
 
-  .controls-tooltip-content {
-    @apply text-sm max-w-[20dvw] drop-shadow-sm rounded bg-neutral-100;
-  }
+.title-badge {
+  @apply inline-block p-1 rounded;
+  @apply text-xs font-bold text-center whitespace-nowrap align-baseline;
+  @apply text-white bg-green-700;
+}
 
-  .controls-tooltip-list {
-    @apply *:p-1 border border-solid border-neutral-400 divide-y divide-solid divide-neutral-400
-  }
+.number {
+  @apply font-mono;
+}
 
-  .title-badge {
-    @apply inline-block p-1 rounded;
-    @apply text-xs font-bold text-center whitespace-nowrap align-baseline;
-    @apply text-white bg-green-700;
-  }
+.unscroll-y {
+  @apply h-full overflow-y-auto;
+}
 
-  .number {
-    @apply font-mono;
-  }
+.grid-top-nav-layout {
+  @apply grid;
 
-  .unscroll-y {
-    @apply h-full overflow-y-auto;
-  }
+  grid-template:
+    "navigation navigation navigation " auto
+    "resources  controls   environment" minmax(0, 1fr)
+    / 3.5fr 5fr 3.5fr;
+}
 
-  .grid-top-nav-layout {
-    @apply grid;
+.navigation-area {
+  grid-area: navigation;
+}
 
-    grid-template:
-      "navigation navigation navigation " auto
-      "resources  controls   environment" minmax(0, 1fr)
-      / 3.5fr 5fr 3.5fr;
-  }
+.resources-area {
+  grid-area: resources;
+}
 
-  .navigation-area {
-    grid-area: navigation;
-  }
+.controls-area {
+  grid-area: controls;
+}
 
-  .resources-area {
-    grid-area: resources;
-  }
+.environment-area {
+  grid-area: environment;
+}
 
-  .controls-area {
-    grid-area: controls;
-  }
-
-  .environment-area {
-    grid-area: environment;
-  }
-
-  .fade-down-to-transparent {
-    mask-image: linear-gradient(to top, transparent, white min(25%, 25vh));
-  }
+.fade-down-to-transparent {
+  mask-image: linear-gradient(to top, transparent, white min(25%, 25vh));
 }
