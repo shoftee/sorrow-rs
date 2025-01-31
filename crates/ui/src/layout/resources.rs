@@ -67,7 +67,7 @@ fn ResourceItem(#[prop(into)] item: Store<crate::store::Resource>) -> impl IntoV
 
     view! {
         <div class="text-xs">
-            <ResourceLabel resource=item.resource().get() />
+            <ResourceLabel resource=item.resource().get_untracked() />
             " "
             <DecimalView value=amount />
             " "
