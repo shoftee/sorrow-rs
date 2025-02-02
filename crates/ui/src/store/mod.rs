@@ -50,6 +50,7 @@ pub struct Resource {
     pub resource: ResourceKind,
     pub amount: f64,
     pub delta: f64,
+    pub capacity: Option<f64>,
 }
 
 #[derive(Store)]
@@ -120,6 +121,7 @@ impl Default for Global {
                             resource,
                             amount: 0.0,
                             delta: 0.0,
+                            capacity: None,
                         }),
                     )
                 })

@@ -115,6 +115,15 @@ fn accept_update(store: Store<Global>, update: EngineUpdate) {
                         .and_modify(|e| e.delta().set(*delta));
                 }
             }
+            for (resource, capacity) in state.capacities.iter() {
+                if let Some(capacity) = capacity {
+                    store
+                        .resources()
+                        .write_untracked()
+                        .entry(*resource)
+                        .and_modify(|e| e.capacity().set(*capacity));
+                }
+            }
         }
         EngineUpdate::TimeChanged(time) => {
             if let Some(running_state) = time.running_state {

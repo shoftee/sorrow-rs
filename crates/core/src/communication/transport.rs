@@ -11,7 +11,7 @@ use crate::state::{
 
 use super::StateTable;
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct BuildingTransport {
     pub levels: StateTable<BuildingKind, u32>,
 }
@@ -29,18 +29,19 @@ pub struct CalendarTransport {
     pub year: Option<usize>,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct ResourceTransport {
     pub amounts: StateTable<ResourceKind, f64>,
     pub deltas: StateTable<ResourceKind, f64>,
+    pub capacities: StateTable<ResourceKind, Option<f64>>,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct TimeTransport {
     pub running_state: Option<RunningState>,
 }
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct VisibilityTransport {
     pub nodes: StateTable<NodeId, bool>,
 }

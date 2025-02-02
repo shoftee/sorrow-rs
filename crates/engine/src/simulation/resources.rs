@@ -10,7 +10,7 @@ use sorrow_core::{
     state::{
         buildings::BuildingKind,
         recipes::CraftingRecipeKind,
-        resources::{ResourceKind, CRAFTED_RESOURCES},
+        resources::{ResourceKind, CRAFTED_RESOURCES, RESOURCE_BASE_CAPACITY},
         KeyIter,
     },
 };
@@ -152,6 +152,9 @@ fn spawn_resources(mut cmd: Commands) {
         if let Some(crafting_recipe_kind) = CRAFTED_RESOURCES.get(&resource) {
             spawned.insert(Crafted(*crafting_recipe_kind));
         }
+        if let Some(capacity) = RESOURCE_BASE_CAPACITY.get(&resource) {
+            spawned.insert(Capacity(*capacity));
+        }
     }
 }
 
@@ -223,13 +226,14 @@ fn recalculate_unlocks(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn detect_resource_changes(
-    resources: Query<(&Resource, Ref<Amount>, Ref<Delta>)>,
+    resources: Query<(&Resource, Ref<Amount>, Ref<Delta>, Option<Ref<Capacity>>)>,
     mut updates: EventWriter<UpdatedEvent>,
 ) {
     let mut has_changes = false;
     let mut transport = ResourceTransport::default();
-    for (kind, amount, delta) in resources.iter() {
+    for (kind, amount, delta, capacity) in resources.iter() {
         if amount.is_changed() {
             *transport.amounts.get_state_mut(&kind.0) = Some(amount.0);
             has_changes = true;
@@ -237,6 +241,12 @@ fn detect_resource_changes(
         if delta.is_changed() {
             *transport.deltas.get_state_mut(&kind.0) = Some(delta.0);
             has_changes = true;
+        }
+        if let Some(capacity) = capacity {
+            if capacity.is_changed() {
+                *transport.capacities.get_state_mut(&kind.0) = Some(Some(capacity.0));
+                has_changes = true;
+            }
         }
     }
 

@@ -198,7 +198,7 @@ fn IngredientFulfillmentItem(store: Store<IngredientFulfillment>) -> impl IntoVi
             <ResourceLabel resource=kind />
             ": "
             <ResourceAmount resource=kind />
-            "/"
+            " / "
             <DecimalView value=required_amount />
         </li>
     }

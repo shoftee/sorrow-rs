@@ -62,17 +62,29 @@ pub fn ResourcesContainer() -> impl IntoView {
 
 #[component]
 fn ResourceItem(#[prop(into)] item: Store<crate::store::Resource>) -> impl IntoView {
-    let amount = Memo::new(move |_| item.amount().get());
     let delta = Memo::new(move |_| item.delta().get());
 
     view! {
         <div class="text-xs">
             <ResourceLabel resource=item.resource().get_untracked() />
             " "
-            <DecimalView value=amount />
+            <ResourceAmount store=item />
             " "
             <DecimalView value=delta show_sign=ShowSign::Always />
         </div>
+    }
+}
+
+#[component]
+fn ResourceAmount(#[prop(into)] store: Store<crate::store::Resource>) -> impl IntoView {
+    let amount = Signal::derive(move || store.amount().get());
+    let capacity = Signal::derive(move || store.capacity().get());
+    view! {
+        <DecimalView value=amount />
+        <Show when=move || capacity.get().is_some()>
+            " / "
+            <DecimalView value=Signal::derive(move || capacity.get().unwrap()) />
+        </Show>
     }
 }
 

@@ -13,11 +13,15 @@ a {
   @apply text-blue-500 underline hover:no-underline;
 }
 
+.capped {
+  @apply text-red-600;
+}
+
 .btn {
   @apply text-black disabled:text-neutral-500 bg-neutral-100 enabled:cursor-pointer;
   @apply border border-solid enabled:border-black disabled:border-neutral-500;
   @apply enabled:focus:ring-black/50 enabled:focus:ring-4;
-  
+
   transition:
     color 0.15s ease-in-out,
     background-color 0.15s ease-in-out,
@@ -25,17 +29,17 @@ a {
     box-shadow 0.15s ease-in-out;
 
   &:enabled.active,
-  &:enabled:active, 
+  &:enabled:active,
   &:enabled:hover {
     @apply border-neutral-800 bg-neutral-500 text-neutral-100;
   }
 }
 
-.tooltip-container > .tooltip-content {
+.tooltip-container>.tooltip-content {
   display: none;
 }
 
-.tooltip-container > .tooltip-target:hover + .tooltip-content {
+.tooltip-container>.tooltip-target:hover+.tooltip-content {
   display: block;
 }
 
@@ -51,7 +55,7 @@ a {
   @apply padded cursor-pointer bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300;
 }
 
-.controls > .btn {
+.controls>.btn {
   @apply w-full;
 }
 
@@ -82,8 +86,7 @@ a {
 
   grid-template:
     "navigation navigation navigation " auto
-    "resources  controls   environment" minmax(0, 1fr)
-    / 3.5fr 5fr 3.5fr;
+    "resources  controls   environment" minmax(0, 1fr) / 3.5fr 5fr 3.5fr;
 }
 
 .navigation-area {

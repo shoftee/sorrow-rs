@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::state::KeyIter;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct StateTable<K, V>(HashMap<K, Option<V>, RandomState>)
 where
     K: Eq + Hash + KeyIter<Item = K>;
