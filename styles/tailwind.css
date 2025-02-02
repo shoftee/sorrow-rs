@@ -33,6 +33,10 @@ a {
   &:enabled:hover {
     @apply border-neutral-800 bg-neutral-500 text-neutral-100;
   }
+
+  &.capped {
+    @apply disabled:text-red-400;
+  }
 }
 
 .tooltip-container>.tooltip-content {
