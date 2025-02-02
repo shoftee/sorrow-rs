@@ -19,7 +19,7 @@ pub static CRAFTED_RESOURCES: LazyLock<AHashMap<ResourceKind, CraftingRecipeKind
     });
 
 pub static RESOURCE_BASE_CAPACITY: LazyLock<AHashMap<ResourceKind, f64>> = LazyLock::new(|| {
-    [(ResourceKind::Catnip, 100.0), (ResourceKind::Wood, 200.0)]
+    [(ResourceKind::Catnip, 5000.0), (ResourceKind::Wood, 200.0)]
         .into_iter()
         .collect()
 });
