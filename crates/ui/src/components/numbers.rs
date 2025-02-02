@@ -5,11 +5,9 @@ use leptos::{
     tachys::html::class::Class,
 };
 
-use sorrow_core::state::resources::ResourceKind;
-
 use crate::{
     formatter::{Formatter, ShowSign},
-    store::{use_global_store, GlobalStoreFields, PreferencesStoreFields, ResourceStoreFields},
+    store::{use_global_store, GlobalStoreFields, PreferencesStoreFields},
 };
 
 pub fn number_span<I: IntoView>(inner: I) -> HtmlElement<Span, (Class<&'static str>,), (I,)> {
@@ -37,22 +35,4 @@ pub fn DecimalView(
     let precision = Memo::new(move |_| store.precision().get());
 
     number_span(move || Formatter::format(value.get(), show_sign, precision.get()))
-}
-
-#[component]
-pub fn ResourceAmount(resource: ResourceKind) -> impl IntoView {
-    let resources = use_global_store().resources();
-
-    let amount = Signal::derive(move || {
-        resources
-            .read_untracked()
-            .get(&resource)
-            .expect("Could not find resource entry")
-            .amount()
-            .get()
-    });
-
-    view! {
-        <DecimalView value=amount />
-    }
 }

@@ -14,7 +14,7 @@ use sorrow_core::{
 
 use crate::{
     components::{
-        numbers::{number_span, DecimalView, ResourceAmount},
+        numbers::{number_span, DecimalView},
         strings::ResourceLabel,
         tooltip::{Target, Tooltip, TooltipContainer},
     },
@@ -22,7 +22,8 @@ use crate::{
     i18n::use_i18n,
     store::{
         use_global_store, BuildingStoreFields, FulfillmentStoreFields, GlobalStoreFields,
-        IngredientFulfillment, IngredientFulfillmentStoreFields, UiStateStoreFields,
+        IngredientFulfillment, IngredientFulfillmentStoreFields, ResourceStoreFields,
+        UiStateStoreFields,
     },
 };
 
@@ -193,12 +194,33 @@ fn IngredientFulfillmentItem(store: Store<IngredientFulfillment>) -> impl IntoVi
     let kind = store.resource().get_untracked();
     let required_amount = Signal::derive(move || store.required_amount().get());
 
+    let resources_store = use_global_store().resources();
+    let current_amount = Signal::derive(move || {
+        resources_store
+            .read_untracked()
+            .get(&kind)
+            .expect("Could not find resource entry")
+            .amount()
+            .get()
+    });
+    let is_resource_capped = Signal::derive(move || {
+        resources_store
+            .read_untracked()
+            .get(&kind)
+            .expect("Could not find resource entry")
+            .capacity()
+            .get()
+            .is_some_and(|capacity| capacity < required_amount.get())
+    });
+
     view! {
-        <li>
+        <li class:capped=is_resource_capped>
             <ResourceLabel resource=kind />
             ": "
-            <ResourceAmount resource=kind />
-            " / "
+            <Show when=move || current_amount.get() < required_amount.get()>
+                <DecimalView value=current_amount />
+                " / "
+            </Show>
             <DecimalView value=required_amount />
         </li>
     }
