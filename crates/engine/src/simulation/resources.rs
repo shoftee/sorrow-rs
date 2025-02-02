@@ -130,11 +130,14 @@ impl Plugin for ResourcesPlugin {
             .add_systems(Startup, spawn_resources)
             .add_systems(
                 FixedUpdate,
-                (clear_debits_and_credits, add_deltas_to_debit_or_credit)
-                    .chain()
-                    .in_set(sets::Prepare),
+                add_deltas_to_debit_or_credit.in_set(sets::Prepare),
             )
-            .add_systems(FixedUpdate, commit_credits_and_debits.in_set(sets::Commit))
+            .add_systems(
+                FixedUpdate,
+                (commit_credits_and_debits, clear_debits_and_credits)
+                    .chain()
+                    .in_set(sets::Commit),
+            )
             .add_systems(
                 FixedPostUpdate,
                 (recalculate_unlocks, recalculate_deltas).in_set(sets::Recalculate),
